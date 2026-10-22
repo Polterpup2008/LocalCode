@@ -12,6 +12,11 @@ and DLLs together. Visual Studio is not needed just to launch the desktop app.
 Compiling or testing your own projects requires their normal development tools.
 The application uses an orange icon and matching theme accents.
 
+On the installer's **Choose Components** page, **LocalCode** is required.
+**Desktop shortcut** and **LocalCode Discord plugin** are optional. Leave the
+plugin unchecked for the coding app alone, or select it to configure your own
+Discord bot after installation. Setup does not start or connect a bot.
+
 Keep projects and model files outside the application installation folder.
 Large GGUF model weights are supplied separately. You need enough RAM, and GPU
 memory if offloading, for your chosen model and context size.
@@ -132,3 +137,31 @@ on important projects.
 The normal distribution includes user help, license notices and built-in skill
 Markdown files. Developer tools, audit reports and saved test conversations are
 not part of the user package.
+
+## Optional Discord plugin
+
+Select **LocalCode Discord plugin** during installation to include its worker,
+manifest, dependency notices and clean configuration. The portable ZIP includes
+the plugin files as well; starting it still requires configuration. No token,
+private persona, model weights or conversation history is included.
+
+In LocalCode, choose **View > Plugins**. Use your own Discord application and
+bot token, enable **Message Content Intent** in the Discord developer portal,
+and enter the allowed server IDs, channel IDs and owner IDs. Select a compatible
+model and runtime in the plugin's model settings. **Save settings**, then use
+**Start bot** when ready. Stop the bot before changing settings. The integration
+connects to Discord only when you start your configured bot.
+
+Closing LocalCode leaves a started bot online. Use **Stop bot** in the plugin
+panel when you want to disconnect it.
+
+Keep the token private and share only redacted logs when reporting a problem.
+Installing the plugin grants no Discord account, credentials or model license.
+
+## License
+
+LocalCode's source is publicly visible under the proprietary [license](../LICENSE).
+Official binaries may be downloaded and run, and local builds are permitted for
+your own personal or internal business use. Redistribution, resale and reuse in
+other products require permission. Earlier MIT grants and third-party component
+licenses retain their applicable rights.

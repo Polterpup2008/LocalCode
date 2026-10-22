@@ -1,6 +1,10 @@
 # Distribution notices
 
-LocalCode is MIT licensed; see LICENSE. Its native UI dynamically links Qt.
+LocalCode's first-party code is distributed under its proprietary LICENSE;
+public source visibility does not change those terms. Rights previously granted
+under MIT for earlier versions remain in effect for those versions. The
+components below retain their own licenses independently of LocalCode's license.
+Its native UI dynamically links Qt.
 Qt is not embedded in a single executable, and its DLLs can be replaced with
 compatible modified builds. The application does not prevent debugging or
 reverse engineering for modification of the LGPL library.
@@ -28,9 +32,11 @@ Pinned source: https://github.com/richgel999/miniz/tree/3.1.2 . The headless cor
 does not link this dependency. Separately downloaded resources retain their own
 license texts and a local receipt of source, revision, size and SHA256.
 
-The optional Discord plugin is MIT licensed and carries its own LICENSE.
-Its Rust dependency notice inventory is tracked in the separate plugin
-repository. No Discord credentials, private persona or history are bundled.
+The optional LocalCode Discord plugin's first-party code uses the proprietary
+LICENSE shipped with that plugin. Its Rust dependencies retain their individual
+licenses; their notice inventory is supplied with the plugin and tracked in its
+separate repository. Earlier MIT grants remain applicable to earlier versions.
+No Discord credentials, private persona or history are bundled.
 Model files are separately supplied by the operator. The Windows distribution
 includes an unchanged llama.cpp b10655 runtime in `bin/llama.cpp.localcode/`,
 with its MIT LICENSE and upstream commit recorded in manifest.json. CPU backends,

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title description">
   <title id="title">LocalCode — Your models. Your code. Your workspace.</title>
-  <desc id="description">Open-source local coding agent for GGUF models with a bundled llama.cpp runtime. Windows release candidate.</desc>
+  <desc id="description">Native local coding agent for GGUF models with a bundled llama.cpp runtime. Windows release candidate.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop stop-color="#25251f"/>
@@ -30,7 +30,7 @@
     <text x="76" y="254" fill="#f3f0ea" font-size="55" font-weight="600" letter-spacing="-1.3">Your models.</text>
     <text x="76" y="319" fill="#f3f0ea" font-size="55" font-weight="600" letter-spacing="-1.3">Your code.</text>
     <text x="76" y="384" fill="#e4a188" font-size="55" font-weight="600" letter-spacing="-1.3">Your workspace.</text>
-    <text x="78" y="449" fill="#bbb5aa" font-size="23">An open-source coding agent, powered locally.</text>
+    <text x="78" y="449" fill="#bbb5aa" font-size="23">A native coding agent, powered locally.</text>
     <g transform="translate(78 515)" font-size="16" fill="#e6e4e0">
       <text x="0" y="0">GGUF models</text>
       <circle cx="133" cy="-5" r="2.5" fill="#d97757"/>

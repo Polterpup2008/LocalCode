@@ -53,6 +53,9 @@ try {
     foreach ($taskDirectory in $taskDirectories | Sort-Object Length -Descending) {
         $taskUninstall.Add('RMDir "$INSTDIR\' + (Escape-Nsis $taskDirectory) + '"')
     }
+    if ($taskPlugin -and -not $taskDiscord.Count) {
+        throw 'The supplied Discord package produced no installer component.'
+    }
     $taskCorePath = Join-Path $taskPackages 'install-core.nsh'
     $taskDiscordPath = Join-Path $taskPackages 'install-discord.nsh'
     $taskUninstallPath = Join-Path $taskPackages 'uninstall-files.nsh'

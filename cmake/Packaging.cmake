@@ -73,6 +73,7 @@ if(LOCALCODE_DISCORD_PACKAGE)
         "${LOCALCODE_DISCORD_PACKAGE}/LICENSE" "${LOCALCODE_DISCORD_PACKAGE}/README.md"
         DESTINATION plugins/discord)
     install(FILES "${LOCALCODE_DISCORD_PACKAGE}/THIRD_PARTY_NOTICES.txt" DESTINATION plugins/discord)
+    install(FILES "${LOCALCODE_DISCORD_PACKAGE}/vcruntime140.dll" DESTINATION plugins/discord OPTIONAL)
     install(FILES "${LOCALCODE_DISCORD_PACKAGE}/benchmark-prompt-cache.ps1"
         DESTINATION plugins/discord OPTIONAL)
     install(DIRECTORY "${LOCALCODE_DISCORD_PACKAGE}/licenses/" DESTINATION plugins/discord/licenses)

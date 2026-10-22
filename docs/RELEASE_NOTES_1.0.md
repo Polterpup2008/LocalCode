@@ -1,7 +1,20 @@
-# LocalCode 1.0 for Windows — Release notes
+# LocalCode 1.0 for Windows — Release candidate 3
 
 The Windows x64 package is unsigned. Release status and completed validation
 are recorded with the distribution.
+
+RC3 adds an optional **LocalCode Discord plugin** checkbox to the installer's
+**Choose Components** page. It installs the plugin worker, manifest and clean
+configuration; no bot connects during setup. Configure your own credentials,
+allowed servers/channels, model and runtime from **View > Plugins** before
+starting it. The portable ZIP also includes the plugin files.
+
+LocalCode now uses a proprietary license with publicly visible source and
+downloadable official binaries. Personal and internal business use, including
+local builds for your own use, are permitted. Redistribution, resale and reuse
+in other products require permission. Earlier MIT grants remain in effect for
+their applicable versions; third-party components keep their own license terms.
+See [LICENSE](../LICENSE).
 
 LocalCode provides a native Qt desktop interface for local GGUF models through
 the bundled **llama.cpp.localcode** runtime, with a custom runtime option in

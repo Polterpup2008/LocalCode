@@ -115,7 +115,8 @@ QString DiscordPlugin::installPackage(const QString& manifestPath) {
     // Copy public artifacts only; never recurse through a bot checkout.
     const QStringList names = {
         "manifest.json", QFileInfo(binary).fileName(), "LICENSE",
-        "README.md",     "THIRD_PARTY_NOTICES.txt",    "benchmark-prompt-cache.ps1"};
+        "README.md",     "THIRD_PARTY_NOTICES.txt",    "benchmark-prompt-cache.ps1",
+        "vcruntime140.dll"};
     for (const auto& name : names) {
         const auto input = QDir(source).filePath(name);
         if (name != "manifest.json" && name != QFileInfo(binary).fileName() && !QFileInfo::exists(input)) continue;

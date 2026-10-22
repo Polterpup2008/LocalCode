@@ -1,21 +1,46 @@
-MIT License
+LocalCode Proprietary License
 
-Copyright (c) 2026 The LocalCode contributors
+Copyright (c) 2026 The LocalCode contributors. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This license covers the first-party LocalCode software, its first-party Discord
+plugin, and their accompanying documentation and original assets (the Software)
+when distributed with this license.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Permission to use
+
+You may download and run official Software binaries, without a license fee,
+for your own personal use or your organization's internal business use. You may
+view the published source, keep a local copy, and compile it solely for those
+same purposes. This permission is non-exclusive and non-transferable.
+
+2. Reserved rights
+
+Except for the permission above, applicable law, or separate written permission
+from the relevant copyright holders, you may not redistribute or sublicense the
+Software, publish modified versions, sell copies, or reuse its source code,
+documentation or original assets in another product. No trademark rights are
+granted. Public visibility of the source does not make it open source.
+
+The rights to view and fork a public repository under GitHub's applicable terms
+are not restricted by this license. Other uses require permission from the
+copyright holders through the official project repository:
+https://github.com/Polterpup2008/LocalCode
+
+3. Third-party components and earlier permissions
+
+Third-party components retain their own copyright notices and licenses. This
+license does not replace or limit those terms, including rights relating to Qt,
+llama.cpp and other bundled libraries. See the accompanying third-party notices
+and license files. Nothing here restricts rights required by applicable law or
+the replacement, modification or debugging of separately licensed libraries.
+
+Earlier distributions supplied under another license retain any permissions
+already granted under that license. This license does not revoke those grants.
+
+4. No warranty
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDERS SHALL NOT BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.

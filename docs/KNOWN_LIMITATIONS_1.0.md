@@ -1,5 +1,16 @@
 # LocalCode 1.0 for Windows — Known limitations
 
+- **Source-visible proprietary license.** Downloading and running official
+  binaries and local builds for your own personal or internal business use are
+  permitted by [LICENSE](../LICENSE). Redistribution, resale and reuse in other
+  products require permission. Previous MIT grants and third-party licenses
+  retain their applicable rights.
+- **Discord needs your own setup.** The optional installer component supplies
+  plugin files, not a configured bot. Supply your own credentials, permitted
+  server/channel IDs, compatible model and runtime through **View > Plugins**.
+  No bot connects during setup. Discord connectivity and its service terms apply
+  when you start the configured integration.
+
 - **Unsigned distribution.** The package has no signing certificate. Windows
   may show an unknown-publisher warning. Use only a package from a source you
   trust; do not disable Windows protection to make it run.

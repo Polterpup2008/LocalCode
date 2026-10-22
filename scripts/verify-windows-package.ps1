@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$Installer,
     [string]$SmokeModel='',
+    [string]$ExpectedLicenseSha256='',
     [string]$ExpectedWorkerSha256='',
     [string]$ExpectedCacheHelperSha256='',
     [string]$ExpectedCpuHelperSha256='',
@@ -10,6 +11,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if (($ExpectedWorkerSha256 -or $ExpectedCacheHelperSha256) -and -not $VerifyDiscordPlugin) { throw 'Worker/cache expectations require -VerifyDiscordPlugin.' }
+if ($ExpectedLicenseSha256 -and $ExpectedLicenseSha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'ExpectedLicenseSha256 must be a SHA256 digest.' }
 if ($ExpectedWorkerSha256 -and $ExpectedWorkerSha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'ExpectedWorkerSha256 must be a SHA256 digest.' }
 if ($ExpectedCacheHelperSha256 -and $ExpectedCacheHelperSha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'ExpectedCacheHelperSha256 must be a SHA256 digest.' }
 if ($ExpectedCpuHelperSha256 -and $ExpectedCpuHelperSha256 -notmatch '^[0-9a-fA-F]{64}$') { throw 'ExpectedCpuHelperSha256 must be a SHA256 digest.' }
@@ -74,6 +76,36 @@ function Run-Owned([string]$Executable, [string]$Arguments, [string]$Log, [strin
 }
 try {
     Run-Owned $taskInstaller "/S /D=$taskInstall" (Join-Path $taskEvidence 'install.log')
+    $taskDiscordDirectory = Join-Path $taskInstall 'plugins\discord'
+    if (Test-Path -LiteralPath $taskDiscordDirectory) {
+        throw 'The optional Discord plugin was installed without selecting its component.'
+    }
+    if ($ExpectedLicenseSha256 -and (Get-FileHash -LiteralPath (Join-Path $taskInstall 'share\localcode\LICENSE') -Algorithm SHA256).Hash -ne $ExpectedLicenseSha256) {
+        throw 'The installed LocalCode license differs from the intended license.'
+    }
+    $taskPluginCrtHash = $null
+    $taskLicenseHash = if ($ExpectedLicenseSha256) { $ExpectedLicenseSha256 } else { $null }
+    if ($VerifyDiscordPlugin) {
+        Run-Owned $taskInstaller "/S /DISCORD=1 /D=$taskInstall" (Join-Path $taskEvidence 'install-discord.log')
+        if ($ExpectedLicenseSha256 -and (Get-FileHash -LiteralPath (Join-Path $taskDiscordDirectory 'LICENSE') -Algorithm SHA256).Hash -ne $ExpectedLicenseSha256) {
+            throw 'The installed Discord plugin license differs from the intended license.'
+        }
+        $taskPluginManifest = Get-Content -LiteralPath (Join-Path $taskDiscordDirectory 'manifest.json') -Raw | ConvertFrom-Json
+        if ($taskPluginManifest.id -ne 'discord' -or $taskPluginManifest.protocol -ne 1 -or $taskPluginManifest.executable -ne 'lcd.exe') {
+            throw 'The selected Discord component has an invalid worker manifest.'
+        }
+        $taskPluginCrtHash = (Get-FileHash -LiteralPath (Join-Path $taskDiscordDirectory 'vcruntime140.dll') -Algorithm SHA256).Hash
+        if ($taskPluginCrtHash -ne (Get-FileHash -LiteralPath (Join-Path $taskInstall 'bin\vcruntime140.dll') -Algorithm SHA256).Hash) {
+            throw 'The Discord worker compiler runtime differs from the bundled application runtime.'
+        }
+        $taskPluginAllowedFiles = @('manifest.json','lcd.exe','LICENSE','README.md','THIRD_PARTY_NOTICES.txt','benchmark-prompt-cache.ps1','vcruntime140.dll')
+        foreach ($taskPluginFile in Get-ChildItem -LiteralPath $taskDiscordDirectory -File -Recurse) {
+            $taskPluginRelative = [IO.Path]::GetRelativePath($taskDiscordDirectory, $taskPluginFile.FullName)
+            if ($taskPluginRelative -notin $taskPluginAllowedFiles -and -not $taskPluginRelative.StartsWith('licenses\', [StringComparison]::OrdinalIgnoreCase)) {
+                throw "The Discord component contains an unexpected file: $taskPluginRelative"
+            }
+        }
+    }
     [Environment]::SetEnvironmentVariable('PATH', "$env:WINDIR\System32", 'Process')
     foreach ($taskKey in @('QT_PLUGIN_PATH','QT_QPA_PLATFORM_PLUGIN_PATH','QT_QPA_PLATFORM','LOCALCODE_LLAMA_SERVER','LOCALCODE_IK_LLAMA_SERVER','LOCALCODE_SKILLS_DIR','DISCORD_BOT_TOKEN')) {
         [Environment]::SetEnvironmentVariable($taskKey, $null, 'Process')
@@ -179,7 +211,8 @@ try {
     foreach ($taskFile in Get-ChildItem -LiteralPath $taskUser -Recurse -File) {
         $taskDataBeforeUpdate[$taskFile.FullName] = (Get-FileHash -LiteralPath $taskFile.FullName).Hash
     }
-    Run-Owned $taskInstaller "/S /D=$taskInstall" (Join-Path $taskEvidence 'update.log')
+    $taskUpdateArguments = if ($VerifyDiscordPlugin) { "/S /DISCORD=1 /D=$taskInstall" } else { "/S /DISCORD=0 /D=$taskInstall" }
+    Run-Owned $taskInstaller $taskUpdateArguments (Join-Path $taskEvidence 'update.log')
     foreach ($taskEntry in $taskDataBeforeUpdate.GetEnumerator()) {
         if (-not (Test-Path -LiteralPath $taskEntry.Key -PathType Leaf) -or
             (Get-FileHash -LiteralPath $taskEntry.Key).Hash -ne $taskEntry.Value) {
@@ -193,12 +226,13 @@ try {
     Run-Owned (Join-Path $taskInstall 'bin\LocalCode.exe') "--diagnostic-snapshot `"$(Join-Path $taskEvidence 'restart.png')`"" (Join-Path $taskEvidence 'restart.log') (Join-Path $taskInstall 'bin')
     if (-not (Test-Path -LiteralPath (Join-Path $taskEvidence 'restart.png') -PathType Leaf)) { throw 'Updated application did not restart.' }
     Run-Owned (Join-Path $taskInstall 'Uninstall.exe') "/S _?=$taskInstall" (Join-Path $taskEvidence 'uninstall.log')
+    if ($VerifyDiscordPlugin -and (Test-Path -LiteralPath $taskDiscordDirectory)) { throw 'Uninstaller left its Discord plugin payload.' }
     if (Test-Path -LiteralPath (Join-Path $taskInstall 'bin\LocalCode.exe')) { throw 'Uninstaller left the installed application.' }
     if ($ExpectedMemoryCoreSha256 -and (Test-Path -LiteralPath $taskMemoryCore)) { throw 'Uninstaller left its RAM runtime core.' }
     if ($ExpectedReasoningCommonSha256 -and (Test-Path -LiteralPath $taskReasoningCommon)) { throw 'Uninstaller left its reasoning runtime.' }
     if ($ExpectedCpuHelperSha256 -and (Test-Path -LiteralPath $taskCpuHelper)) { throw 'Uninstaller left the installed CPU helper.' }
     if (-not (Test-Path -LiteralPath $taskAdded) -or -not (Test-Path -LiteralPath $taskPersonal) -or -not (Test-Path -LiteralPath $taskDatabase)) { throw 'Uninstaller removed a file outside its installed manifest.' }
-    [pscustomobject]@{ passed=$true; installer=$taskInstaller; installerSha256=$taskInstallerHash; installedAppSha256=$taskAppHash; installedWorkerSha256=$taskWorkerHash; cacheHelperSha256=$taskHelperHash; cpuHelperSha256=$taskCpuHelperHash; memoryCoreSha256=$taskMemoryHash; reasoningCommonSha256=$taskReasoningHash; isolatedPath=$taskInstall; evidence=$taskEvidence; version=$taskVersion; nativeGuiInitialised=$true; discordPluginChecked=[bool]$VerifyDiscordPlugin; updatePreservedUserData=$true; restartPassed=$true; restrictedPath=$true; nonAsciiPath=$true; addedFilePreserved=$true; userDataPreserved=$true } |
+    [pscustomobject]@{ passed=$true; installer=$taskInstaller; installerSha256=$taskInstallerHash; licenseSha256=$taskLicenseHash; installedAppSha256=$taskAppHash; installedWorkerSha256=$taskWorkerHash; pluginCrtSha256=$taskPluginCrtHash; cacheHelperSha256=$taskHelperHash; cpuHelperSha256=$taskCpuHelperHash; memoryCoreSha256=$taskMemoryHash; reasoningCommonSha256=$taskReasoningHash; isolatedPath=$taskInstall; evidence=$taskEvidence; version=$taskVersion; nativeGuiInitialised=$true; discordOptionalDefaultChecked=$true; discordPluginChecked=[bool]$VerifyDiscordPlugin; updatePreservedUserData=$true; restartPassed=$true; restrictedPath=$true; nonAsciiPath=$true; addedFilePreserved=$true; userDataPreserved=$true } |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskEvidence 'result.json')
     Write-Output "Package checks passed. Evidence: $taskEvidence"
 } finally {

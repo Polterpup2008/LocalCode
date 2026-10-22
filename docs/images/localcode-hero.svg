@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title description">
   <title id="title">LocalCode — Build with local intelligence.</title>
-  <desc id="description">An open-source coding agent for your own models and projects. Local GGUF models, real development tools, and your workspace. Windows release candidate.</desc>
+  <desc id="description">A native coding agent for your own models and projects. Local GGUF models, real development tools, and your workspace. Windows release candidate.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop stop-color="#22221f"/>
@@ -37,7 +37,7 @@
       <circle cx="336" cy="-5" r="4" fill="#d97757"/>
       <text x="351" y="0">Your workspace</text>
     </g>
-    <text x="54" y="355" fill="#8e897f" font-size="13" letter-spacing="1.5">OPEN SOURCE</text>
+    <text x="54" y="355" fill="#8e897f" font-size="13" letter-spacing="1.5">LOCAL MODELS</text>
     <circle cx="180" cy="350" r="2" fill="#6d665b"/>
     <text x="194" y="355" fill="#8e897f" font-size="13" letter-spacing="1.5">WINDOWS RELEASE CANDIDATE</text>
     <g transform="translate(770 51)">

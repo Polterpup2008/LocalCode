@@ -1,10 +1,19 @@
 # Contributing to LocalCode
 
+LocalCode's source is visible under a [proprietary license](LICENSE). You may
+inspect it and build locally for your own permitted use. Redistribution, resale
+and reuse in other products require permission. Earlier MIT grants remain in
+effect for the versions to which they applied; third-party components retain
+their own terms.
+
 Useful contributions include reproducible bug reports, clearer setup guidance,
 model/runtime compatibility reports and focused fixes. Check the
 [known limitations](docs/KNOWN_LIMITATIONS_1.0.md) and existing
 [issues](https://github.com/Polterpup2008/LocalCode/issues) before opening a new one.
 For a larger change, describe the problem and proposed scope in an issue first.
+Please discuss code contributions with the maintainer before submitting a pull
+request so contribution rights can be agreed explicitly. Public source
+visibility does not grant an open-source license.
 
 ## Build on Windows
 

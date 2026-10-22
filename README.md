@@ -8,20 +8,18 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.2"><img src="https://img.shields.io/badge/release-1.0_RC2-d97757?style=flat-square" alt="Release 1.0 RC2"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.3"><img src="https://img.shields.io/badge/release-1.0_RC3-d97757?style=flat-square" alt="Release 1.0 RC3"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-555b64?style=flat-square" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.3/LocalCode-1.0.0-rc.3-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.3/LocalCode-1.0.0-rc.3-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
-  &nbsp; · &nbsp;
-  <a href="https://polterpup2008.github.io/LocalCode/">Website</a>
 </p>
 
 LocalCode brings your local model into a workspace with file search, editing,
@@ -32,14 +30,15 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-> **1.0 release candidate 2:** available for testing on Windows 10/11 x64.
+> **1.0 release candidate 3:** available for testing on Windows 10/11 x64.
 > The package is unsigned, and some interactive acceptance checks remain open.
 > See the [release status](docs/RELEASE_STATUS_1.0.md) before relying on it.
 
 ## From model to working folder
 
 1. **Install or extract.** Launch LocalCode from the Start menu, or extract the
-   full portable ZIP and run `bin\LocalCode.exe`.
+   full portable ZIP and run `bin\LocalCode.exe`. The installer offers an optional
+   **LocalCode Discord plugin** component.
 2. **Add your model.** Choose **File → Add GGUF model…**, select your `.gguf`,
    review its metadata and load it. LocalCode references the file in place.
 3. **Choose where to work.** Open a project folder, or use **File → Work without
@@ -65,6 +64,7 @@ separately. A local model does not supply a development toolchain.
 | Use your own model | GGUF metadata inspection, model profiles, context and GPU-layer controls; capabilities depend on the model and runtime. |
 | Start without a repository | A unique dated output folder that stays on disk after closing the app. |
 | Pick up later | Saved conversations and session recovery; right-click a chat to delete it without deleting project files. |
+| Connect your Discord bot | An optional plugin, configured from the app with your own bot credentials, model and permitted channels. |
 | Keep project conventions | Repository instructions from `AGENTS.md`, `CLAUDE.md` or `LOCALCODE.md`, plus built-in procedural skills. |
 | Automate or troubleshoot | `localcode-doctor` exposes runtime discovery, model inspection and the agent loop through a CLI. |
 
@@ -82,7 +82,7 @@ Read [how verification works](docs/VERIFICATION_MODEL.md).
 ## The runtime is included. The choice stays yours.
 
 **Default:** LocalCode starts and stops its bundled **llama.cpp.localcode**
-runtime when you load and unload models. RC2 includes upstream build **b10655**;
+runtime when you load and unload models. RC3 includes upstream build **b10655**;
 no custom performance optimization is claimed.
 
 **Custom runtime:** select **Settings → Models → Custom llama.cpp** and choose
@@ -94,12 +94,25 @@ requirements depend on your model, context size and selected backend.
 use. Enable it only to connect to a server you already run; LocalCode will not
 start or stop that external server.
 
+## Discord, when you want it
+
+Select **LocalCode Discord plugin** on the installer's **Choose Components**
+page to add the integration. It is optional and unchecked by default. Setup
+installs its worker, manifest and clean configuration; it does not connect a bot.
+
+Open **View → Plugins** in LocalCode, enter your own Discord bot credentials
+and allowed server/channel IDs, choose a compatible model and runtime, then
+save and start it. No credentials, private persona or chat history are shipped.
+See the [setup guide](docs/GETTING_STARTED.md#optional-discord-plugin).
+
 ## Before you use it on important work
 
-RC2 passed installed startup, update, restart and uninstall checks, plus a real
-inference check using its installed default runtime. The affected automated
-checks passed **24 test cases / 383 assertions**. Remaining interactive checks
-and earlier baseline results are listed in the
+RC3 passed installation with and without Discord, native plugin-panel startup,
+bundled-runtime inference, restart and uninstall checks, including user-data
+preservation. Its installed license files and runtime digests were verified.
+The previous RC2's affected automated checks passed **24 cases / 383 assertions**;
+the full suite was not repeated for RC3. Remaining interactive checks and earlier
+baseline results are listed in the
 [release status](docs/RELEASE_STATUS_1.0.md).
 
 The app is **unsigned**. File tools check workspace boundaries and commands use
@@ -111,7 +124,8 @@ and commands, and keep version control or backups. See
 
 ## Build from source
 
-For contributors: **CMake 3.24+**, a **C++23 compiler** (MSVC 2022 17.8+ on
+For a local build for your own use under the [license](LICENSE): **CMake 3.24+**,
+a **C++23 compiler** (MSVC 2022 17.8+ on
 Windows), and **Qt 6.5+** with Core, Gui, Widgets and Concurrent for the desktop
 app. CMake fetches the remaining source dependencies during configuration.
 
@@ -137,7 +151,7 @@ Windows x64.
 | | |
 |---|---|
 | [User guide](docs/GETTING_STARTED.md) | Models, projects, chats, output folders and settings |
-| [Release notes](docs/RELEASE_NOTES_1.0.md) | What's included in 1.0 RC2 |
+| [Release notes](docs/RELEASE_NOTES_1.0.md) | What's included in 1.0 RC3 |
 | [Runtime guide](docs/BACKENDS.md) | Backend discovery and server management |
 | [Model guide](docs/MODELS.md) | GGUF metadata, capabilities and profiles |
 | [Architecture](docs/ARCHITECTURE.md) | The native core, desktop app and data flow |
@@ -145,7 +159,13 @@ Windows x64.
 
 ## License and acknowledgements
 
-LocalCode is available under the [MIT license](LICENSE). It builds on Qt,
+LocalCode's source is visible under a [proprietary license](LICENSE). You may
+download and run official binaries and build locally for your own personal or
+internal business use. Redistribution, resale and reuse in other products
+require permission. Rights already granted for earlier MIT-licensed versions
+remain under those versions' terms.
+
+It builds on Qt,
 [llama.cpp](https://github.com/ggml-org/llama.cpp) and other open-source projects.
 Bundled components retain their own licenses; see
 [third-party notices](docs/THIRD_PARTY_NOTICES.md).
