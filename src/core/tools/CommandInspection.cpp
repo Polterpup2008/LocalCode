@@ -106,7 +106,8 @@ std::vector<std::string> executables_produced(std::string_view output,
         }
         if (absolute.is_absolute() && !working_directory.empty()) {
             const auto relative = std::filesystem::relative(absolute, working_directory, ec);
-            if (!ec && !relative.empty() && relative.native().rfind(L"..", 0) != 0) {
+            if (!ec && !relative.empty() &&
+                relative.native().rfind(std::filesystem::path{".."}.native(), 0) != 0) {
                 path = relative.string();
             }
         }
