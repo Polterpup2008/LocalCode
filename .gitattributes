@@ -1,0 +1,57 @@
+# Normalise to LF in the repository; check out with the platform's convention.
+* text=auto
+
+*.cpp   text diff=cpp
+*.h     text diff=cpp
+*.cmake text
+*.md    text diff=markdown
+*.json  text
+*.yml   text
+*.py    text diff=python
+
+# Scripts that must keep their platform's endings to run.
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.sh    text eol=lf
+
+# Never touched.
+*.png   binary
+*.gguf  binary
+
+# These receipts bind exact controller/log bytes, including native whitespace.
+docs/performance/proofs/cpu-process-pool-20261015/** -text -whitespace
+docs/performance/proofs/qt-startup-followup-20261015/** -text -whitespace
+docs/performance/proofs/cpu-pool-launch-20261015/** -text -whitespace
+docs/performance/proofs/cpu-pool-delivery-20261015/** -text -whitespace
+docs/performance/proofs/plugin-status-stream-20261015/** -text -whitespace
+
+docs/performance/proofs/hybrid-prefill-profile-20261015/** -text -whitespace
+docs/performance/proofs/q5-scale-simd-20261015/** -text -whitespace
+docs/performance/proofs/qt-startup-current-20261015/** -text -whitespace
+docs/performance/proofs/q5-halfpair-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-20261016/** -text -whitespace
+docs/performance/proofs/qt-startup-image-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-commit-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-peak-delivery-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-ownership-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-intervals-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-isolation-20261016/** -text -whitespace
+docs/performance/proofs/windows-mmap-late-delivery-20261017/** -text -whitespace
+docs/performance/proofs/markdown-rendering-20261017/** -text -whitespace
+docs/performance/proofs/q6-word-dot-20261017/** -text -whitespace
+docs/performance/proofs/q6-metadata-front-20261017/** -text -whitespace
+tools/llama-bench-utf8/*.patch -text -whitespace
+# Patch context lines contain significant leading spaces, including blank context.
+docs/performance/proofs/checkpoint-*-b10655.patch -text -whitespace
+docs/performance/proofs/benchmark-utf8-20261017/** -text -whitespace
+docs/performance/proofs/upstream-runtime-20261017/** -text -whitespace
+docs/performance/proofs/fixed-input-and-build-20261017/** -text -whitespace
+docs/performance/proofs/graph-repack-20261017/** -text -whitespace
+docs/performance/proofs/reasoning-prefill-20261017/** -text -whitespace
+
+docs/performance/proofs/reasoning-server-20261017/** -text -whitespace
+docs/performance/proofs/reasoning-integration-20261017/** -text -whitespace
+docs/performance/proofs/native-closeout-20261017/** -text -whitespace
+docs/recovery-evidence/acceptance-b13.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/recovery-evidence/acceptance-b13-root-verification.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

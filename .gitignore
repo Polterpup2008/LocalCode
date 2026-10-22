@@ -1,0 +1,57 @@
+# Build output.
+#
+# These are anchored to the repository root with a leading slash. Unanchored,
+# git matches them at any depth: `cmake-build-*/` silently swallowed
+# `skills/cmake-build-fix/`, so that skill existed on the author's disk and in
+# nobody else's clone. Keep the slash.
+/build/
+/build-*/
+/out/
+/dist/
+/cmake-build-*/
+_deps/
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+compile_commands.json
+
+# IDE and editor state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# Binaries and intermediates
+*.obj
+*.o
+*.lib
+*.a
+*.pdb
+*.ilk
+*.exp
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Local runtime data
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+logs/
+runtimes/
+
+# Models are large and belong to the user, never to the repository
+*.gguf
+
+# OS noise
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Python bytecode from the benchmark analysis scripts.
+__pycache__/
+*.pyc
+aqtinstall.log

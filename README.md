@@ -1,0 +1,149 @@
+<p align="center">
+  <img src="docs/images/localcode-hero.svg" alt="LocalCode — a native workspace for local coding models" width="100%">
+</p>
+
+<p align="center">
+  <strong>Your models. Your projects. A clear record of the work.</strong><br>
+  A native desktop coding assistant powered by GGUF models and llama.cpp.
+</p>
+
+<p align="center">
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.2"><img src="https://img.shields.io/badge/release-1.0_RC2-d97757?style=flat-square" alt="Release 1.0 RC2"></a>
+  <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
+  <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-555b64?style=flat-square" alt="MIT license"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  &nbsp; · &nbsp;
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  &nbsp; · &nbsp;
+  <a href="docs/GETTING_STARTED.md">Getting started</a>
+</p>
+
+LocalCode brings your local model into a workspace with file search, editing,
+command execution, saved conversations and change review. Give it a focused
+task, follow the tools it uses, and inspect the evidence behind its answer.
+
+The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
+GGUF model; a manual server setup is optional. No Visual Studio installation is
+needed to run the app.
+
+> **1.0 release candidate 2:** available for testing on Windows 10/11 x64.
+> The package is unsigned, and some interactive acceptance checks remain open.
+> See the [release status](docs/RELEASE_STATUS_1.0.md) before relying on it.
+
+## From model to working folder
+
+1. **Install or extract.** Launch LocalCode from the Start menu, or extract the
+   full portable ZIP and run `bin\LocalCode.exe`.
+2. **Add your model.** Choose **File → Add GGUF model…**, select your `.gguf`,
+   review its metadata and load it. LocalCode references the file in place.
+3. **Choose where to work.** Open a project folder, or use **File → Work without
+   a project** to create a persistent dated output folder.
+4. **Give it a small first task.** Press **Ctrl+Enter** to send. Review **Changes**,
+   tool results and command output as it works.
+
+Try a request with a clear scope and a check:
+
+> Read the README and the calculator tests. Fix the addition bug, run the tests,
+> and report the actual result. Keep the change small.
+
+Compilers, interpreters and other tools used by your project must be installed
+separately. A local model does not supply a development toolchain.
+
+## A coding workspace, with the evidence in view
+
+| What you need | What LocalCode provides |
+|---|---|
+| Work on real files | Workspace search, file reads and edits, an editor and a changes view. |
+| Follow the work | Tool activity, command output and visible approval requests. |
+| Check the result | Separate records for configure, build, tests, execution, behaviour and the task objective. |
+| Use your own model | GGUF metadata inspection, model profiles, context and GPU-layer controls; capabilities depend on the model and runtime. |
+| Start without a repository | A unique dated output folder that stays on disk after closing the app. |
+| Pick up later | Saved conversations and session recovery; right-click a chat to delete it without deleting project files. |
+| Keep project conventions | Repository instructions from `AGENTS.md`, `CLAUDE.md` or `LOCALCODE.md`, plus built-in procedural skills. |
+| Automate or troubleshoot | `localcode-doctor` exposes runtime discovery, model inspection and the agent loop through a CLI. |
+
+### Completion should come with something you can inspect
+
+A successful command and a correct feature are different claims. LocalCode
+tracks the commands and file evidence behind a task, marks checks stale after
+relevant edits, and checks completion claims against its record. Missing evidence
+can trigger a request for further checks.
+
+That record still has a scope: a model can choose an incomplete test or
+misunderstand the request. Review the criteria, actual output and diff.
+Read [how verification works](docs/VERIFICATION_MODEL.md).
+
+## The runtime is included. The choice stays yours.
+
+**Default:** LocalCode starts and stops its bundled **llama.cpp.localcode**
+runtime when you load and unload models. RC2 includes upstream build **b10655**;
+no custom performance optimization is claimed.
+
+**Custom runtime:** select **Settings → Models → Custom llama.cpp** and choose
+your `llama-server.exe`, keeping its supporting DLLs together. A model must be
+supported by the runtime and its chat template. RAM, VRAM and GPU-driver
+requirements depend on your model, context size and selected backend.
+
+**Existing server:** leave **Use a server I started myself** unchecked for normal
+use. Enable it only to connect to a server you already run; LocalCode will not
+start or stop that external server.
+
+## Before you use it on important work
+
+RC2 passed installed startup, update, restart and uninstall checks, plus a real
+inference check using its installed default runtime. The affected automated
+checks passed **24 test cases / 383 assertions**. Remaining interactive checks
+and earlier baseline results are listed in the
+[release status](docs/RELEASE_STATUS_1.0.md).
+
+The app is **unsigned**. File tools check workspace boundaries and commands use
+application policies and approvals, but **OS-level command confinement is not
+implemented**. Approved commands run with your account's access. Review changes
+and commands, and keep version control or backups. See
+[known limitations](docs/KNOWN_LIMITATIONS_1.0.md) and
+[security boundaries](docs/SECURITY.md).
+
+## Build from source
+
+For contributors: **CMake 3.24+**, a **C++23 compiler** (MSVC 2022 17.8+ on
+Windows), and **Qt 6.5+** with Core, Gui, Widgets and Concurrent for the desktop
+app. CMake fetches the remaining source dependencies during configuration.
+
+On Windows, the Visual Studio preset selects the x64 toolchain. Replace the Qt
+path with your installed MSVC x64 kit:
+
+```powershell
+git clone https://github.com/Polterpup2008/LocalCode.git
+cd LocalCode
+cmake --preset windows-release-vs -DCMAKE_PREFIX_PATH=C:/Qt/6.9.1/msvc2022_64
+cmake --build --preset windows-release-vs
+ctest --test-dir build/windows-release-vs -C RelWithDebInfo --output-on-failure
+```
+
+A source build needs a runtime supplied separately or a prepared runtime bundle;
+the downloadable Windows packages already include one. To build the core and
+its tests without Qt, use the `windows-core` preset from an MSVC developer
+prompt, or `linux-core` on Linux. The current packaged desktop release targets
+Windows x64.
+
+## Explore further
+
+| | |
+|---|---|
+| [User guide](docs/GETTING_STARTED.md) | Models, projects, chats, output folders and settings |
+| [Release notes](docs/RELEASE_NOTES_1.0.md) | What's included in 1.0 RC2 |
+| [Runtime guide](docs/BACKENDS.md) | Backend discovery and server management |
+| [Model guide](docs/MODELS.md) | GGUF metadata, capabilities and profiles |
+| [Architecture](docs/ARCHITECTURE.md) | The native core, desktop app and data flow |
+| [Contributing](CONTRIBUTING.md) | Development workflow and project conventions |
+
+## License and acknowledgements
+
+LocalCode is available under the [MIT license](LICENSE). It builds on Qt,
+[llama.cpp](https://github.com/ggml-org/llama.cpp) and other open-source projects.
+Bundled components retain their own licenses; see
+[third-party notices](docs/THIRD_PARTY_NOTICES.md).

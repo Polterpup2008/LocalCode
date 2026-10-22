@@ -1,0 +1,243 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Things a compiled test cannot see, because they are properties of the
+  # repository rather than of the code.
+  repository:
+    name: Repository hygiene
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every skill on disk is committed
+        # An unanchored `cmake-build-*/` rule in .gitignore once matched
+        # `skills/cmake-build-fix/`, so that skill existed on one machine and in
+        # no clone. The unit tests could not notice: they read the working
+        # directory, where the file was present.
+        run: |
+          on_disk=$(find skills -name SKILL.md | sort)
+          tracked=$(git ls-files 'skills/*/SKILL.md' | sort)
+          if [ "$on_disk" != "$tracked" ]; then
+            echo "::error::skills on disk and in the index differ"
+            diff <(echo "$on_disk") <(echo "$tracked") || true
+            exit 1
+          fi
+          echo "$(echo "$on_disk" | wc -l) skills, all tracked"
+
+      - name: No accidentally ignored source
+        run: |
+          ignored=$(git ls-files --others --ignored --exclude-standard \
+                    -- src tests skills docs cmake || true)
+          if [ -n "$ignored" ]; then
+            echo "::error::these files are ignored but live in source directories"
+            echo "$ignored"
+            exit 1
+          fi
+
+      - name: Source files are valid UTF-8
+        # A PowerShell Get-Content/Set-Content round trip once read UTF-8 as ANSI
+        # and rewrote a middle dot as two characters.
+        run: |
+          bad=0
+          while IFS= read -r f; do
+            iconv -f UTF-8 -t UTF-8 "$f" >/dev/null 2>&1 || { echo "invalid UTF-8: $f"; bad=1; }
+            if grep -qP '\xc3\x82|\xef\xbf\xbd|\xc3\xa2\xe2\x82\xac' "$f"; then
+              echo "mojibake or replacement character: $f"; bad=1
+            fi
+            # PowerShell 5.1's `Set-Content -Encoding utf8` writes UTF-8 with a
+            # BOM. The project compiles with /utf-8 and does not want one.
+            if [ "$(head -c 3 "$f" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ]; then
+              echo "UTF-8 BOM: $f"; bad=1
+            fi
+          done < <(git ls-files '*.cpp' '*.h' '*.md' '*.txt' '*.cmake' '*.yml' '*.ps1')
+          exit $bad
+
+  # The engine is Qt-free and its tests need no display and no model, so this
+  # job is the one that must always pass.
+  core-windows:
+    name: Engine · Windows · MSVC
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/windows-core/_deps
+          key: deps-windows-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure
+        run: cmake --preset windows-core
+
+      - name: Build
+        run: cmake --build --preset windows-core
+
+      - name: Test
+        run: ctest --preset windows-core
+
+      - name: Diagnostics still run
+        run: |
+          ./build/windows-core/bin/localcode-doctor.exe env
+          ./build/windows-core/bin/localcode-doctor.exe skills skills
+
+      - name: Upload test output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-windows
+          path: build/windows-core/Testing/
+
+  core-linux:
+    name: Engine · Linux · ${{ matrix.compiler }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc-13
+            cc: gcc-13
+            cxx: g++-13
+          - compiler: clang-18
+            cc: clang-18
+            cxx: clang++-18
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libcurl4-openssl-dev ${{ matrix.compiler }}
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/linux-core/_deps
+          key: deps-linux-${{ matrix.compiler }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure
+        run: cmake --preset linux-core
+
+      - name: Build
+        run: cmake --build --preset linux-core
+
+      - name: Test
+        run: ctest --preset linux-core
+
+  # Sanitizers over the engine. Slower, so it runs alongside rather than gating.
+  sanitizers:
+    name: Engine · AddressSanitizer + UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libcurl4-openssl-dev
+
+      - name: Configure
+        run: cmake --preset linux-asan
+
+      - name: Build
+        run: cmake --build --preset linux-asan
+
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:abort_on_error=0
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: ctest --preset linux-asan
+
+  # The desktop application. Qt is large, so this job is cached aggressively.
+  gui-windows:
+    name: Application · Windows · Qt 6
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.9.1'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: ''
+          cache: true
+
+      - name: Cache fetched dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/windows-release/_deps
+          key: deps-gui-windows-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure
+        run: cmake --preset windows-release
+
+      - name: Build
+        run: cmake --build --preset windows-release
+
+      - name: Test
+        run: ctest --preset windows-release
+
+      - name: Package
+        run: |
+          cmake --install build/windows-release --prefix dist
+        continue-on-error: true
+
+      - name: Upload the build
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalCode-windows-x64
+          path: build/windows-release/bin/
+          retention-days: 14
+
+  # Cheap checks that catch the mistakes review keeps having to catch.
+  hygiene:
+    name: Hygiene
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every bundled skill parses and validates
+        run: |
+          sudo apt-get update && sudo apt-get install -y ninja-build libcurl4-openssl-dev
+          cmake --preset linux-core
+          cmake --build --preset linux-core --target localcode-doctor
+          ./build/linux-core/bin/localcode-doctor skills skills
+
+      - name: No stray TODO or FIXME in the engine
+        run: |
+          if grep -rn --include='*.cpp' --include='*.h' -E '\b(TODO|FIXME|XXX|HACK)\b' src/; then
+            echo "::error::Unresolved markers found in src/. Finish it or open an issue."
+            exit 1
+          fi
+
+      - name: No tabs in C++ sources
+        run: |
+          if grep -rnP '\t' --include='*.cpp' --include='*.h' src/ tests/; then
+            echo "::error::Tabs found; this project indents with spaces."
+            exit 1
+          fi

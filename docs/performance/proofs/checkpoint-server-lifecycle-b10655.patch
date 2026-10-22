@@ -1,0 +1,25 @@
+--- a/tools/server/server.cpp
++++ b/tools/server/server.cpp
+@@ -98,10 +98,6 @@
+ 
+     common_init();
+ 
+-    // start the stream session manager GC right after common init, before any HTTP route can
+-    // touch it. lifecycle is symmetric, stop_gc() runs in clean_up() before backend free
+-    server_stream_session_manager_start();
+-
+     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_SERVER)) {
+         return 1;
+     }
+@@ -113,6 +109,11 @@
+ }
+ 
+ int llama_server(common_params & params, int argc, char ** argv) {
++    struct stream_gc_lifetime {
++        stream_gc_lifetime() { server_stream_session_manager_start(); }
++        ~stream_gc_lifetime() { server_stream_session_manager_stop(); }
++    } stream_gc;
++
+     bool is_run_by_cli = (argv == nullptr);
+ 
+     common_models_handler models_handler;

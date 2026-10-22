@@ -1,0 +1,23 @@
+--- a/tools/llama-bench/llama-bench.cpp
++++ b/tools/llama-bench/llama-bench.cpp
+@@ -1759,17 +1759,17 @@
+ 
+ static std::string escape_json(const std::string & value) {
+     std::string escaped;
+-    for (auto c : value) {
++    for (const unsigned char c : value) {
+         if (c == '"') {
+             escaped += "\\\"";
+         } else if (c == '\\') {
+             escaped += "\\\\";
+         } else if (c <= 0x1f) {
+             char buf[8];
+-            snprintf(buf, sizeof(buf), "\\u%04x", c);
++            snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned int>(c));
+             escaped += buf;
+         } else {
+-            escaped += c;
++            escaped += static_cast<char>(c);
+         }
+     }
+     return escaped;

@@ -1,0 +1,77 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The most useful thing you can include is the
+        output of `localcode-doctor backends` and the relevant log from
+        `%LOCALAPPDATA%\LocalCode\logs\` — the logs are split by channel
+        (`agent`, `backend`, `tool`, `security`, `app`), so usually one of them
+        is the one that matters.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        1. Open a project with …
+        2. Load model …
+        3. Ask it to …
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: LocalCode version
+      placeholder: "1.0.0-rc.2, or a commit hash"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11 26100"
+    validations:
+      required: true
+
+  - type: textarea
+    id: runtime
+    attributes:
+      label: Runtime
+      description: The output of `localcode-doctor backends`.
+      render: text
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Which GGUF, and its quantization.
+      placeholder: "Qwen3-8B-Q5_K_M"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked that this is not covered by the known limitations in docs/KNOWN_LIMITATIONS_1.0.md
+          required: false
+        - label: I removed anything private from the logs I pasted
+          required: false

@@ -1,0 +1,48 @@
+name: Model compatibility report
+description: Report how a specific GGUF model behaves
+labels: [model-compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These reports are valuable. LocalCode infers what a model can do from its
+        own chat template, so a model where that inference is wrong is a bug
+        worth fixing.
+
+        Please paste the output of `localcode-doctor gguf <your-model.gguf>` —
+        it contains everything needed.
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: "Qwen3-8B-Instruct-Q5_K_M.gguf"
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: localcode-doctor gguf output
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: How did it behave
+      options:
+        - Works well
+        - Works, but the inferred capabilities were wrong
+        - Tool calls are unreliable
+        - Will not load
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Detail
+      description: What you observed, and what you expected.

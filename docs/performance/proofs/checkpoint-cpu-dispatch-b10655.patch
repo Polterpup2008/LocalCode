@@ -1,0 +1,221 @@
+--- a/common/common.h
++++ b/common/common.h
+@@ -1160,6 +1160,8 @@
+ // prompt utils
+ //
+ 
++#include "shared_checkpoint_bytes.h"
++
+ struct common_prompt_checkpoint {
+     int64_t n_tokens;
+ 
+@@ -1169,12 +1171,12 @@
+     llama_pos pos_min;
+     llama_pos pos_max;
+ 
+-    std::vector<uint8_t> data_tgt;
+-    std::vector<uint8_t> data_dft;
++    common_checkpoint_bytes data_tgt;
++    common_checkpoint_bytes data_dft;
+ 
+     // (optional) speculative-decoding implementation state stashed with the checkpoint
+     // (e.g. eagle3's deferred-boundary g_embd row)
+-    std::vector<uint8_t> data_spec;
++    common_checkpoint_bytes data_spec;
+ 
+     size_t size() const;
+ 
+--- a/common/common.cpp
++++ b/common/common.cpp
+@@ -2290,9 +2290,9 @@
+ 
+     const size_t ckpt_size = llama_state_seq_get_size_ext(ctx, seq_id, flags);
+ 
+-    data_tgt.resize(ckpt_size);
+-
+-    const size_t n = llama_state_seq_get_data_ext(ctx, data_tgt.data(), ckpt_size, seq_id, flags);
++    auto* data_tgt_output = data_tgt.overwrite(ckpt_size);
++
++    const size_t n = llama_state_seq_get_data_ext(ctx, data_tgt_output, ckpt_size, seq_id, flags);
+     if (n != ckpt_size) {
+         GGML_ABORT("checkpoint size mismatch: expected %zu, got %zu\n", ckpt_size, n);
+     }
+@@ -2308,9 +2308,9 @@
+ 
+     const size_t ckpt_size = llama_state_seq_get_size_ext(ctx, seq_id, flags);
+ 
+-    data_dft.resize(ckpt_size);
+-
+-    const size_t n = llama_state_seq_get_data_ext(ctx, data_dft.data(), ckpt_size, seq_id, flags);
++    auto* data_dft_output = data_dft.overwrite(ckpt_size);
++
++    const size_t n = llama_state_seq_get_data_ext(ctx, data_dft_output, ckpt_size, seq_id, flags);
+     if (n != ckpt_size) {
+         GGML_ABORT("checkpoint size mismatch: expected %zu, got %zu\n", ckpt_size, n);
+     }
+--- /dev/null
++++ b/common/shared_checkpoint_bytes.h
+@@ -0,0 +1,31 @@
++#pragma once
++#include <cstdint>
++#include <memory>
++#include <vector>
++
++class common_checkpoint_bytes {
++    std::shared_ptr<std::vector<uint8_t>> bytes_;
++public:
++    size_t size() const { return bytes_ ? bytes_->size() : 0; }
++    bool empty() const { return size() == 0; }
++    const uint8_t* data() const { return bytes_ ? bytes_->data() : nullptr; }
++    size_t capacity() const { return bytes_ ? bytes_->capacity() : 0; }
++    void clear() {
++        if (bytes_ && bytes_.use_count() == 1) bytes_->clear();
++        else bytes_.reset();
++    }
++    uint8_t* overwrite(size_t size) {
++        if (!bytes_ || bytes_.use_count() != 1) bytes_ = std::make_shared<std::vector<uint8_t>>(size);
++        else bytes_->resize(size);
++        return bytes_->data();
++    }
++    const std::vector<uint8_t>& vector() const {
++        static const std::vector<uint8_t> empty;
++        return bytes_ ? *bytes_ : empty;
++    }
++    std::vector<uint8_t>& mutable_vector() {
++        if (!bytes_) bytes_ = std::make_shared<std::vector<uint8_t>>();
++        else if (bytes_.use_count() != 1) bytes_ = std::make_shared<std::vector<uint8_t>>(*bytes_);
++        return *bytes_;
++    }
++};
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -2315,7 +2315,7 @@
+         cur.update_tgt(ctx_tgt, slot.id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
+         cur.update_dft(ctx_dft, slot.id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
+         // stash the draft's speculative state with the checkpoint
+-        common_speculative_get_state(spec.get(), slot.id, cur.data_spec);
++        common_speculative_get_state(spec.get(), slot.id, cur.data_spec.mutable_vector());
+ 
+         SLT_TRC(slot,
+                 "created context checkpoint %d of %d (pos_min = %d, pos_max = %d, n_tokens = %" PRId64 ", size = %.3f MiB)\n",
+@@ -3321,7 +3321,7 @@
+                                         it->load_tgt(ctx_tgt, slot.id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
+                                         it->load_dft(ctx_dft, slot.id, LLAMA_STATE_SEQ_FLAGS_PARTIAL_ONLY);
+                                         // restore the draft's speculative state
+-                                        common_speculative_set_state(spec.get(), slot.id, it->data_spec);
++                                        common_speculative_set_state(spec.get(), slot.id, it->data_spec.vector());
+ 
+                                         pos_next = std::min(pos_next, std::max(it->pos_min + 1, it->pos_max));
+                                         n_past   = std::min(slot.prompt.tokens.size_up_to_pos(pos_next), (size_t) it->n_tokens);
+--- a/ggml/src/ggml-cpu/arch/x86/cpu-feats.cpp
++++ b/ggml/src/ggml-cpu/arch/x86/cpu-feats.cpp
+@@ -1,4 +1,12 @@
+ #include "ggml-backend-impl.h"
++#include "os-xstate.h"
++#if defined(GGML_AMX_INT8) && defined(__linux__)
++#include <sys/syscall.h>
++#include <unistd.h>
++#elif defined(GGML_AMX_INT8) && defined(_WIN32)
++#include <windows.h>
++#endif
++
+ 
+ #if defined(__x86_64__) || (defined(_MSC_VER) && defined(_M_AMD64))
+ 
+@@ -261,7 +269,6 @@
+ #endif
+ 
+ static int ggml_backend_cpu_x86_score() {
+-    // FIXME: this does not check for OS support
+ 
+     int score = 1;
+     cpuid_x86 is;
+@@ -319,6 +326,48 @@
+     score += 1<<11;
+ #endif
+ 
++    uint64_t required = 0;
++#if defined(GGML_FMA) || defined(GGML_F16C) || defined(GGML_AVX) || defined(GGML_AVX2) || defined(GGML_AVX_VNNI)
++    required |= ggml_xstate::avx;
++#endif
++#if defined(GGML_AVX512) || defined(GGML_AVX512_VBMI) || defined(GGML_AVX512_BF16) || defined(GGML_AVX512_VNNI)
++    required |= ggml_xstate::avx512;
++#endif
++#if defined(GGML_AMX_INT8)
++    required |= ggml_xstate::tiles;
++#endif
++    if (required != 0) {
++        if (!is.XSAVE() || !is.OSXSAVE()) { return 0; }
++        uint64_t enabled;
++#ifdef _MSC_VER
++        enabled = _xgetbv(0);
++#else
++        uint32_t low, high;
++        __asm__ __volatile__("xgetbv" : "=a"(low), "=d"(high) : "c"(0));
++        enabled = (uint64_t(high) << 32) | low;
++#endif
++        if (!ggml_xstate::usable(true, true, enabled, required)) { return 0; }
++    }
++#if defined(GGML_AMX_INT8)
++#if defined(__linux__)
++    if (syscall(SYS_arch_prctl, 0x1023, 18) != 0) { return 0; }
++#elif defined(_WIN32)
++    const auto kernel = GetModuleHandleW(L"kernel32.dll");
++    if (!kernel) { return 0; }
++    using query_state = DWORD64 (WINAPI *)(void);
++    using enable_state = BOOL (WINAPI *)(DWORD64);
++    const auto system_state = reinterpret_cast<query_state>(GetProcAddress(kernel, "GetEnabledXStateFeatures"));
++    const auto thread_state = reinterpret_cast<query_state>(GetProcAddress(kernel, "GetThreadEnabledXStateFeatures"));
++    const auto enable = reinterpret_cast<enable_state>(GetProcAddress(kernel, "EnableProcessOptionalXStateFeatures"));
++    if (!system_state || !thread_state || (system_state() & ggml_xstate::tiles) != ggml_xstate::tiles) { return 0; }
++    if ((thread_state() & ggml_xstate::tiles) != ggml_xstate::tiles) {
++        if (!enable || !enable(ggml_xstate::tiles)) { return 0; }
++    }
++    if ((thread_state() & ggml_xstate::tiles) != ggml_xstate::tiles) { return 0; }
++#else
++    return 0;
++#endif
++#endif
+     return score;
+ }
+ 
+--- /dev/null
++++ b/ggml/src/ggml-cpu/arch/x86/os-xstate.h
+@@ -0,0 +1,12 @@
++#pragma once
++#include <cstdint>
++
++namespace ggml_xstate {
++constexpr uint64_t avx = 0x6;
++constexpr uint64_t avx512 = 0xe6;
++constexpr uint64_t tiles = uint64_t(3) << 17;
++
++constexpr bool usable(bool xsave, bool osxsave, uint64_t enabled, uint64_t required) {
++    return required == 0 || (xsave && osxsave && (enabled & required) == required);
++}
++}
+--- a/tools/server/server.cpp
++++ b/tools/server/server.cpp
+@@ -98,10 +98,6 @@
+ 
+     common_init();
+ 
+-    // start the stream session manager GC right after common init, before any HTTP route can
+-    // touch it. lifecycle is symmetric, stop_gc() runs in clean_up() before backend free
+-    server_stream_session_manager_start();
+-
+     if (!common_params_parse(argc, argv, params, LLAMA_EXAMPLE_SERVER)) {
+         return 1;
+     }
+@@ -113,6 +109,11 @@
+ }
+ 
+ int llama_server(common_params & params, int argc, char ** argv) {
++    struct stream_gc_lifetime {
++        stream_gc_lifetime() { server_stream_session_manager_start(); }
++        ~stream_gc_lifetime() { server_stream_session_manager_stop(); }
++    } stream_gc;
++
+     bool is_run_by_cli = (argv == nullptr);
+ 
+     common_models_handler models_handler;

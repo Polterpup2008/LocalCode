@@ -1,0 +1,104 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "core-only",
+      "hidden": true,
+      "cacheVariables": {
+        "LOCALCODE_BUILD_GUI": "OFF",
+        "LOCALCODE_BUILD_TESTS": "ON"
+      }
+    },
+
+    {
+      "name": "windows-debug",
+      "displayName": "Windows · Debug",
+      "description": "Ninja + MSVC. Run from a developer prompt.",
+      "inherits": "base",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows · Release",
+      "description": "Ninja + MSVC, optimised with debug info. Run from a developer prompt.",
+      "inherits": "base",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "windows-release-vs",
+      "displayName": "Windows · Release (Visual Studio generator)",
+      "description": "Sets up the MSVC toolchain itself; no developer prompt needed.",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "windows-core",
+      "displayName": "Windows · engine and tests only",
+      "description": "No Qt required.",
+      "inherits": ["windows-release", "core-only"]
+    },
+
+    {
+      "name": "linux-release",
+      "displayName": "Linux · Release",
+      "inherits": "base",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" },
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "linux-core",
+      "displayName": "Linux · engine and tests only",
+      "inherits": ["linux-release", "core-only"]
+    },
+    {
+      "name": "linux-asan",
+      "displayName": "Linux · sanitizers",
+      "description": "AddressSanitizer and UndefinedBehaviorSanitizer over the engine and tests.",
+      "inherits": ["linux-release", "core-only"],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -g"
+      }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "windows-debug",      "configurePreset": "windows-debug" },
+    { "name": "windows-release",    "configurePreset": "windows-release" },
+    { "name": "windows-release-vs", "configurePreset": "windows-release-vs", "configuration": "RelWithDebInfo" },
+    { "name": "windows-core",       "configurePreset": "windows-core" },
+    { "name": "linux-release",      "configurePreset": "linux-release" },
+    { "name": "linux-core",         "configurePreset": "linux-core" },
+    { "name": "linux-asan",         "configurePreset": "linux-asan" }
+  ],
+
+  "testPresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "output": { "outputOnFailure": true, "verbosity": "default" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    { "name": "windows-release", "inherits": "default", "configurePreset": "windows-release" },
+    { "name": "windows-core",    "inherits": "default", "configurePreset": "windows-core" },
+    { "name": "linux-core",      "inherits": "default", "configurePreset": "linux-core" },
+    { "name": "linux-asan",      "inherits": "default", "configurePreset": "linux-asan" }
+  ]
+}

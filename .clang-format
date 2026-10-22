@@ -1,0 +1,37 @@
+# Matches the style already in the tree; run before sending a patch.
+Language: Cpp
+BasedOnStyle: Google
+
+ColumnLimit: 100
+IndentWidth: 4
+AccessModifierOffset: -4
+UseTab: Never
+
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+
+BinPackArguments: true
+BinPackParameters: true
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 4
+PackConstructorInitializers: NextLine
+
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+SeparateDefinitionBlocks: Always
+SpacesBeforeTrailingComments: 3
+
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+
+# Qt's signal/slot keywords are not access specifiers to clang-format.
+StatementMacros: [Q_OBJECT, Q_PROPERTY, Q_DECLARE_METATYPE]

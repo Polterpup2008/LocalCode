@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest something LocalCode should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check [ROADMAP.md](../../blob/main/ROADMAP.md) first — it also
+        lists what is deliberately out of scope.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve
+      description: >
+        Describe the situation you are in, not the solution. "I cannot tell which
+        of the agent's changes were mine" is more useful than "add a colour to
+        the diff".
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: Existing features that nearly work, and why they do not.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: This does not require a cloud model API
+          required: false
+        - label: This does not add a reasoning tier or effort level of its own
+          required: false
