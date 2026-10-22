@@ -1,4 +1,4 @@
-# LocalCode 1.0 RC2 — Your models. Your projects. The work in view.
+![LocalCode — Build with local intelligence](https://raw.githubusercontent.com/Polterpup2008/LocalCode/v1.0.0-rc.2/docs/images/localcode-hero.svg)
 
 **Turn your local GGUF model into a native coding workspace with file editing,
 command output, saved chats and evidence you can inspect.**
@@ -12,7 +12,7 @@ fresh output folders and simpler chat management.
 
 - **[Setup.exe](https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64-Setup.exe)** — install for your Windows account and launch from the Start menu.
 - **[Portable ZIP](https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64.zip)** — extract the complete archive and run `bin\LocalCode.exe`; keep the included files together.
-- **SHA256SUMS.txt** — checksums for the published packages.
+- **[SHA256SUMS.txt](https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/SHA256SUMS.txt)** — checksums for the published packages.
 
 The packages include Qt and **llama.cpp.localcode** (upstream b10655). Bring your
 own compatible **GGUF model**; weights are not included. Visual Studio is not

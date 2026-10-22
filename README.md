@@ -20,6 +20,8 @@
   <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.2/LocalCode-1.0.0-rc.2-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
+  &nbsp; · &nbsp;
+  <a href="https://polterpup2008.github.io/LocalCode/">Website</a>
 </p>
 
 LocalCode brings your local model into a workspace with file search, editing,
