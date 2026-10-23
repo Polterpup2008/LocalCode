@@ -29,6 +29,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QToolBar>
+#include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QtConcurrent/QtConcurrent>
@@ -632,7 +633,17 @@ void MainWindow::buildToolBar() {
     toolbar->setMovable(false);
     toolbar->setIconSize(QSize(16, 16));
 
-    toolbar->addAction(openWorkspaceAction_);
+    auto* projectButton = new QToolButton(toolbar);
+    projectButton->setObjectName("OpenProjectMenu");
+    projectButton->setDefaultAction(openWorkspaceAction_);
+    projectButton->setPopupMode(QToolButton::MenuButtonPopup);
+    auto* projectMenu = new QMenu(projectButton);
+    projectMenu->addAction(openWorkspaceAction_);
+    projectMenu->addAction(outputWorkspaceAction_);
+    projectButton->setMenu(projectMenu);
+    projectButton->setToolTip(
+        tr("Open a project folder, or use the arrow to work without a project"));
+    toolbar->addWidget(projectButton);
     toolbar->addSeparator();
 
     toolbar->addWidget(new QLabel(tr("Model:"), toolbar));
@@ -1118,7 +1129,7 @@ void MainWindow::updateModelSelector() {
 
     auto profiles = application_.model_profiles();
     if (!profiles || profiles->empty()) {
-        modelSelector_->addItem(tr("No models — use File > Add GGUF model"), QString());
+        modelSelector_->addItem(tr("No models added"), QString());
         modelSelector_->setEnabled(false);
         suppressModelSelector_ = false;
         return;

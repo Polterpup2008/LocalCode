@@ -1,7 +1,27 @@
-# LocalCode 1.0 — Release candidate 4
+# LocalCode 1.0 — Release candidate 5
 
-Windows x64, 23 October 2026. The package is unsigned. **RC4 is not Stable:**
+Windows x64, 23 October 2026. The package is unsigned. **RC5 is not Stable:**
 the remaining installed-GUI checks below have not been completed.
+
+## RC5 UI update
+
+The familiar layout and orange/grey palette are retained. Wrapped-prompt sizing,
+chat scroll intent and the empty project layout were reproduced and corrected.
+Model actions fit a 280px sidebar in two rows; long settings rows wrap. Interface
+and rich-text fonts are consistent and slightly larger. A project toolbar menu
+exposes work without a project; **Jump to latest** occupies its own row below
+chat instead of covering controls.
+
+The final production UI passed **104 cases / 4,310 assertions**, with **six
+existing opt-in skips**. After adding font-capture diagnostics, focused review
+passed **5 cases / 641 assertions** at normal scaling and again with
+`QT_SCALE_FACTOR=1.5`. Dark/light renders, compact/desktop layouts, every Settings
+page, keyboard behavior, hover geometry, model controls and scroll intent were
+checked through Qt APIs. This was not manual OS input or installed-GUI acceptance.
+The qualified RC4 runtime and Discord worker are unchanged.
+
+See [UI changes and validation](UI_UPDATE_RC5.md). Historical RC4 validation
+below applies to its unchanged runtime; remaining Stable checks retain their scope.
 
 ## RC4 runtime update
 

@@ -113,9 +113,9 @@ void SkillsPanel::showSelected() {
     review_->setEnabled(!skill->validated);
 
     const auto& p = colours();
-    QString html = QString("<body style=\"color:%1;font-size:11px\">").arg(
-        p.text.name(QColor::HexRgb));
-    html += QString("<div style=\"font-size:14px;font-weight:600\">%1</div>")
+    QString html = QString("<body style=\"color:%1;%2\">")
+                       .arg(p.text.name(QColor::HexRgb), Theme::instance().richTextStyle());
+    html += QString("<div style=\"font-size:12pt;font-weight:600\">%1</div>")
                 .arg(MarkdownRenderer::escape(QString::fromStdString(skill->name)));
     html += QString("<div style=\"color:%1;margin:2px 0 8px 0\">%2</div>")
                 .arg(p.textMuted.name(QColor::HexRgb),
@@ -124,7 +124,7 @@ void SkillsPanel::showSelected() {
     if (!skill->triggers.empty()) {
         QStringList triggers;
         for (const auto& trigger : skill->triggers) triggers << QString::fromStdString(trigger);
-        html += QString("<div style=\"color:%1;font-size:10px\">TRIGGERS: %2</div>")
+        html += QString("<div style=\"color:%1;font-size:9pt\">TRIGGERS: %2</div>")
                     .arg(p.textFaint.name(QColor::HexRgb),
                          MarkdownRenderer::escape(triggers.join(", ")));
     }

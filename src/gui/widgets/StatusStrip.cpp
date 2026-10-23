@@ -71,6 +71,7 @@ StatusStrip::StatusStrip(QWidget* parent) : QWidget(parent) {
     contextBar_->setFixedSize(90, 6);
     contextBar_->setRange(0, 100);
     contextBar_->setValue(0);
+    contextBar_->hide();
     layout->addWidget(contextBar_);
 
     contextLabel_ = new QLabel(this);

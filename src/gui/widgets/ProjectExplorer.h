@@ -14,6 +14,7 @@
 #include <QWidget>
 
 class QLineEdit;
+class QLabel;
 
 namespace localcode::gui {
 
@@ -72,6 +73,7 @@ private:
     ExplorerFilterModel* proxy_ = nullptr;
     QTreeView* tree_ = nullptr;
     QLineEdit* filter_ = nullptr;
+    QLabel* emptyState_ = nullptr;
     QString root_;
 };
 

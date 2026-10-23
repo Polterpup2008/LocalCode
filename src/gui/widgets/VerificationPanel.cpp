@@ -73,10 +73,11 @@ void VerificationPanel::rebuild() {
 
     if (!hasState_) {
         headline_->setText(tr("Nothing has been established yet."));
-        headline_->setStyleSheet(QString("color:%1;font-size:11px").arg(colour(p.textFaint)));
-        body_->setHtml(QString("<body style=\"color:%1;font-size:11px;padding:6px\">%2</body>")
+        headline_->setStyleSheet(QString("color:%1;font-size:9pt").arg(colour(p.textFaint)));
+        body_->setHtml(QString("<body style=\"color:%1;%3padding:6px\">%2</body>")
                            .arg(colour(p.textFaint),
-                                tr("A run records what it proved here, stage by stage.")));
+                                tr("A run records what it proved here, stage by stage."),
+                                Theme::instance().richTextStyle()));
         return;
     }
 
@@ -104,10 +105,11 @@ void VerificationPanel::rebuild() {
     }
     headline_->setText(headline);
     headline_->setStyleSheet(
-        QString("color:%1;font-size:11px;font-weight:600").arg(colour(headlineTone)));
+        QString("color:%1;font-size:9pt;font-weight:600").arg(colour(headlineTone)));
 
-    QString html = QString("<body style=\"color:%1;font-size:11px\">").arg(colour(p.text));
-    html += QString("<div style=\"color:%1;font-size:10px;margin-bottom:6px\">%2</div>")
+    QString html = QString("<body style=\"color:%1;%2\">")
+                       .arg(colour(p.text), Theme::instance().richTextStyle());
+    html += QString("<div style=\"color:%1;font-size:9pt;margin-bottom:6px\">%2</div>")
                 .arg(colour(p.textFaint), tr("source revision r%1").arg(state_.revision));
 
     html += "<table cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">";
@@ -134,7 +136,7 @@ void VerificationPanel::rebuild() {
 
     if (!state_.plan.isEmpty()) {
         html += QString(
-                    "<div style=\"color:%1;font-weight:600;font-size:10px;"
+                    "<div style=\"color:%1;font-weight:600;font-size:9pt;"
                     "letter-spacing:0.05em;margin:12px 0 4px 0\">%2</div>")
                     .arg(colour(p.textMuted), tr("ACCEPTANCE CRITERIA"));
         int index = 0;
@@ -162,7 +164,7 @@ void VerificationPanel::rebuild() {
 
     if (!state_.recentEvidence.isEmpty()) {
         html += QString(
-                    "<div style=\"color:%1;font-weight:600;font-size:10px;"
+                    "<div style=\"color:%1;font-weight:600;font-size:9pt;"
                     "letter-spacing:0.05em;margin:12px 0 4px 0\">%2</div>")
                     .arg(colour(p.textMuted), tr("EVIDENCE"));
         for (const auto& line : state_.recentEvidence) {

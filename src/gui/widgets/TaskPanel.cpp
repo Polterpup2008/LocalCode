@@ -88,7 +88,7 @@ void TaskPanel::setVerification(const QString& state, const QStringList& unsuppo
     }
 
     verification_->setText(text);
-    verification_->setStyleSheet(QString("color:%1;font-size:11px").arg(colour(tone)));
+    verification_->setStyleSheet(QString("color:%1;font-size:9pt").arg(colour(tone)));
 }
 
 void TaskPanel::clearVerification() {
@@ -97,7 +97,8 @@ void TaskPanel::clearVerification() {
 
 void TaskPanel::rebuild() {
     const auto& p = colours();
-    QString html = QString("<body style=\"color:%1;font-size:11px\">").arg(colour(p.text));
+    QString html = QString("<body style=\"color:%1;%2\">")
+                       .arg(colour(p.text), Theme::instance().richTextStyle());
 
     if (taskBlock_.trimmed().isEmpty() && changed_.isEmpty()) {
         html += QString("<div style=\"color:%1;padding:6px\">%2</div>")
@@ -108,8 +109,9 @@ void TaskPanel::rebuild() {
     }
 
     if (!changed_.isEmpty()) {
-        html += QString("<div style=\"color:%1;font-weight:600;font-size:10px;"
-                        "letter-spacing:0.05em;margin:12px 0 4px 0\">CHANGED FILES</div>")
+        html += QString(
+                    "<div style=\"color:%1;font-weight:600;font-size:9pt;"
+                    "letter-spacing:0.05em;margin:12px 0 4px 0\">CHANGED FILES</div>")
                     .arg(colour(p.textMuted));
         for (const auto& file : changed_) {
             const bool conflicts = conflicting_.contains(file);
@@ -126,8 +128,9 @@ void TaskPanel::rebuild() {
     }
 
     if (!gitBranch_.isEmpty()) {
-        html += QString("<div style=\"color:%1;margin-top:12px;font-size:10px\">"
-                        "git: %2 &nbsp;·&nbsp; %3</div>")
+        html += QString(
+                    "<div style=\"color:%1;margin-top:12px;font-size:9pt\">"
+                    "git: %2 &nbsp;·&nbsp; %3</div>")
                     .arg(colour(p.textFaint), MarkdownRenderer::escape(gitBranch_),
                          gitClean_ ? tr("clean") : tr("%1 changed").arg(gitChanged_));
     }

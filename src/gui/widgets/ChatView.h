@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QWidget>
 
+class QPushButton;
+
 namespace localcode::gui {
 
 enum class ChatRole { User, Assistant, System, Notice, Error };
@@ -119,8 +121,10 @@ private:
     void refreshTail();
     [[nodiscard]] QString renderMessage(const Message& message, int index) const;
     void scrollToBottomIfFollowing();
+    void updateLatestButton();
 
     QTextBrowser* browser_ = nullptr;
+    QPushButton* latestButton_ = nullptr;
     QTimer* flushTimer_ = nullptr;
     // Ticks once a second while the model is thinking so the elapsed count moves.
     // Local reasoning can run for minutes; a static label is indistinguishable

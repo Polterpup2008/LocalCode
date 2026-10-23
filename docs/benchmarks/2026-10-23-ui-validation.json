@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "release": "v1.0.0-rc.5",
+  "scope": "Conservative desktop UI update; unchanged qualified RC4 model runtime and optional Discord worker.",
+  "platform": "Windows x64, Qt6.9.1, MSVC Release",
+  "gui_full": {
+    "cases": 110,
+    "passed": 104,
+    "skipped": 6,
+    "assertions_passed": 4310,
+    "failed": 0,
+    "log_sha256": "27e5f7511f1d50475b13c4bebc7fb003eaaf2e19f6626958c99133501f4d020e"
+  },
+  "focused_final": {
+    "cases": 5,
+    "assertions_passed": 641,
+    "failed": 0,
+    "log_sha256": "64dc5eb4a639e0dd6ffb3c4e6b0cf10c888020445c07826a16c566ed654e262d"
+  },
+  "focused_scaled": {
+    "cases": 5,
+    "assertions_passed": 641,
+    "failed": 0,
+    "qt_scale_factor": 1.5,
+    "log_sha256": "4990cc387f5ed15812d2c1ecd15c5bbded1f60365b543a4fa4e52da8681aa179"
+  },
+  "rendered_views": {
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "main_logical_sizes": [
+      [
+        1280,
+        800
+      ],
+      [
+        900,
+        620
+      ]
+    ],
+    "model_panel_logical_width": 280,
+    "settings_logical_size": [
+      640,
+      560
+    ],
+    "settings_pages_per_theme": 8,
+    "synthetic_transcript": true
+  },
+  "reproduced_baseline": {
+    "wrapped_prompt": {
+      "visual_lines": 10,
+      "empty_height": 64,
+      "wrapped_height": 64
+    },
+    "new_assistant_segment": {
+      "reader_scroll_before": 0,
+      "reader_scroll_after": 1464
+    }
+  },
+  "checks": [
+    "Wrapped paragraph grows; wider resize and clearing shrink it",
+    "Reading position retained across assistant segments and theme rebuild",
+    "Jump to latest resumes following output",
+    "Plain Enter inserts newline; Ctrl+Enter sends only while idle; Escape requests stop while busy",
+    "Empty project heading stays at top and irrelevant filter is hidden",
+    "Visible button rectangles do not overlap and hover does not move them",
+    "Model action group fits280px; all eight Settings pages fit640x560",
+    "Project toolbar menu includes work-without-project action"
+  ],
+  "interaction": "Qt API event injection and QWidget rendered captures; no OS mouse/keyboard control or manual acceptance recording.",
+  "limitations": [
+    "Only the described symptoms and independently reproduced cases were available; no recording was attached.",
+    "Automated render/layout coverage does not replace remaining installed-GUI Stable acceptance.",
+    "No FPS, latency or model-speed improvement is claimed by this UI update."
+  ],
+  "runtime_core_sha256": "6581eb6d8187a684f3c983b40e447218f1b9516034da0d4e48cf72a8c426f388",
+  "desktop_executable_sha256": "be3dae1437a86766f0fc09b8564f9b539ff21e1586bbcf20705aa56eac6070ec"
+}

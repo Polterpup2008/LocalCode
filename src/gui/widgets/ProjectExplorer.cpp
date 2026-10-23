@@ -151,6 +151,17 @@ ProjectExplorer::ProjectExplorer(QWidget* parent) : QWidget(parent) {
     layout->addWidget(tree_, 1);
     tree_->hide();
 
+    emptyState_ = new QLabel(tr("Open a project folder to browse files.\n\n"
+                                "For a quick task, choose File > Work without a project."),
+                             this);
+    emptyState_->setObjectName("EmptyProjectState");
+    emptyState_->setWordWrap(true);
+    emptyState_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    emptyState_->setContentsMargins(12, 12, 12, 12);
+    emptyState_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    layout->addWidget(emptyState_, 1);
+    filter_->hide();
+
     connect(model_, &QFileSystemModel::directoryLoaded, this, [this](const QString& path) {
         if (QDir::cleanPath(QDir::fromNativeSeparators(path)).compare(root_, Qt::CaseInsensitive) !=
             0)
@@ -158,6 +169,8 @@ ProjectExplorer::ProjectExplorer(QWidget* parent) : QWidget(parent) {
         const auto mapped = proxy_->mapFromSource(model_->index(root_));
         tree_->setRootIndex(mapped);
         tree_->setVisible(mapped.isValid());
+        emptyState_->setVisible(!mapped.isValid());
+        filter_->setVisible(mapped.isValid());
     });
 
     connect(filter_, &QLineEdit::textChanged, proxy_, &ExplorerFilterModel::setFilterText);
@@ -172,12 +185,16 @@ void ProjectExplorer::setRoot(const QString& path) {
     if (root_.isEmpty() || !QDir(root_).exists()) {
         tree_->hide();
         tree_->setRootIndex({});
+        emptyState_->show();
+        filter_->hide();
         return;
     }
     const auto source = model_->setRootPath(root_);
     const auto mapped = proxy_->mapFromSource(source);
     tree_->setRootIndex(mapped);
     tree_->setVisible(mapped.isValid());
+    emptyState_->setVisible(!mapped.isValid());
+    filter_->setVisible(mapped.isValid());
 }
 
 void ProjectExplorer::refresh() {

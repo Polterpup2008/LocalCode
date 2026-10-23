@@ -1,5 +1,6 @@
 #include "PromptComposer.h"
 
+#include <QAbstractTextDocumentLayout>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -7,6 +8,7 @@
 #include <QKeyEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QtMath>
 
 #include "../Theme.h"
 
@@ -28,6 +30,8 @@ PromptComposer::PromptComposer(QWidget* parent) : QPlainTextEdit(parent) {
         updateHeight();
         emit draftChanged(toPlainText());
     });
+    connect(document()->documentLayout(), &QAbstractTextDocumentLayout::documentSizeChanged, this,
+            &PromptComposer::updateHeight);
     updateHeight();
 }
 
@@ -53,8 +57,11 @@ void PromptComposer::clearPrompt() {
 void PromptComposer::updateHeight() {
     const QFontMetrics metrics(font());
     const int line = metrics.lineSpacing();
-    const int lines = qBound(minimumLines_, document()->blockCount(), maximumLines_);
-    const int height = line * lines + 16;
+    // A paragraph can occupy several visual lines without containing a newline.
+    // The plain-text layout updates its line count after wrapping and resizing.
+    const int lines = qBound(minimumLines_, document()->lineCount(), maximumLines_);
+    const int height =
+        line * lines + qCeil(document()->documentMargin() * 2) + frameWidth() * 2 + 6;
     if (height != minimumHeight()) {
         setMinimumHeight(height);
         setMaximumHeight(height);

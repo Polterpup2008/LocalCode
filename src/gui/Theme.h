@@ -68,6 +68,7 @@ public:
 
     // Interface font, and the monospaced font used for code and output.
     [[nodiscard]] QFont uiFont() const;
+    [[nodiscard]] QString richTextStyle() const;
     [[nodiscard]] QFont monoFont(int pointSize = 0) const;
     void setMonoPointSize(int pointSize);
     [[nodiscard]] int monoPointSize() const { return monoPointSize_; }

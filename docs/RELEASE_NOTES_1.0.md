@@ -1,7 +1,17 @@
-# LocalCode 1.0 for Windows — Release candidate 4
+# LocalCode 1.0 for Windows — Release candidate 5
 
 The Windows x64 package is unsigned. Release status and completed validation
 are recorded with the distribution.
+
+RC5 is a focused UI update. Text uses a consistent, slightly larger interface
+font; message spacing and detail-panel text are clearer. Wrapped prompts grow
+while editing and shrink when shortened. New assistant segments preserve your
+reading position, with **Jump to latest** below the chat. Model actions use two
+rows, long forms wrap, and splitter handles are easier to grab. The empty project
+sidebar explains how to start, and the project toolbar menu now includes
+**Work without a project**. The layout and orange/grey colours stay familiar.
+See [UI validation](UI_UPDATE_RC5.md). The RC4 runtime and optional Discord worker
+are retained unchanged.
 
 RC4 updates the default **llama.cpp.localcode** runtime to upstream b11829 with
 LocalCode's Windows mapped-file working-set change. The matched 9B test reduced

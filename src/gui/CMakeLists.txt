@@ -128,6 +128,7 @@ if(LOCALCODE_BUILD_TESTS)
     qt_add_executable(localcode_gui_tests
         ${LOCALCODE_GUI_TEST_SOURCES}
         "${CMAKE_SOURCE_DIR}/tests/test_gui.cpp"
+        "${CMAKE_SOURCE_DIR}/tests/test_gui_polish.cpp"
         "${CMAKE_SOURCE_DIR}/tests/test_gui_projectless.cpp"
         "${CMAKE_SOURCE_DIR}/tests/test_gui_runtime_choice.cpp"
         "${CMAKE_SOURCE_DIR}/tests/test_gui_benchmark.cpp"

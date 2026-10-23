@@ -81,8 +81,8 @@ void ModelImportDialog::inspect() {
         return;
     }
 
-    QString html = QString("<body style=\"color:%1;font-size:11px\">")
-                       .arg(p.text.name(QColor::HexRgb));
+    QString html = QString("<body style=\"color:%1;%2\">")
+                       .arg(p.text.name(QColor::HexRgb), Theme::instance().richTextStyle());
     html += "<table cellspacing=\"0\" cellpadding=\"3\">";
     for (const auto& [key, value] : metadata->summary()) {
         html += QString("<tr><td style=\"color:%1\">%2</td><td>%3</td></tr>")
@@ -103,10 +103,9 @@ void ModelImportDialog::inspect() {
                          MarkdownRenderer::escape(QString::fromStdString(key)));
     }
     if (!capabilities.evidence.empty()) {
-        html += QString("<div style=\"color:%1;font-size:10px;margin-top:6px\">%2</div>")
+        html += QString("<div style=\"color:%1;font-size:9pt;margin-top:6px\">%2</div>")
                     .arg(p.textFaint.name(QColor::HexRgb),
-                         MarkdownRenderer::escape(
-                             QString::fromStdString(capabilities.evidence)));
+                         MarkdownRenderer::escape(QString::fromStdString(capabilities.evidence)));
     }
     if (!capabilities.supports_tools) {
         html += QString("<div style=\"color:%1;margin-top:8px\">%2</div>")

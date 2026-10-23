@@ -67,6 +67,8 @@ SettingsDialog::SettingsDialog(Application& application, QWidget* parent)
     navigation_->setFixedWidth(140);
     pages_ = new QStackedWidget(this);
     auto addPage = [this](const QString& title, QWidget* page) {
+        for (auto* form : page->findChildren<QFormLayout*>())
+            form->setRowWrapPolicy(QFormLayout::WrapLongRows);
         navigation_->addItem(title);
         auto* scroll = new QScrollArea(pages_);
         scroll->setWidgetResizable(true);

@@ -5,8 +5,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidgetItem>
 #include <QMessageBox>
@@ -48,6 +48,7 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     auto* form = new QFormLayout(settings);
     form->setContentsMargins(8, 8, 8, 8);
     form->setSpacing(6);
+    form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 
     backend_ = new QComboBox(settings);
     backend_->addItems({tr("Auto"), tr("llama.cpp"), tr("ik_llama.cpp")});
@@ -123,7 +124,7 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     layout->addWidget(splitter, 1);
 
     auto* buttons = new QWidget(this);
-    auto* buttonLayout = new QHBoxLayout(buttons);
+    auto* buttonLayout = new QGridLayout(buttons);
     buttonLayout->setContentsMargins(6, 4, 6, 6);
     buttonLayout->setSpacing(6);
 
@@ -136,11 +137,12 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     auto* remove = new QPushButton(tr("Remove"), buttons);
     remove->setObjectName("Danger");
 
-    buttonLayout->addWidget(load_);
-    buttonLayout->addWidget(unload_);
-    buttonLayout->addStretch(1);
-    buttonLayout->addWidget(import);
-    buttonLayout->addWidget(remove);
+    buttonLayout->addWidget(load_, 0, 0);
+    buttonLayout->addWidget(unload_, 0, 1);
+    buttonLayout->addWidget(import, 1, 0);
+    buttonLayout->addWidget(remove, 1, 1);
+    buttonLayout->setColumnStretch(0, 1);
+    buttonLayout->setColumnStretch(1, 1);
     layout->addWidget(buttons);
     layout->addWidget(setup);
 
@@ -317,11 +319,11 @@ void ModelPanel::showSelected() {
                                                                                           : 2);
 
     const auto& p = colours();
-    QString html =
-        QString("<body style=\"color:%1;font-size:11px\">").arg(p.text.name(QColor::HexRgb));
-    html += QString("<div style=\"font-size:13px;font-weight:600\">%1</div>")
+    QString html = QString("<body style=\"color:%1;%2\">")
+                       .arg(p.text.name(QColor::HexRgb), Theme::instance().richTextStyle());
+    html += QString("<div style=\"font-size:11pt;font-weight:600\">%1</div>")
                 .arg(MarkdownRenderer::escape(QString::fromStdString(profile->display_name)));
-    html += QString("<div style=\"color:%1;font-size:10px;margin-bottom:8px\">%2</div>")
+    html += QString("<div style=\"color:%1;font-size:9pt;margin-bottom:8px\">%2</div>")
                 .arg(p.textFaint.name(QColor::HexRgb),
                      MarkdownRenderer::escape(
                          QString::fromStdString(path_to_utf8(profile->model_path))));
@@ -341,7 +343,7 @@ void ModelPanel::showSelected() {
     }
 
     html += QString(
-                "<div style=\"color:%1;font-weight:600;font-size:10px;margin:10px 0 3px 0\">"
+                "<div style=\"color:%1;font-weight:600;font-size:9pt;margin:10px 0 3px 0\">"
                 "CAPABILITIES</div>")
                 .arg(p.textMuted.name(QColor::HexRgb));
     for (const auto& [key, value] : profile->capabilities.describe()) {
@@ -353,7 +355,7 @@ void ModelPanel::showSelected() {
     }
 
     if (!profile->capabilities.evidence.empty()) {
-        html += QString("<div style=\"color:%1;font-size:10px;margin-top:8px\">%2: %3</div>")
+        html += QString("<div style=\"color:%1;font-size:9pt;margin-top:8px\">%2: %3</div>")
                     .arg(p.textFaint.name(QColor::HexRgb), tr("Evidence"),
                          MarkdownRenderer::escape(
                              QString::fromStdString(profile->capabilities.evidence)));

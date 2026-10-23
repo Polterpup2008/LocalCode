@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.4"><img src="https://img.shields.io/badge/release-1.0_RC4-d97757?style=flat-square" alt="Release 1.0 RC4"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.5"><img src="https://img.shields.io/badge/release-1.0_RC5-d97757?style=flat-square" alt="Release 1.0 RC5"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.4/LocalCode-1.0.0-rc.4-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.5/LocalCode-1.0.0-rc.5-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.4/LocalCode-1.0.0-rc.4-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.5/LocalCode-1.0.0-rc.5-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -30,9 +30,13 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-> **1.0 release candidate 4:** available for testing on Windows 10/11 x64.
+> **1.0 release candidate 5:** available for testing on Windows 10/11 x64.
 > The package is unsigned, and some interactive acceptance checks remain open.
 > See the [release status](docs/RELEASE_STATUS_1.0.md) before relying on it.
+
+RC5 keeps the familiar orange/grey layout with clearer text, expanding prompt
+editing, steadier chat scrolling and model controls that fit the sidebar.
+[UI changes and validation](docs/UI_UPDATE_RC5.md).
 
 ## From model to working folder
 

@@ -120,7 +120,7 @@ QFont Theme::uiFont() const {
         {"Segoe UI Variable Text", "Segoe UI", "Inter", "Noto Sans", "DejaVu Sans"},
         QApplication::font().family());
     QFont font(family);
-    font.setPointSize(9);
+    font.setPointSize(10);
     return font;
 }
 
@@ -134,6 +134,16 @@ QFont Theme::monoFont(int pointSize) const {
     font.setStyleHint(QFont::Monospace);
     font.setFixedPitch(true);
     return font;
+}
+
+QString Theme::richTextStyle() const {
+    const auto font = uiFont();
+    auto family = font.family();
+    family.replace('\\', "\\\\");
+    family.replace('\'', "\\'");
+    return QString("font-family:'%1';font-size:%2pt;")
+        .arg(family.toHtmlEscaped())
+        .arg(font.pointSize());
 }
 
 void Theme::apply() {
@@ -176,15 +186,15 @@ QWidget {
 
 QMainWindow::separator {
     background: %3;
-    width: 1px;
-    height: 1px;
+    width: 5px;
+    height: 5px;
 }
 
 QSplitter::handle {
     background: %3;
 }
-QSplitter::handle:horizontal { width: 1px; }
-QSplitter::handle:vertical   { height: 1px; }
+QSplitter::handle:horizontal { width: 5px; }
+QSplitter::handle:vertical   { height: 5px; }
 QSplitter::handle:hover { background: %4; }
 
 /* --- Panels ------------------------------------------------------------ */
@@ -201,7 +211,7 @@ QLabel#PanelTitle {
     font-weight: 500;
     padding: 8px 10px 6px 10px;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: 9pt;
     letter-spacing: 0.09em;
 }
 
@@ -228,7 +238,7 @@ QPushButton {
     border: 1px solid %4;
     border-radius: 4px;
     padding: 5px 12px;
-    min-height: 18px;
+    min-height: 20px;
 }
 QPushButton:hover   { background: %11; border-color: %9; }
 QPushButton:pressed { background: %4; }
@@ -261,6 +271,15 @@ QPushButton#Flat {
     padding: 3px 6px;
 }
 QPushButton#Flat:hover { color: %2; background: %11; }
+
+QPushButton#JumpToLatest {
+    background: %11;
+    color: %2;
+    border: 1px solid %4;
+    border-radius: 12px;
+    padding: 5px 14px;
+}
+QPushButton#JumpToLatest:hover { border-color: %9; }
 
 /* --- Inputs ------------------------------------------------------------ */
 QComboBox {
@@ -332,7 +351,7 @@ QTabWidget::pane {
 QTabBar::tab {
     background: transparent;
     color: %7;
-    padding: 7px 14px;
+    padding: 8px 12px;
     border: none;
     border-bottom: 1px solid transparent;
 }

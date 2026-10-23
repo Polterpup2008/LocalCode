@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDesktopServices>
+#include <QPushButton>
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QSignalBlocker>
@@ -72,7 +73,19 @@ ChatView::ChatView(QWidget* parent) : QWidget(parent) {
     browser_->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard |
                                       Qt::LinksAccessibleByMouse | Qt::LinksAccessibleByKeyboard);
     browser_->document()->setDocumentMargin(14);
+    browser_->document()->setDefaultFont(Theme::instance().uiFont());
     layout->addWidget(browser_);
+
+    latestButton_ = new QPushButton(tr("Jump to latest"), this);
+    latestButton_->setObjectName("JumpToLatest");
+    latestButton_->setAccessibleName(tr("Jump to the latest message"));
+    latestButton_->setToolTip(tr("Return to the latest message and follow new output"));
+    latestButton_->hide();
+    layout->addWidget(latestButton_, 0, Qt::AlignRight);
+    connect(latestButton_, &QPushButton::clicked, this, [this] {
+        following_ = true;
+        scrollToBottomIfFollowing();
+    });
 
     connect(browser_, &QTextBrowser::anchorClicked, this, &ChatView::handleAnchorClicked);
 
@@ -81,7 +94,10 @@ ChatView::ChatView(QWidget* parent) : QWidget(parent) {
     connect(browser_->verticalScrollBar(), &QScrollBar::valueChanged, this, [this](int value) {
         auto* bar = browser_->verticalScrollBar();
         following_ = value >= bar->maximum() - 24;
+        updateLatestButton();
     });
+    connect(browser_->verticalScrollBar(), &QScrollBar::rangeChanged, this,
+            [this] { updateLatestButton(); });
 
     flushTimer_ = new QTimer(this);
     flushTimer_->setInterval(kFlushIntervalMs);
@@ -108,6 +124,7 @@ void ChatView::setShowReasoning(bool show) {
 }
 
 void ChatView::refreshTheme() {
+    browser_->document()->setDefaultFont(Theme::instance().uiFont());
     for (const auto& message : messages_)
         message.cachedHtml.clear();
     rebuild();
@@ -159,7 +176,6 @@ void ChatView::beginAssistantMessage() {
     pending_.clear();
     pendingReasoning_.clear();
     streaming_ = true;
-    following_ = true;
     flushTimer_->start();
     refreshTail();
 }
@@ -323,13 +339,11 @@ QString ChatView::renderMessage(const Message& message, int index) const {
     const bool is_user = message.role == ChatRole::User;
 
     QString html;
-    html += QString("<div style=\"margin:0 0 16px 0\">");
-
     // Author line.
     html += QString(
-                "<div style=\"color:%1;font-weight:600;font-size:10px;"
-                "letter-spacing:0.05em;margin-bottom:3px\">%2</div>")
-                .arg(colour(roleColour(message.role)), roleLabel(message.role).toUpper());
+                "<p style=\"color:%1;font-weight:600;font-size:9pt;"
+                "margin:18px 0 6px 0\">%2</p>")
+                .arg(colour(roleColour(message.role)), roleLabel(message.role));
 
     // Native reasoning, when the model produced any and the user wants it shown.
     if (showReasoning_ && !message.reasoning.trimmed().isEmpty()) {
@@ -359,7 +373,7 @@ QString ChatView::renderMessage(const Message& message, int index) const {
         }
 
         html += QString(
-                    "<p style=\"color:%1;font-size:11px;margin:0 0 8px 0\">%2 &nbsp; "
+                    "<p style=\"color:%1;font-size:9pt;margin:0 0 8px 0\">%2 &nbsp; "
                     "<a style=\"color:%1\" href=\"localcode:reasoning/%3\">%4</a> &nbsp; "
                     "<a style=\"color:%1\" href=\"localcode:copy-reasoning/%3\">%5</a></p>")
                     .arg(colour(live ? p.accent : p.textMuted), header)
@@ -367,7 +381,7 @@ QString ChatView::renderMessage(const Message& message, int index) const {
                     .arg(message.reasoningExpanded ? tr("Hide reasoning") : tr("Show reasoning"),
                          tr("Copy"));
         if (message.reasoningExpanded) {
-            html += QString("<p style=\"color:%1;font-size:11px;margin:0 0 10px 0\">%2</p>")
+            html += QString("<p style=\"color:%1;font-size:9pt;margin:0 0 10px 0\">%2</p>")
                         .arg(colour(p.textMuted),
                              MarkdownRenderer::escape(message.reasoning).replace('\n', "<br>"));
         }
@@ -409,11 +423,10 @@ QString ChatView::renderMessage(const Message& message, int index) const {
     // What the turn cost, kept faint: useful when you look for it, invisible
     // when you are reading the answer.
     if (!message.statsLine.isEmpty()) {
-        html += QString("<div style=\"color:%1;font-size:10px;margin-top:6px\">%2</div>")
+        html += QString("<p style=\"color:%1;font-size:9pt;margin:8px 0 12px 0\">%2</p>")
                     .arg(colour(p.textFaint), MarkdownRenderer::escape(message.statsLine));
     }
 
-    html += "</div>";
     if (message.complete) message.cachedHtml = html;
     return html;
 }
@@ -422,9 +435,10 @@ void ChatView::rebuild() {
     const auto& p = colours();
     auto* bar = browser_->verticalScrollBar();
     const int previous = bar->value();
+    const QSignalBlocker scrollSignals(bar);
 
-    QString html =
-        QString("<body style=\"color:%1;font-size:12px;line-height:150%%\">").arg(colour(p.text));
+    QString html = QString("<body style=\"color:%1;%2line-height:140%\">")
+                       .arg(colour(p.text), Theme::instance().richTextStyle());
 
     if (firstVisibleMessage_ > 0) {
         html += QString("<p style=\"color:%1\">%2 &nbsp; <a href=\"localcode:earlier\">%3</a></p>")
@@ -441,8 +455,8 @@ void ChatView::rebuild() {
         // Paragraphs, not divs: Qt's rich text engine does not apply margins to
         // nested divs here and ran the label into the sentence after it.
         html += QString(
-                    "<div style=\"margin:24px 4px 0 4px;font-size:12px;line-height:165%%\">"
-                    "<p style=\"color:%2;font-size:11px;letter-spacing:0.08em;margin:0 0 12px 0\">"
+                    "<div style=\"margin:24px 4px 0 4px;font-size:10pt\">"
+                    "<p style=\"color:%2;font-size:9pt;margin:0 0 12px 0\">"
                     "READY</p>"
                     "<p style=\"color:%1;margin:0 0 16px 0\">"
                     "Describe a change and it will be carried out in this project - "
@@ -472,6 +486,7 @@ void ChatView::rebuild() {
     } else {
         bar->setValue(qMin(previous, bar->maximum()));
     }
+    updateLatestButton();
 }
 
 void ChatView::refreshTail() {
@@ -498,10 +513,16 @@ void ChatView::refreshTail() {
         cursor.setCharFormat(QTextCharFormat{});
     };
     auto insertMessage = [&](int index) {
-        const auto html =
-            QString("<body style=\"color:%1;font-size:12px;line-height:150%%\">%2</body>")
-                .arg(colour(colours().text), renderMessage(messages_[index], index));
+        const auto html = QString("<body style=\"color:%1;%3line-height:140%\">%2</body>")
+                              .arg(colour(colours().text), renderMessage(messages_[index], index),
+                                   Theme::instance().richTextStyle());
         cursor.insertHtml(html);
+        QTextCursor author(document);
+        author.setPosition(lastMessageStart_);
+        auto format = author.blockFormat();
+        format.setTopMargin(index > firstVisibleMessage_ ? 18 : 6);
+        format.setBottomMargin(6);
+        author.setBlockFormat(format);
     };
 
     if (renderedMessages_ < messages_.size()) {
@@ -534,19 +555,27 @@ void ChatView::refreshTail() {
         activityStart_ = cursor.position();
         if (!messages_.isEmpty()) cursor.insertBlock(QTextBlockFormat{}, QTextCharFormat{});
         cursor.insertHtml(
-            QString("<p style=\"color:%1;font-size:11px;font-style:italic;"
+            QString("<p style=\"color:%1;font-size:9pt;font-style:italic;"
                     "margin:4px 0\">%2</p>")
                 .arg(colour(colours().textFaint), MarkdownRenderer::escape(activityNote_)));
     }
     cursor.endEditBlock();
     following_ = follow;
     bar->setValue(follow ? bar->maximum() : qMin(previous, bar->maximum()));
+    updateLatestButton();
 }
 
 void ChatView::scrollToBottomIfFollowing() {
     if (!following_) return;
     auto* bar = browser_->verticalScrollBar();
     bar->setValue(bar->maximum());
+    updateLatestButton();
+}
+
+void ChatView::updateLatestButton() {
+    if (!latestButton_) return;
+    auto* bar = browser_->verticalScrollBar();
+    latestButton_->setVisible(!following_ && bar->maximum() > bar->value() + 24);
 }
 
 void ChatView::handleAnchorClicked(const QUrl& url) {
@@ -608,6 +637,7 @@ void ChatView::handleAnchorClicked(const QUrl& url) {
 void ChatView::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
     scrollToBottomIfFollowing();
+    updateLatestButton();
 }
 
 QString ChatView::toMarkdown() const {

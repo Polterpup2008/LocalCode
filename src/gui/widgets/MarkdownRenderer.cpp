@@ -324,7 +324,7 @@ QString MarkdownRenderer::renderBlocks(const QStringList& lines, bool streaming)
                         "<div style=\"margin:8px 0\">"
                         "<div style=\"background:%1;border:1px solid %2;border-bottom:none;"
                         "border-top-left-radius:4px;border-top-right-radius:4px;"
-                        "padding:3px 8px;color:%3;font-size:10px\">"
+                        "padding:3px 8px;color:%3;font-size:9pt\">"
                         "%4 &nbsp;&middot;&nbsp; <a href=\"localcode:copy/%5\" "
                         "style=\"color:%6;text-decoration:none\">copy</a>"
                         "</div>"
@@ -334,8 +334,7 @@ QString MarkdownRenderer::renderBlocks(const QStringList& lines, bool streaming)
                         "</div>")
                         .arg(colour(p.surfaceRaised), colour(p.border), colour(p.textMuted),
                              escape(label), QString::number(code_index++), colour(p.accent),
-                             colour(p.surfaceAlt), mono,
-                             highlight(code.join('\n'), language));
+                             colour(p.surfaceAlt), mono, highlight(code.join('\n'), language));
             continue;
         }
 
@@ -351,9 +350,10 @@ QString MarkdownRenderer::renderBlocks(const QStringList& lines, bool streaming)
             while (level < trimmed.size() && trimmed[level] == '#') ++level;
             if (level <= 6 && level < trimmed.size() && trimmed[level] == ' ') {
                 closeList();
-                const int size = qMax(11, 18 - level * 2);
-                html += QString("<div style=\"font-size:%1px;font-weight:600;color:%2;"
-                                "margin:12px 0 4px 0\">%3</div>")
+                const int size = qMax(10, 16 - level);
+                html += QString(
+                            "<p style=\"font-size:%1pt;font-weight:600;color:%2;"
+                            "margin:14px 0 8px 0\">%3</p>")
                             .arg(size)
                             .arg(colour(p.text), renderInline(trimmed.mid(level + 1)));
                 continue;
@@ -395,10 +395,11 @@ QString MarkdownRenderer::renderBlocks(const QStringList& lines, bool streaming)
             const auto header = cells(trimmed);
             html += "<tr>";
             for (const auto& cell : header) {
-                html += QString("<th style=\"border:1px solid %1;background:%2;color:%3;"
-                                "text-align:left\">%4</th>")
+                html += QString(
+                            "<th style=\"border:1px solid %1;background:%2;color:%3;%5"
+                            "text-align:left\">%4</th>")
                             .arg(colour(p.border), colour(p.surfaceRaised), colour(p.textMuted),
-                                 renderInline(cell.trimmed()));
+                                 renderInline(cell.trimmed()), Theme::instance().richTextStyle());
             }
             html += "</tr>";
 
@@ -445,7 +446,7 @@ QString MarkdownRenderer::renderBlocks(const QStringList& lines, bool streaming)
 
         // --- Paragraph -------------------------------------------------------
         closeList();
-        html += "<p style=\"margin:4px 0\">" + renderInline(raw) + "</p>";
+        html += "<p style=\"margin:6px 0\">" + renderInline(raw) + "</p>";
     }
     closeList();
     return html;
