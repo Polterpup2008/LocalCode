@@ -17,6 +17,9 @@ after the model ran out of reply tokens while writing tool arguments.
   existing defaults, context sizes and cache precision are retained.
 - **Reachable profile controls.** The model profile form scrolls within the
   inspector, keeping its controls accessible in shorter windows.
+- **Unicode command history.** Full command-log links and working-directory
+  diagnostics use UTF-8. An accented output-folder name can no longer break
+  JSON serialization when the next model request replays a command result.
 
 The reported failure was reproduced with synthetic history: the same server
 returned HTTP 500 before the repair and HTTP 200 afterwards, without a restart.

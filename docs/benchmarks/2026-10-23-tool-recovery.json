@@ -1152,5 +1152,23 @@
       }
     },
     "candidate_source": "tools/llama.cpp.localcode/experiments/vulkan-pipeline-cache.patch"
+  },
+  "additional_reliability": {
+    "unicode_command_history": {
+      "before": "Real Qwen3.5-9B edit and 3 passing tests followed by JSON UTF-8 exception in the full command-log link",
+      "fix": "UTF-8 conversion for model-visible full-log paths, spool headers and working-directory diagnostics",
+      "regression": "11 assertions passed: actual command in accented/CJK/emoji directory, log contents, model history JSON and missing-directory error"
+    },
+    "mimo_coding_screen": {
+      "model": "MiMo V2.6 Distill Qwen 9B Q4_K_M",
+      "context": 16384,
+      "reply_tokens": 4096,
+      "reasoning": true,
+      "cache_k": "f16",
+      "cache_v": "f16",
+      "coding_screen_passed": false,
+      "parser_failure": false,
+      "outcome": "No valid tool call before action deadline; no edit; independent tests failed. Cause of prolonged generation not established."
+    }
   }
 }

@@ -433,7 +433,7 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
     if (!request.working_directory.empty() &&
         !std::filesystem::is_directory(request.working_directory, ec)) {
         return make_error(ErrorCode::NotFound, "working directory does not exist: " +
-                                                   request.working_directory.string());
+                                                   path_to_utf8(request.working_directory));
     }
 
     SECURITY_ATTRIBUTES sa{};
@@ -577,7 +577,7 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
         spool.open(request.full_log_path, std::ios::binary | std::ios::trunc);
         if (spool.is_open()) {
             spool << "$ " << result.display_command << "\n"
-                  << "# cwd: " << request.working_directory.string() << "\n\n";
+                  << "# cwd: " << path_to_utf8(request.working_directory) << "\n\n";
         }
     }
     std::ofstream* spool_ptr = spool.is_open() ? &spool : nullptr;
@@ -903,7 +903,7 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
         spool.open(request.full_log_path, std::ios::binary | std::ios::trunc);
         if (spool.is_open()) {
             spool << "$ " << result.display_command
-                  << "\n# cwd: " << request.working_directory.string() << "\n\n";
+                  << "\n# cwd: " << path_to_utf8(request.working_directory) << "\n\n";
         }
     }
     std::ofstream* spool_ptr = spool.is_open() ? &spool : nullptr;

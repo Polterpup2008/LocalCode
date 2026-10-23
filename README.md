@@ -35,6 +35,9 @@ Rejected batches run no tools, recovery is bounded, and Models exposes a separat
 reply-token limit in a scrolling profile form. Read the
 [release notes](docs/RELEASE_NOTES_1.2.md).
 
+Command history also preserves Unicode log paths, so accented output-folder
+names can be replayed in the next model request.
+
 **From 1.1:** lightweight conversation, visible Chat/Code modes, automatic
 GPU-layer fitting, memory-aware starting profiles and a bundled Vulkan fallback
 for computers whose CUDA backend cannot initialize. The familiar orange/grey

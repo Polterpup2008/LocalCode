@@ -14,7 +14,9 @@
 #endif
 
 #include "platform/Environment.h"
+#include "platform/PathEncoding.h"
 #include "platform/Process.h"
+#include "inference/OpenAiCompatBackend.h"
 #include "support/TempDirectory.h"
 #include "tools/CommandInspection.h"
 #include "tools/ToolRegistry.h"
@@ -308,6 +310,45 @@ TEST_CASE("the full log is spooled to a file", "[process][output]") {
                                std::istreambuf_iterator<char>()};
     CHECK(contents.find("spooled-line") != std::string::npos);
     CHECK(contents.find("exit code") != std::string::npos);
+}
+
+TEST_CASE("Unicode command logs remain valid when replayed as model history",
+          "[process][unicode][recovery]") {
+    TempDirectory temp{"lc-unicode-log"};
+    const auto folder = temp.path() / path_from_utf8("sortie é 路径 🦍");
+    std::filesystem::create_directory(folder);
+    auto request = shell_command("echo unicode-log-probe");
+    request.working_directory = folder;
+    request.full_log_path = folder / "command.log";
+    const auto process = ProcessRunner::run(request);
+    REQUIRE(process);
+    REQUIRE(process->success());
+    std::ifstream log(request.full_log_path, std::ios::binary);
+    const std::string contents{std::istreambuf_iterator<char>(log), {}};
+    CHECK(strings::is_valid_utf8(contents));
+    CHECK(contents.find(path_to_utf8(folder)) != std::string::npos);
+
+    auto result = ToolResult::success("Command completed", process->stdout_text);
+    result.full_log_path = request.full_log_path;
+    const auto text = result.to_model_text();
+    CHECK(strings::is_valid_utf8(text));
+    CHECK(text.find(path_to_utf8(request.full_log_path)) != std::string::npos);
+    struct ReplayBackend : OpenAiCompatBackend {
+        using OpenAiCompatBackend::OpenAiCompatBackend;
+        using OpenAiCompatBackend::build_payload;
+    } backend{{}, nullptr};
+    ChatRequest replay;
+    replay.messages = {ChatMessage::user("Run the command."),
+                       ChatMessage::tool_result("run", "run_command", text)};
+    CHECK_NOTHROW(backend.build_payload(replay).dump());
+
+    request.working_directory = folder / "missing";
+    const auto missing = ProcessRunner::run(request);
+    REQUIRE_FALSE(missing);
+    CHECK(strings::is_valid_utf8(missing.error().to_string()));
+#if defined(_WIN32)
+    CHECK(missing.error().to_string().find(path_to_utf8(request.working_directory)) != std::string::npos);
+#endif
 }
 
 TEST_CASE("the working directory is honoured", "[process]") {

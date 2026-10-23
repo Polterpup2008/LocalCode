@@ -1,5 +1,6 @@
 #include "Tool.h"
 
+#include "../platform/PathEncoding.h"
 #include "../util/Log.h"
 #include "../util/Strings.h"
 
@@ -53,7 +54,7 @@ std::string ToolResult::to_model_text() const {
     }
     std::string out = content;
     if (!full_log_path.empty()) {
-        out += "\n\n[full output: " + full_log_path.string() + "]";
+        out += "\n\n[full output: " + path_to_utf8(full_log_path) + "]";
     }
     return out;
 }

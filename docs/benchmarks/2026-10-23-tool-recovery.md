@@ -34,6 +34,24 @@ This does not establish that a small model can implement a correct chess game.
 It establishes that the demonstrated parser failure no longer poisons retries,
 that rejected batches have no file effects, and that recovery is bounded.
 
+## Additional package acceptance findings
+
+A real Qwen3.5-9B coding check edited a chess-side helper and ran its three
+tests successfully, then exposed a separate Windows bug: the full command-log
+link used the system code page for an accented path and broke JSON serialization
+on the next request. Version 1.2 now converts that path, command-log headers and
+working-directory errors through the shared UTF-8 path helper. An actual command
+in a folder containing accented, CJK and emoji characters passed the regression:
+its spooled header, model-visible log link and outgoing JSON remained valid.
+
+A separate MiMo V2.6 Distill Qwen 9B check at 16K context, f16 K/V, 4,096 reply
+tokens and reasoning enabled did not complete a valid tool call before the
+action deadline. It made no edit and its independent helper tests failed.
+There was no parser crash, but this is **not a successful coding screen**.
+The cause of that model's prolonged generation is not established by this test.
+The final package validation receipt records the post-fix coding result and
+does not turn a model capability failure into an application success claim.
+
 ## Runtime experiment
 
 The candidate adds an opt-in Vulkan driver pipeline cache to pinned llama.cpp
