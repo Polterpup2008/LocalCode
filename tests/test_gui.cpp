@@ -27,6 +27,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include <QStyleFactory>
 #include <QTabWidget>
 #include <QTemporaryDir>
 #include <QTextBrowser>
@@ -2563,6 +2564,7 @@ int main(int argc, char** argv) {
     qputenv("QT_QPA_PLATFORM", "windows");
 #endif
     QApplication app(argc, argv);
+    if (auto* fusion = QStyleFactory::create("Fusion")) QApplication::setStyle(fusion);
 #ifdef Q_OS_WIN
     // Keep the font fixtures explicit for consistent layout assertions.
     const auto fonts = qEnvironmentVariable("WINDIR") + "/Fonts/";

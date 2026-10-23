@@ -12,7 +12,7 @@ and rich-text fonts are consistent and slightly larger. A project toolbar menu
 exposes work without a project; **Jump to latest** occupies its own row below
 chat instead of covering controls.
 
-The final production UI passed **104 cases / 4,310 assertions**, with **six
+The final production UI passed **104 cases / 4,314 assertions**, with **six
 existing opt-in skips**. After adding font-capture diagnostics, focused review
 passed **5 cases / 641 assertions** at normal scaling and again with
 `QT_SCALE_FACTOR=1.5`. Dark/light renders, compact/desktop layouts, every Settings

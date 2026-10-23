@@ -406,6 +406,14 @@ QToolButton {
 }
 QToolButton:hover   { background: %11; border-color: %4; }
 QToolButton:pressed { background: %4; }
+QToolButton#OpenProjectMenu { padding-right: 28px; }
+QToolButton#OpenProjectMenu::menu-button {
+    width: 22px;
+    border: none;
+    border-left: 1px solid %4;
+    background: transparent;
+}
+QToolButton#OpenProjectMenu::menu-button:hover { background: %11; }
 
 QMenuBar { background: %5; border-bottom: 1px solid %3; }
 QMenuBar::item { padding: 5px 10px; background: transparent; }

@@ -31,10 +31,10 @@ The baseline reproduced a ten-line wrapped paragraph remaining in a three-line
 editor, and a new assistant segment moving scroll position from 0 to 1464 while
 the reader was at the top. Both cases now pass regression checks.
 
-The full GUI suite passed **104 cases and 4,310 assertions**, with **six existing
+The full GUI suite passed **104 cases and 4,314 assertions**, with **six existing
 opt-in skips**. Focused review, including additional font diagnostics, then passed
 **5 cases / 641 assertions**, both at normal scaling and with
-`QT_SCALE_FACTOR=1.5`. Main windows were reviewed at 1280×800 and 900×620 logical
+`QT_SCALE_FACTOR=1.5`. The harness uses the same Fusion style as the shipped app. Main windows were reviewed at 1280×800 and 900×620 logical
 pixels; the model panel at 280px wide; all eight Settings pages at 640×560, in
 both themes. Visible button rectangles were checked for overlap before and during
 hover. Keyboard send, newline and stop behavior, draft sizing and scroll-follow
