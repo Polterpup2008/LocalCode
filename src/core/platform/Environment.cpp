@@ -415,7 +415,9 @@ const std::vector<std::pair<std::string, std::string>>& msvc_environment() {
 
         ProcessRequest request;
         request.executable = *shell;
-        request.arguments = {"/d", "/s", "/c", batch.string()};
+        // /s removes the outer command quotes added by ProcessRunner. Keep
+        // an inner pair around the script path when the cache contains spaces.
+        request.arguments = {"/d", "/s", "/c", quote_argument(path_to_utf8(batch))};
         request.timeout = std::chrono::seconds(60);
         request.max_captured_bytes = 512 * 1024;
 

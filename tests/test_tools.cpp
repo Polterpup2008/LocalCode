@@ -321,10 +321,11 @@ TEST_CASE("command recovery does not bind runtime output to the first unrelated 
         return std::vector<CriterionSummary>{{1, "README documents the build", false},
                                              {2, "The demo prints expected", false}};
     };
-    REQUIRE(std::filesystem::copy_file(path_from_utf8(LOCALCODE_TEST_COMMAND_FIXTURE),
+    REQUIRE(std::filesystem::copy_file(path_from_utf8(LOCALCODE_TEST_SERVER_FIXTURE),
                                        f.temp.path() / "demo.exe"));
     f.record_built({"demo.exe"});
-    auto result = f.call("run_command", Json{{"executable", "demo.exe"}});
+    auto result = f.call("run_command", Json{{"executable", "demo.exe"},
+                                            {"arguments", {"--fixture-print", "expected"}}});
     REQUIRE(result.ok);
     INFO(result.content);
     REQUIRE(result.content.find("Still open:") != std::string::npos);
@@ -1782,6 +1783,14 @@ TEST_CASE("Git inspection does not execute repository helpers", "[tools][git][se
     ToolFixture fixture;
     TempDirectory outside{"lc-git-helper-outside"};
     const auto marker = outside.path() / "helper-ran.txt";
+    // Git executes helper commands through its POSIX shell on every host,
+    // including Windows. Quote these as shell commands, not C-runtime argv.
+    const auto shell_path = [](const std::filesystem::path& path) {
+        std::string quoted = "'";
+        for (const auto c : path_to_utf8(path))
+            quoted += c == '\'' ? "'\\''" : std::string(1, c);
+        return quoted + "'";
+    };
     auto run_git = [&](std::vector<std::string> arguments) {
         ProcessRequest request;
         request.executable = *git;
@@ -1808,10 +1817,10 @@ TEST_CASE("Git inspection does not execute repository helpers", "[tools][git][se
     SECTION("status refuses an fsmonitor hook") {
         const auto hook = fixture.temp.write(
             ".git/hooks/observe.sh",
-            "#!/bin/sh\nprintf observed > '" + marker.generic_string() + "'\nprintf 'token\\0'\n");
+            "#!/bin/sh\nprintf observed > " + shell_path(marker) + "\nprintf 'token\\0'\n");
         std::filesystem::permissions(hook, std::filesystem::perms::owner_exec,
                                      std::filesystem::perm_options::add);
-        run_git({"config", "core.fsmonitor", hook.generic_string()});
+        run_git({"config", "core.fsmonitor", shell_path(hook)});
         // Positive control: prove Git can execute this helper on this host.
         run_git({"status", "--porcelain=v2", "--branch"});
         REQUIRE(std::filesystem::exists(marker));
@@ -1823,11 +1832,11 @@ TEST_CASE("Git inspection does not execute repository helpers", "[tools][git][se
     SECTION("diff refuses text conversion commands") {
         const auto helper = fixture.temp.write(
             ".git/hooks/convert.sh",
-            "#!/bin/sh\nprintf observed > '" + marker.generic_string() + "'\ncat \"$1\"\n");
+            "#!/bin/sh\nprintf observed > " + shell_path(marker) + "\ncat \"$1\"\n");
         std::filesystem::permissions(helper, std::filesystem::perms::owner_exec,
                                      std::filesystem::perm_options::add);
         fixture.temp.write(".gitattributes", "src/main.cpp diff=localcode-test\n");
-        run_git({"config", "diff.localcode-test.textconv", helper.generic_string()});
+        run_git({"config", "diff.localcode-test.textconv", shell_path(helper)});
         fixture.temp.write("src/main.cpp", "int changed = 9;\n");
         run_git({"diff", "--no-ext-diff", "--", "src/main.cpp"});
         REQUIRE(std::filesystem::exists(marker));
