@@ -317,8 +317,11 @@ TEST_CASE("the placeholder rule does not widen the boundary", "[path][security]"
     // Nor are ordinary absolute paths anywhere else.
     CHECK_FALSE(policy.evaluate("/etc/passwd", PathAccess::Write).allowed);
     CHECK_FALSE(policy.evaluate("/usr/lib/thing.so", PathAccess::Write).allowed);
-    CHECK_FALSE(policy.evaluate("C:/Windows/System32/drivers/etc/hosts", PathAccess::Write)
-                    .allowed);
+    // A drive-letter spelling is relative on POSIX. Use a native absolute
+    // sibling so this assertion checks the same boundary on every host.
+    const auto outside = workspace.path().parent_path() / "outside" / "hosts";
+    REQUIRE(outside.is_absolute());
+    CHECK_FALSE(policy.evaluate(path_to_utf8(outside), PathAccess::Write).allowed);
 
     // Traversal out of a reinterpreted path is still traversal.
     auto escape = policy.evaluate("/workspace/../../secret.txt", PathAccess::Write);

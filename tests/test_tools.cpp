@@ -321,9 +321,10 @@ TEST_CASE("command recovery does not bind runtime output to the first unrelated 
         return std::vector<CriterionSummary>{{1, "README documents the build", false},
                                              {2, "The demo prints expected", false}};
     };
-    f.temp.write("demo.bat", "@echo off\r\necho expected\r\n");
-    f.record_built({"demo.bat"});
-    auto result = f.call("run_command", Json{{"executable", "demo.bat"}});
+    REQUIRE(std::filesystem::copy_file(path_from_utf8(LOCALCODE_TEST_COMMAND_FIXTURE),
+                                       f.temp.path() / "demo.exe"));
+    f.record_built({"demo.exe"});
+    auto result = f.call("run_command", Json{{"executable", "demo.exe"}});
     REQUIRE(result.ok);
     INFO(result.content);
     REQUIRE(result.content.find("Still open:") != std::string::npos);
