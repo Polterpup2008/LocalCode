@@ -9,6 +9,10 @@
 #include <stdexcept>
 #include <thread>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include "platform/Environment.h"
 #include "platform/Process.h"
 #include "support/TempDirectory.h"
@@ -149,6 +153,9 @@ TEST_CASE("a missing executable fails to start", "[process]") {
 }
 
 TEST_CASE("an invalid executable is a launch error rather than a program exit", "[process]") {
+#if defined(_WIN32)
+    const auto original_error_mode = GetThreadErrorMode();
+#endif
     TempDirectory temp{"lc-invalid-executable"};
     const auto executable = temp.write("invalid-program.exe", "not an executable image\n");
 #if !defined(_WIN32)
@@ -157,11 +164,15 @@ TEST_CASE("an invalid executable is a launch error rather than a program exit", 
 #endif
     ProcessRequest request;
     request.executable = executable;
+    request.timeout = std::chrono::seconds(2);
     bool started = false;
     request.on_started = [&](std::uint32_t) { started = true; };
     const auto result = ProcessRunner::run(request);
     CHECK_FALSE(result.ok());
     CHECK_FALSE(started);
+#if defined(_WIN32)
+    CHECK(GetThreadErrorMode() == original_error_mode);
+#endif
 }
 
 #if !defined(_WIN32)

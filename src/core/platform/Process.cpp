@@ -516,13 +516,23 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
     const DWORD flags =
         CREATE_UNICODE_ENVIRONMENT | CREATE_NO_WINDOW | EXTENDED_STARTUPINFO_PRESENT;
 
+    // Invalid images can open a system error dialog on unattended Windows
+    // hosts. Return the launch error to the caller without blocking on UI.
+    // This mode is thread-local and is restored immediately after creation.
+    const DWORD previous_error_mode = GetThreadErrorMode();
+    if (!SetThreadErrorMode(previous_error_mode | SEM_FAILCRITICALERRORS |
+                                SEM_NOOPENFILEERRORBOX, nullptr)) {
+        return make_error(ErrorCode::Internal, "cannot configure noninteractive process launch",
+                          "win32 error " + std::to_string(GetLastError()));
+    }
     const BOOL created = CreateProcessW(exe.c_str(), command_line.data(), nullptr, nullptr, TRUE,
                                         flags, (LPVOID)environment_block.data(),
                                         cwd.empty() ? nullptr : cwd.c_str(), &si.StartupInfo, &pi);
+    const DWORD launch_error = created ? ERROR_SUCCESS : GetLastError();
+    SetThreadErrorMode(previous_error_mode, nullptr);
     if (!created) {
-        const DWORD err = GetLastError();
-        return make_error(ErrorCode::NotFound, "cannot start " + request.executable.string(),
-                          "win32 error " + std::to_string(err));
+        return make_error(ErrorCode::NotFound, "cannot start " + path_to_utf8(request.executable),
+                          "win32 error " + std::to_string(launch_error));
     }
 
     HandleCloser process{pi.hProcess};
