@@ -1,0 +1,250 @@
+diff --git a/ggml/src/ggml-vulkan/ggml-vulkan-types.h b/ggml/src/ggml-vulkan/ggml-vulkan-types.h
+index 00d20e8..46e8c8b 100644
+--- a/ggml/src/ggml-vulkan/ggml-vulkan-types.h
++++ b/ggml/src/ggml-vulkan/ggml-vulkan-types.h
+@@ -50,6 +50,7 @@ typedef struct VkPhysicalDeviceCooperativeMatrixDecodeVectorFeaturesNV {
+ #include <algorithm>
+ #include <cmath>
+ #include <functional>
++#include <filesystem>
+ #include <iomanip>
+ #include <iostream>
+ #include <tuple>
+@@ -682,6 +683,10 @@ struct vk_device_struct {
+     bool pipeline_robustness;
+     bool memory_priority;
+     vk::Device device;
++    vk::PipelineCache localcode_pipeline_cache;
++    std::atomic<bool> localcode_pipeline_cache_dirty{false};
++    std::atomic<uint64_t> localcode_pipeline_cache_checksum{0};
++    std::filesystem::path localcode_pipeline_cache_path;
+     uint32_t vendor_id;
+     vk::DriverId driver_id;
+     vk_device_architecture architecture;
+diff --git a/ggml/src/ggml-vulkan/ggml-vulkan.cpp b/ggml/src/ggml-vulkan/ggml-vulkan.cpp
+index e603cbc..206f318 100644
+--- a/ggml/src/ggml-vulkan/ggml-vulkan.cpp
++++ b/ggml/src/ggml-vulkan/ggml-vulkan.cpp
+@@ -1,4 +1,78 @@
+ #include "ggml-vulkan-common.h"
++#include "localcode-pipeline-cache.h"
++#if !defined(_WIN32)
++#include <unistd.h>
++#endif
++
++static localcode_vk_cache::key localcode_cache_key(const vk_device_struct & device) {
++    localcode_vk_cache::key key{device.properties.vendorID, device.properties.deviceID,
++                               device.properties.driverVersion, sizeof(void *), {}};
++    std::copy(device.properties.pipelineCacheUUID.begin(), device.properties.pipelineCacheUUID.end(), key.uuid.begin());
++    return key;
++}
++
++static void localcode_init_pipeline_cache(vk_device_struct & device) {
++    try {
++#ifdef _WIN32
++        const auto * directory = _wgetenv(L"GGML_VK_PIPELINE_CACHE_DIR");
++#else
++        const auto * directory = std::getenv("GGML_VK_PIPELINE_CACHE_DIR");
++#endif
++        if (!directory || !*directory) return; // Opt-in until measured and qualified.
++        const auto key = localcode_cache_key(device);
++        std::ostringstream name;
++        name << "llama-b11829-v1-" << std::hex << key.vendor << '-' << key.device << '-'
++             << key.driver << '-' << key.pointer_size << '-';
++        for (const auto b : key.uuid) name << std::setw(2) << std::setfill('0') << unsigned(b);
++        device.localcode_pipeline_cache_path = std::filesystem::path(directory) / (name.str() + ".bin");
++        const auto data = localcode_vk_cache::load(device.localcode_pipeline_cache_path, key);
++        try {
++            // Zero flags preserve the driver's internal synchronization for
++            // parallel pipeline compilation. Do not request EXTERNALLY_SYNCHRONIZED.
++            device.localcode_pipeline_cache = device.device.createPipelineCache(
++                vk::PipelineCacheCreateInfo({}, data.size(), data.empty() ? nullptr : data.data()));
++            if (!data.empty()) device.localcode_pipeline_cache_checksum.store(localcode_vk_cache::checksum(data.data(), data.size()));
++            GGML_LOG_INFO("ggml_vulkan: LocalCode pipeline cache initialized (%zu stored bytes)\n", data.size());
++        } catch (const std::exception &) {
++            // A cache miss, bad driver blob or unavailable cache must not
++            // prevent an otherwise supported GPU from running.
++            device.localcode_pipeline_cache = device.device.createPipelineCache({});
++            GGML_LOG_WARN("ggml_vulkan: LocalCode pipeline cache reset after driver rejection\n");
++        }
++    } catch (const std::exception &) {
++        GGML_LOG_WARN("ggml_vulkan: optional LocalCode pipeline cache unavailable\n");
++    }
++}
++
++static void localcode_save_pipeline_cache(vk_device_struct & device) {
++    if (!device.localcode_pipeline_cache || !device.localcode_pipeline_cache_dirty.exchange(false)) return;
++    try {
++        size_t size = 0;
++        auto result = vkGetPipelineCacheData(VkDevice(device.device), VkPipelineCache(device.localcode_pipeline_cache), &size, nullptr);
++        if (result == VK_SUCCESS && size <= localcode_vk_cache::max_bytes) {
++            localcode_vk_cache::bytes data(size);
++            result = vkGetPipelineCacheData(VkDevice(device.device), VkPipelineCache(device.localcode_pipeline_cache), &size, data.data());
++            if (result == VK_SUCCESS) {
++                data.resize(size);
++                const auto sum = localcode_vk_cache::checksum(data.data(), data.size());
++                if (sum == device.localcode_pipeline_cache_checksum.load()) return;
++                static std::atomic<uint64_t> serial{0};
++#ifdef _WIN32
++                const auto pid = GetCurrentProcessId();
++#else
++                const auto pid = getpid();
++#endif
++                const auto suffix = std::to_string(pid) + '-' + std::to_string(serial++);
++                if (localcode_vk_cache::save(device.localcode_pipeline_cache_path, data, localcode_cache_key(device), suffix)) {
++                    device.localcode_pipeline_cache_checksum.store(sum);
++                    GGML_LOG_INFO("ggml_vulkan: LocalCode pipeline cache saved (%zu bytes)\n", size);
++                }
++            }
++        }
++    } catch (const std::exception &) {
++        GGML_LOG_WARN("ggml_vulkan: optional LocalCode pipeline cache was not saved\n");
++    }
++}
+
+ static vk_device_architecture get_device_architecture(const vk::PhysicalDevice& device) {
+     vk::PhysicalDeviceProperties props = device.getProperties();
+@@ -769,7 +843,8 @@ static void ggml_vk_create_pipeline_func(vk_device& device, vk_pipeline& pipelin
+ #endif
+
+     try {
+-        pipeline->pipeline = device->device.createComputePipeline(VK_NULL_HANDLE, compute_pipeline_create_info).value;
++        pipeline->pipeline = device->device.createComputePipeline(device->localcode_pipeline_cache, compute_pipeline_create_info).value;
++        if (device->localcode_pipeline_cache) device->localcode_pipeline_cache_dirty.store(true);
+     } catch (const vk::SystemError& e) {
+         std::cerr << "ggml_vulkan: compute pipeline creation failed for " << pipeline->name << ": " << e.what() << std::endl;
+         throw;
+@@ -4774,6 +4849,7 @@ vk_device ggml_vk_get_device(size_t idx) {
+             .setPEnabledExtensionNames(device_extensions);
+         device_create_info.setPNext(&device_features2);
+         device->device = device->physical_device.createDevice(device_create_info);
++        localcode_init_pipeline_cache(*device);
+
+         if (device->device_fault) {
+             device->pfn_vkGetDeviceFaultInfoEXT = (PFN_vkGetDeviceFaultInfoEXT)
+@@ -14778,6 +14854,10 @@ static ggml_status ggml_backend_vk_graph_compute(ggml_backend_t backend, ggml_cg
+         ggml_vk_synchronize(ctx);
+     }
+
++    // Managed Windows servers can be terminated as a job object. Checkpoint
++    // newly compiled pipelines at graph boundaries, rather than relying on
++    // destructors running at process exit. No I/O when no new pipeline exists.
++    localcode_save_pipeline_cache(*ctx->device);
+     return GGML_STATUS_SUCCESS;
+
+     UNUSED(backend);
+@@ -16489,6 +16569,8 @@ vk_device_struct::~vk_device_struct() {
+     }
+
+     VK_LOG_DEBUG("destroy device " << name);
++    localcode_save_pipeline_cache(*this);
++    if (localcode_pipeline_cache) device.destroyPipelineCache(localcode_pipeline_cache);
+
+     device.destroyFence(fence);
+
+diff --git a/ggml/src/ggml-vulkan/localcode-pipeline-cache.h b/ggml/src/ggml-vulkan/localcode-pipeline-cache.h
+new file mode 100644
+index 0000000..99a332f
+--- /dev/null
++++ b/ggml/src/ggml-vulkan/localcode-pipeline-cache.h
+@@ -0,0 +1,100 @@
++// LocalCode additions: see LICENSE-LOCALCODE-MODIFICATIONS.txt in the runtime package.
++// Original llama.cpp and Vulkan portions retain their respective licenses.
++#pragma once
++#include <array>
++#include <cstdint>
++#include <cstring>
++#include <filesystem>
++#include <fstream>
++#include <vector>
++#ifdef _WIN32
++#include <windows.h>
++#endif
++
++namespace localcode_vk_cache {
++using bytes = std::vector<uint8_t>;
++struct key {
++    uint32_t vendor, device, driver, pointer_size;
++    std::array<uint8_t, 16> uuid;
++};
++constexpr size_t max_bytes = 64 * 1024 * 1024;
++constexpr size_t header_bytes = 56;
++inline void put(bytes & out, uint64_t v, size_t count) {
++    for (size_t i = 0; i < count; ++i) out.push_back(uint8_t(v >> (8 * i)));
++}
++inline uint64_t get(const bytes & data, size_t at, size_t count) {
++    uint64_t value = 0;
++    for (size_t i = 0; i < count; ++i) value |= uint64_t(data[at + i]) << (8 * i);
++    return value;
++}
++// Detect accidental truncation/corruption before handing opaque data to a
++// driver. This is not an authentication mechanism for adversarial cache files.
++inline uint64_t checksum(const uint8_t * data, size_t size) {
++    uint64_t value = 14695981039346656037ull;
++    for (size_t i = 0; i < size; ++i) value = (value ^ data[i]) * 1099511628211ull;
++    return value;
++}
++inline bool valid_vulkan_header(const bytes & data, const key & k) {
++    return data.size() >= 32 && get(data, 0, 4) >= 32 && get(data, 0, 4) <= data.size() &&
++           get(data, 4, 4) == 1 && get(data, 8, 4) == k.vendor && get(data, 12, 4) == k.device &&
++           std::memcmp(data.data() + 16, k.uuid.data(), 16) == 0;
++}
++inline bytes encode(const bytes & payload, const key & k) {
++    if (payload.size() > max_bytes || !valid_vulkan_header(payload, k)) return {};
++    bytes out = {'L', 'C', 'V', 'K', '0', '0', '0', '1'};
++    put(out, k.vendor, 4); put(out, k.device, 4); put(out, k.driver, 4); put(out, k.pointer_size, 4);
++    out.insert(out.end(), k.uuid.begin(), k.uuid.end());
++    put(out, payload.size(), 8); put(out, checksum(payload.data(), payload.size()), 8);
++    out.insert(out.end(), payload.begin(), payload.end());
++    return out;
++}
++inline bytes decode(const bytes & data, const key & k) {
++    if (data.size() < header_bytes || data.size() > header_bytes + max_bytes ||
++        std::memcmp(data.data(), "LCVK0001", 8) || get(data, 8, 4) != k.vendor ||
++        get(data, 12, 4) != k.device || get(data, 16, 4) != k.driver ||
++        get(data, 20, 4) != k.pointer_size || std::memcmp(data.data() + 24, k.uuid.data(), 16) ||
++        get(data, 40, 8) != data.size() - header_bytes ||
++        get(data, 48, 8) != checksum(data.data() + header_bytes, data.size() - header_bytes)) return {};
++    bytes payload(data.begin() + header_bytes, data.end());
++    return valid_vulkan_header(payload, k) ? payload : bytes{};
++}
++inline bytes load(const std::filesystem::path & path, const key & k) {
++    std::ifstream input(path, std::ios::binary | std::ios::ate);
++    if (!input) return {};
++    const auto size = input.tellg();
++    if (size < std::streampos(header_bytes) || size > std::streampos(header_bytes + max_bytes)) return {};
++    bytes data(static_cast<size_t>(size));
++    input.seekg(0);
++    if (!input.read(reinterpret_cast<char *>(data.data()), std::streamsize(data.size()))) return {};
++    return decode(data, k);
++}
++inline bool save(const std::filesystem::path & path, const bytes & payload, const key & k,
++                 const std::string & suffix) {
++    const auto data = encode(payload, k);
++    if (data.empty()) return false;
++    std::error_code ec;
++    std::filesystem::create_directories(path.parent_path(), ec);
++    if (ec) return false;
++    auto temp = path;
++    temp += ".tmp-" + suffix;
++    {
++        std::ofstream output(temp, std::ios::binary | std::ios::trunc);
++        if (!output || !output.write(reinterpret_cast<const char *>(data.data()), std::streamsize(data.size()))) {
++            output.close(); std::filesystem::remove(temp, ec); return false;
++        }
++        output.flush();
++        if (!output) { output.close(); std::filesystem::remove(temp, ec); return false; }
++        output.close();
++        if (output.fail()) { std::filesystem::remove(temp, ec); return false; }
++    }
++#ifdef _WIN32
++    if (!MoveFileExW(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
++        std::filesystem::remove(temp, ec); return false;
++    }
++#else
++    std::filesystem::rename(temp, path, ec);
++    if (ec) { std::filesystem::remove(temp, ec); return false; }
++#endif
++    return true;
++}
++} // namespace localcode_vk_cache

@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.1.0"><img src="https://img.shields.io/badge/release-1.1-d97757?style=flat-square" alt="Release 1.1"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.2.0"><img src="https://img.shields.io/badge/release-1.2-d97757?style=flat-square" alt="Release 1.2"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.1.0/LocalCode-1.1.0-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.0/LocalCode-1.2.0-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.1.0/LocalCode-1.1.0-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.0/LocalCode-1.2.0-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -30,7 +30,12 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-**New in 1.1:** lightweight conversation, visible Chat/Code modes, automatic
+**New in 1.2:** incomplete tool calls no longer poison retries or saved chats.
+Rejected batches run no tools, recovery is bounded, and Models exposes a separate
+reply-token limit in a scrolling profile form. Read the
+[release notes](docs/RELEASE_NOTES_1.2.md).
+
+**From 1.1:** lightweight conversation, visible Chat/Code modes, automatic
 GPU-layer fitting, memory-aware starting profiles and a bundled Vulkan fallback
 for computers whose CUDA backend cannot initialize. The familiar orange/grey
 layout, expanding prompt editor and steady chat scrolling remain.

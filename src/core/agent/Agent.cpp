@@ -1152,6 +1152,7 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
                                 ? tool_catalog->definitions()
                                 : std::move(request_tools);
         request.sampling = profile.sampling;
+        if (malformed_calls > 0) request.parallel_tool_calls = false;
         request.stream = config.stream;
         // Reasoning switches are only sent when the model genuinely has them.
         request.enable_reasoning =
@@ -1500,6 +1501,33 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
                 continue;
             }
         }
+        auto recover_tool_turn = [&](bool cut_off) {
+            if (!synthesis_turn && malformed_calls < kMaxMalformedCalls) {
+                ++malformed_calls;
+                push_guidance(
+                    "Your previous tool call could not be parsed or was cut off. The rejected "
+                    "batch was discarded before execution; do not assume any of it ran.\n\n"
+                    "Make the next one short: one complete tool call with a valid JSON object. "
+                    "For a large new program, create a small working module first, then add "
+                    "other modules or extend it with small apply_patch edits in later turns. "
+                    "Do not put another tool call's markup inside an argument string.");
+                emit_simple(AgentEventType::ProgressWarning,
+                    cut_off ? "The tool call reached the reply limit. Discarded it before execution; "
+                              "retrying with a smaller step."
+                            : "A malformed tool call was discarded before execution; "
+                              "retrying with one complete call.");
+                return true;
+            }
+            summary.completed = false;
+            summary.presentation = PresentationState::Failed;
+            summary.stop_reason =
+                "The model repeatedly returned incomplete or malformed tool calls. The rejected "
+                "batches were not executed. Try a smaller first step or increase the model's "
+                "reply-token budget in Models.";
+            emit_simple(AgentEventType::RunFailed, summary.stop_reason);
+            failure_reported = true;
+            return false;
+        };
         if (!response) {
             if (run_deadline.expired()) {
                 summary.stop_reason = "the time budget for this run was reached";
@@ -1507,8 +1535,8 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
                 summary.cancelled = true;
                 summary.stop_reason = "cancelled by the user";
                 emit_simple(AgentEventType::RunCancelled, summary.stop_reason);
-            } else if (strings::icontains(response.error().message, "could not parse") &&
-                       malformed_calls < kMaxMalformedCalls) {
+            } else if (response.error().code == ErrorCode::InvalidToolCall ||
+                       strings::icontains(response.error().message, "could not parse")) {
                 // The model filled its whole output budget with a runaway tool
                 // call and the server refused to parse it. That is one bad turn,
                 // not a broken server: nothing was corrupted, the history is
@@ -1517,20 +1545,10 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
                 // Measured: a run whose C++ build had already succeeded and
                 // whose criteria were nearly settled died here, reported as
                 // "the model backend failed".
-                ++malformed_calls;
-                push_guidance(
-                    "Your last tool call could not be parsed - it ran past the output limit "
-                    "while still being written, so the server rejected it and nothing ran.\n\n"
-                    "Make the next one short. One tool call, the smallest arguments that do "
-                    "the job, no long strings. If you were trying to pass a large piece of "
-                    "text, write it to a file instead.");
                 log_warn(LogChannel::Agent, "the model produced an unparseable tool call",
                          {{"attempt", std::to_string(malformed_calls)},
                           {"detail", response.error().detail}});
-                emit_simple(AgentEventType::ProgressWarning,
-                            "The model's tool call was too long to parse; asking for a shorter "
-                            "one.");
-                continue;
+                if (recover_tool_turn(false)) continue;
             } else {
                 summary.stop_reason = "the model backend failed: " + response.error().to_string();
                 emit_simple(AgentEventType::RunFailed, summary.stop_reason);
@@ -1672,6 +1690,19 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
                               "\nUse exactly this form:\n<tool_call>\n"
                               "{\"name\": \"tool_name\", \"arguments\": {}}\n</tool_call>");
                 continue;
+            }
+        }
+
+        // Never store or execute part of a cut-off/invalid native batch. A
+        // later template render parses historical arguments before generation;
+        // storing these would poison every retry with the same HTTP 500.
+        if (!assistant.tool_calls.empty()) {
+            const bool cut_off = response->truncated_by_length || response->finish_reason == "length";
+            const bool malformed = std::any_of(assistant.tool_calls.begin(), assistant.tool_calls.end(),
+                [](const ToolCall& call) { return !call.parsed_arguments(); });
+            if (cut_off || malformed) {
+                if (recover_tool_turn(cut_off)) continue;
+                break;
             }
         }
 

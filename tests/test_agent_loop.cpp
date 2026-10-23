@@ -1441,11 +1441,15 @@ TEST_CASE("malformed tool arguments come back as a correctable error", "[agent]"
 
     bool explained = false;
     for (const auto& message : fixture.backend->requests()[1].messages) {
-        if (message.role == Role::Tool && message.content.find("valid JSON") != std::string::npos) {
+        CHECK_FALSE((message.role == Role::Tool && message.tool_call_id == "c1"));
+        for (const auto& call : message.tool_calls) CHECK(call.parsed_arguments().ok());
+        if (message.content.find("valid JSON") != std::string::npos &&
+            message.content.find("could not be parsed") != std::string::npos) {
             explained = true;
         }
     }
     CHECK(explained);
+    CHECK(summary.tool_calls == 0);
 }
 
 TEST_CASE("an unknown tool is answered with the real tool list", "[agent]") {
@@ -2961,6 +2965,69 @@ TEST_CASE("an unparseable tool call is one bad turn, not a dead run", "[agent][r
     }
     CHECK(transcript.find("could not be parsed") != std::string::npos);
     CHECK(transcript.find("Make the next one short") != std::string::npos);
+}
+
+TEST_CASE("truncated native tool arguments never poison the next request",
+          "[agent][recovery][tool-output-limit]") {
+    AgentFixture fixture;
+    fixture.backend->set_responder([&](const ChatRequest& request, int turn) {
+        for (const auto& message : request.messages)
+            for (const auto& call : message.tool_calls) CHECK(call.parsed_arguments().ok());
+        ScriptedTurn reply;
+        if (turn == 0) {
+            reply.finish_reason = "length";
+            reply.tool_calls = {{"cut-off", "write_file",
+                                 "{\"path\":\"chess.py\",\"content\":\"" + std::string(20000, 'x')}};
+        } else if (turn == 1) {
+            CHECK(request.parallel_tool_calls == false);
+            reply.tool_calls = {make_call("write_file", {{"path", "chess.py"},
+                {"content", "def starting_player():\n    return 'white'\n"}}, "complete")};
+        } else {
+            reply.content = "Created the small chess helper. It is not a complete game.";
+        }
+        return reply;
+    });
+    const auto result = fixture.agent.run("Create a small Python chess helper file.", {});
+    REQUIRE(std::filesystem::exists(fixture.temp.path() / "chess.py"));
+    CHECK(result.tool_calls == 1);
+    for (const auto& message : fixture.agent.history())
+        for (const auto& call : message.tool_calls) CHECK(call.parsed_arguments().ok());
+}
+
+TEST_CASE("a cut-off native batch executes none of its calls",
+          "[agent][recovery][tool-output-limit]") {
+    AgentFixture fixture;
+    fixture.backend->set_responder([](const ChatRequest&, int turn) {
+        ScriptedTurn reply;
+        if (turn == 0) {
+            reply.finish_reason = "length";
+            reply.tool_calls = {
+                make_call("write_file", {{"path", "partial.py"}, {"content", "wrong partial batch"}}),
+                {"cut-off", "write_file", "{\"path\":\"another.py\",\"content\":\""}};
+        } else reply.content = "No files were written.";
+        return reply;
+    });
+    const auto result = fixture.agent.run("Create two helper files.", {});
+    CHECK_FALSE(std::filesystem::exists(fixture.temp.path() / "partial.py"));
+    CHECK_FALSE(std::filesystem::exists(fixture.temp.path() / "another.py"));
+    CHECK(result.tool_calls == 0);
+}
+
+TEST_CASE("repeated malformed native calls stop with a useful model-output explanation",
+          "[agent][recovery][tool-output-limit]") {
+    AgentFixture fixture;
+    fixture.backend->set_responder([](const ChatRequest&, int) {
+        ScriptedTurn reply;
+        reply.tool_calls = {{"broken", "write_file", "{\"path\":\"chess.py\",\"content\":\""}};
+        return reply;
+    });
+    const auto result = fixture.agent.run("Make a Python chess game.", {});
+    CHECK_FALSE(result.completed);
+    CHECK(result.tool_calls == 0);
+    CHECK(fixture.backend->requests().size() == 3);
+    CHECK(result.stop_reason.find("tool call") != std::string::npos);
+    CHECK(result.stop_reason.find("backend failed") == std::string::npos);
+    CHECK_FALSE(std::filesystem::exists(fixture.temp.path() / "chess.py"));
 }
 
 TEST_CASE("a backend failure that is not the model's doing still ends the run",

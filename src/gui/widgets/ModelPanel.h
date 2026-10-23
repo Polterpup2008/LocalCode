@@ -51,6 +51,7 @@ private:
 
     QComboBox* backend_ = nullptr;
     QSpinBox*  context_ = nullptr;
+    QSpinBox*  replyTokens_ = nullptr;
     QSpinBox*  gpuLayers_ = nullptr;
     QCheckBox* autoGpuLayers_ = nullptr;
     QCheckBox* flashAttention_ = nullptr;

@@ -2437,6 +2437,61 @@ TEST_CASE("model performance dialog saves through the real profile repository", 
     CHECK(saved->front().cache_type_k.empty());
 }
 
+TEST_CASE("reply token limit is editable without changing the context or precision",
+          "[gui][tool-output-limit]") {
+    QTemporaryDir storage;
+    REQUIRE(storage.isValid());
+    const auto original = app_paths().data_dir();
+    struct Restore {
+        std::filesystem::path path;
+        ~Restore() { app_paths().set_data_dir(path); }
+    } restore{original};
+    app_paths().set_data_dir(path_from_utf8(storage.path().toStdString()));
+    Application application;
+    REQUIRE(application.initialise());
+    ModelProfile profile;
+    profile.id = "reply-limit-fixture";
+    profile.display_name = "Reply limit fixture";
+    profile.model_path = "fixture.gguf";
+    profile.context_size = 32768;
+    profile.cache_type_k = "f16";
+    profile.cache_type_v = "f16";
+    profile.sampling.max_tokens = 4096;
+    REQUIRE(application.save_model_profile(profile));
+    ModelPanel panel(application);
+    panel.setAttribute(Qt::WA_DontShowOnScreen);
+    panel.resize(280, 560);
+    panel.show();
+    QApplication::processEvents();
+    auto* reply = panel.findChild<QSpinBox*>("ModelReplyTokenLimit");
+    REQUIRE(reply);
+    CHECK(reply->value() == 4096);
+    reply->setValue(8192);
+    QPushButton* apply = nullptr;
+    for (auto* button : panel.findChildren<QPushButton*>())
+        if (button->text() == "Apply") apply = button;
+    REQUIRE(apply);
+    auto* scroll = panel.findChild<QScrollArea*>("ModelProfileScroll");
+    REQUIRE(scroll);
+    scroll->ensureWidgetVisible(reply);
+    QApplication::processEvents();
+    CHECK(scroll->viewport()->rect().contains(QRect(reply->mapTo(scroll->viewport(), QPoint()), reply->size())));
+    if (const auto prefix = qEnvironmentVariable("LOCALCODE_REPLY_LIMIT_SCREENSHOT"); !prefix.isEmpty()) {
+        REQUIRE(panel.grab().save(prefix + "-dark.png"));
+    }
+    scroll->ensureWidgetVisible(apply);
+    QApplication::processEvents();
+    CHECK(scroll->viewport()->rect().contains(QRect(apply->mapTo(scroll->viewport(), QPoint()), apply->size())));
+    apply->click();
+    const auto saved = application.model_profiles();
+    REQUIRE(saved);
+    REQUIRE(saved->size() == 1);
+    CHECK(saved->front().sampling.max_tokens == 8192);
+    CHECK(saved->front().context_size == 32768);
+    CHECK(saved->front().cache_type_k == "f16");
+    CHECK(saved->front().cache_type_v == "f16");
+}
+
 TEST_CASE("plugin view restores the coding panels when returning to chat",
           "[gui][plugin][layout]") {
     QTemporaryDir storage;

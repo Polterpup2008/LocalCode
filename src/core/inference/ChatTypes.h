@@ -86,6 +86,9 @@ struct ChatRequest {
     std::vector<ToolDefinition> tools;
     SamplingParams              sampling;
     bool                        stream = true;
+    // During malformed-call recovery, ask native runtimes for one call. Unset
+    // retains the provider/template's ordinary parallel-call behavior.
+    std::optional<bool>          parallel_tool_calls;
 
     // Only sent when the profile says the model actually supports it.
     bool                        enable_reasoning = false;

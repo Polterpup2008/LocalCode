@@ -7,6 +7,26 @@
 
 using namespace localcode;
 
+TEST_CASE("malformed stored arguments are removed before context selection and budgeting",
+          "[context][recovery][tool-output-limit]") {
+    ContextManager manager;
+    manager.set_context_size(4096);
+    manager.set_reserved_output(512);
+    auto rejected = ChatMessage::assistant("");
+    rejected.tool_calls = {{"broken", "list_directory", "{\"path\":\"" + std::string(20376, 'x')}};
+    const std::vector<ChatMessage> history = {ChatMessage::user("Make a chess helper."), rejected,
+        ChatMessage::tool_result("broken", "list_directory", "ERROR: invalid arguments"),
+        ChatMessage::user("Continue with a small working module.")};
+    const auto built = manager.build("You are a coding assistant.", "", "", history, {});
+    CHECK_FALSE(built.prompt_does_not_fit);
+    CHECK(built.budget.used < 512);
+    for (const auto& message : built.messages) {
+        CHECK(message.content.find(std::string(100, 'x')) == std::string::npos);
+        CHECK(message.tool_calls.empty());
+    }
+    CHECK(history[1].tool_calls[0].arguments_json.size() == 20385);
+}
+
 TEST_CASE("source witnesses survive aging unchanged when the context has capacity",
           "[context][source-retention][recovery]") {
     for (const std::string tool : {"read_file", "read_file_range"}) {

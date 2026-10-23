@@ -13,10 +13,12 @@
 #include <QMessageBox>
 #include <QMenu>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
 #include <limits>
 
 #include "../Theme.h"
@@ -47,7 +49,13 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     detail_->setFrameShape(QFrame::NoFrame);
     splitter->addWidget(detail_);
 
-    auto* settings = new QGroupBox(tr("Profile"), splitter);
+    auto* profileScroll = new QScrollArea(splitter);
+    profileScroll->setObjectName("ModelProfileScroll");
+    profileScroll->setWidgetResizable(true);
+    profileScroll->setFrameShape(QFrame::NoFrame);
+    profileScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    auto* settings = new QGroupBox(tr("Profile"), profileScroll);
+    profileScroll->setWidget(settings);
     auto* form = new QFormLayout(settings);
     form->setContentsMargins(8, 8, 8, 8);
     form->setSpacing(6);
@@ -81,6 +89,16 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     presets->setMenu(presetMenu);
     contextLayout->addWidget(presets);
     form->addRow(tr("Context size"), contextRow);
+
+    replyTokens_ = new QSpinBox(settings);
+    replyTokens_->setObjectName("ModelReplyTokenLimit");
+    replyTokens_->setRange(0, std::numeric_limits<int>::max());
+    replyTokens_->setSingleStep(512);
+    replyTokens_->setSpecialValueText(tr("Server default"));
+    replyTokens_->setToolTip(tr("Maximum generated tokens per reply, including reasoning and tool arguments. "
+                               "This does not change context size or decoding speed. Zero uses the server default. "
+                               "Apply and reload the model after changing a profile."));
+    form->addRow(tr("Reply token limit"), replyTokens_);
 
     gpuLayers_ = new QSpinBox(settings);
     gpuLayers_->setRange(-1, 999);
@@ -146,7 +164,7 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     connect(apply, &QPushButton::clicked, this, &ModelPanel::applyEdits);
     form->addRow(QString(), apply);
 
-    splitter->addWidget(settings);
+    splitter->addWidget(profileScroll);
     splitter->setSizes({160, 200, 260});
     layout->addWidget(splitter, 1);
 
@@ -309,6 +327,7 @@ void ModelPanel::showSelected() {
                               : profile->backend == BackendPreference::IkLlama ? 2
                                                                                : 0);
     context_->setValue(static_cast<int>(profile->context_size));
+    replyTokens_->setValue(std::max(0, profile->sampling.max_tokens));
     gpuLayers_->setValue(profile->gpu_layers);
     autoGpuLayers_->setChecked(profile->auto_gpu_layers);
     gpuLayers_->setDisabled(profile->auto_gpu_layers);
@@ -407,6 +426,8 @@ void ModelPanel::applyEdits() {
                        : backend_->currentIndex() == 2 ? BackendPreference::IkLlama
                                                        : BackendPreference::Auto;
     profile->context_size = static_cast<std::uint32_t>(context_->value());
+    if (replyTokens_->value() != std::max(0, profile->sampling.max_tokens))
+        profile->sampling.max_tokens = replyTokens_->value();
     profile->gpu_layers = gpuLayers_->value();
     profile->auto_gpu_layers = autoGpuLayers_->isChecked();
     profile->flash_attention = flashAttention_->isChecked();

@@ -45,8 +45,9 @@ memory if offloading, for your chosen model and context size.
    GGUFs can also be imported and selected for a computer with less memory.
 5. Choose a model from the toolbar, or select it in **Models** and click **Load**.
    Wait for loading to finish. The model profile provides context size, GPU
-   layers, tool calling and native reasoning controls; click **Apply** after
-   changing a profile. If memory is insufficient, lower context size or GPU
+   layers, reply token limit, tool calling and native reasoning controls; click
+   **Apply** and reload after changing a profile. If memory is insufficient,
+   lower context size or GPU
    layers, or choose a smaller model.
 
 The bundled runtime checks actual GPU devices and can use its Vulkan alternative
@@ -124,6 +125,12 @@ means a response was produced; it does not mean the project was tested.
 review. **Verified — no summary** means the record and final prose have separate
 outcomes. Read any unchecked or unsupported-claim notices. Reasoning display is
 available for models that provide it; it is not evidence that a task succeeded.
+
+If the model repeatedly returns an incomplete tool call, start with a smaller
+working module or increase **Models > Reply token limit**, then Apply and reload.
+This allowance includes reasoning and tool arguments; increasing it can make
+generation longer. Context size is a separate setting. LocalCode discards a
+rejected batch before execution and tries two short-call recoveries.
 
 ## Repository context and saved conversations
 

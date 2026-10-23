@@ -101,6 +101,8 @@ class Server:
             self.command.extend(['--load-mode', 'mmap+mlock'])
         elif c.get('load_mode'):
             self.command.extend(['--load-mode', c['load_mode']])
+        if c.get('device'):
+            self.command.extend(['--device', c['device']])
         self.start = time.perf_counter()
         self.process = subprocess.Popen(self.command, stdin=subprocess.DEVNULL, stdout=self.log,
                                         stderr=subprocess.STDOUT, cwd=self.executable.parent,

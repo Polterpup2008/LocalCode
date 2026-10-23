@@ -26,7 +26,7 @@
 #include "util/Strings.h"
 
 namespace {
-class TokenizerClient final : public localcode::HttpClient {
+class TokenizerClient : public localcode::HttpClient {
 public:
     int calls = 0;
     int token_count = 41;
@@ -1124,6 +1124,88 @@ TEST_CASE("an ordinary server error still says what the server said", "[backend]
         503, R"({"error":{"message":"the model is still loading"}})");
     CHECK(error.message.find("HTTP 503") != std::string::npos);
     CHECK(error.detail.find("still loading") != std::string::npos);
+}
+
+TEST_CASE("malformed stored tool calls are omitted on replay without changing saved messages",
+          "[backend][recovery][tool-output-limit]") {
+    using namespace localcode;
+    struct InspectBackend : OpenAiCompatBackend {
+        using OpenAiCompatBackend::OpenAiCompatBackend;
+        using OpenAiCompatBackend::build_payload;
+    } backend{{}, nullptr};
+    ChatRequest request;
+    auto previous = ChatMessage::assistant("");
+    previous.tool_calls = {{"valid", "read_file", R"({"path":"README.md"})"},
+                          {"broken", "list_directory", "{\"path\":\"" + std::string(20376, 'x')}};
+    request.messages = {ChatMessage::user("Make a Python chess game."), previous,
+        ChatMessage::tool_result("valid", "read_file", "Existing verified source evidence"),
+        ChatMessage::tool_result("broken", "list_directory", "ERROR: malformed arguments"),
+        ChatMessage::user("Continue.")};
+    const auto payload = backend.build_payload(request);
+    REQUIRE(payload["messages"].size() == 4);
+    if (const auto* capture = std::getenv("LOCALCODE_TEST_REPLAY_PAYLOAD")) {
+        const auto path = path_from_utf8(capture);
+        REQUIRE_FALSE(std::filesystem::exists(path));
+        std::ofstream output(path, std::ios::binary);
+        REQUIRE(output.good());
+        output << payload.dump(2);
+    }
+    CHECK(payload["messages"][1]["tool_calls"].size() == 1);
+    CHECK(payload["messages"][1]["tool_calls"][0]["id"] == "valid");
+    CHECK(payload["messages"][1]["content"].get<std::string>().find("omitted malformed") != std::string::npos);
+    CHECK(payload["messages"][2]["content"] == "Existing verified source evidence");
+    CHECK(request.messages[1].tool_calls.size() == 2);
+    CHECK_FALSE(request.messages[1].tool_calls[1].parsed_arguments());
+    request.parallel_tool_calls = false;
+    request.tools = {{"read_file", "Read a file", Json{{"type", "object"}}}};
+    CHECK(backend.build_payload(request)["parallel_tool_calls"] == false);
+}
+
+TEST_CASE("SSE tool-parser errors receive the same recoverable classification as HTTP errors",
+          "[backend][recovery][tool-output-limit]") {
+    using namespace localcode;
+    struct ErrorClient : TokenizerClient {
+        Result<HttpResponse> stream(const HttpRequest&, const HttpStreamCallback& callback,
+                                    CancellationToken) override {
+            callback("data: {\"error\":{\"message\":\"Failed to parse tool call arguments as JSON: missing closing quote\"}}\n\n");
+            HttpResponse response;
+            response.status_code = 200;
+            return response;
+        }
+    };
+    LlamaCppBackend backend{{}, std::make_shared<ErrorClient>()};
+    ChatRequest request;
+    request.messages = {ChatMessage::user("Make a Python chess game.")};
+    const auto result = backend.chat(request, {}, {});
+    REQUIRE_FALSE(result);
+    CHECK(result.error().code == ErrorCode::InvalidToolCall);
+    const auto http = OpenAiCompatBackend::chat_http_error(500,
+        R"({"error":{"message":"Failed to parse tool call arguments as JSON: missing closing quote"}})");
+    CHECK(http.code == ErrorCode::InvalidToolCall);
+}
+
+TEST_CASE("replay repair preserves valid results when another turn reused the call ID",
+          "[backend][recovery][tool-output-limit]") {
+    using namespace localcode;
+    struct InspectBackend : OpenAiCompatBackend {
+        using OpenAiCompatBackend::OpenAiCompatBackend;
+        using OpenAiCompatBackend::build_payload;
+    } backend{{}, nullptr};
+    auto valid = ChatMessage::assistant("");
+    valid.tool_calls = {{"call_0", "read_file", R"({"path":"README.md"})"}};
+    auto invalid = ChatMessage::assistant("");
+    invalid.tool_calls = {{"call_0", "write_file", "{\"path\":\"unfinished"}};
+    ChatRequest request;
+    request.messages = {ChatMessage::user("Inspect the file."), valid,
+        ChatMessage::tool_result("call_0", "read_file", "EARLIER_SOURCE_EVIDENCE"), invalid,
+        ChatMessage::tool_result("call_0", "write_file", "ERROR: rejected"), valid,
+        ChatMessage::tool_result("call_0", "read_file", "LATER_SOURCE_EVIDENCE")};
+    const auto payload = backend.build_payload(request);
+    const auto wire = payload.dump();
+    CHECK(wire.find("EARLIER_SOURCE_EVIDENCE") != std::string::npos);
+    CHECK(wire.find("LATER_SOURCE_EVIDENCE") != std::string::npos);
+    CHECK(wire.find("ERROR: rejected") == std::string::npos);
+    CHECK(payload["messages"].size() == 6);
 }
 
 TEST_CASE("a body that is not JSON is passed through rather than lost", "[backend][errors]") {

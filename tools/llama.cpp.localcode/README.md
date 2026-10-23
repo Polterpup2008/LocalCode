@@ -1,5 +1,25 @@
 # LocalCode runtime optimization and compatibility
 
+LocalCode 1.2 fixes incomplete native-tool batches and replay of malformed calls
+saved by older versions. The additional Vulkan pipeline-cache experiment failed
+its preset performance gate and is **not enabled or shipped as a binary**.
+See the [1.2 reliability and experiment report](../../docs/benchmarks/2026-10-23-tool-recovery.md)
+and [isolated experiment source](experiments/README.md).
+
+To reproduce the HTTP failure using synthetic history, export the actual C++
+backend fixture payload into a new file, then launch the isolated CPU check
+with an already installed small model and compatible llama.cpp server:
+
+```powershell
+$env:LOCALCODE_TEST_REPLAY_PAYLOAD = 'C:/work/replay-fixture.json'
+./build/audit-release/bin/localcode_tests.exe 'malformed stored tool calls are omitted on replay without changing saved messages'
+Remove-Item Env:LOCALCODE_TEST_REPLAY_PAYLOAD
+python tools/llama.cpp.localcode/verify_tool_replay.py --server C:/work/runtime/llama-server.exe --model C:/models/model.gguf --payload C:/work/replay-fixture.json --output C:/work/replay-check
+```
+
+This starts and stops only its own server on a free loopback port. It sends no
+tools for execution and does not read or modify an existing conversation store.
+
 LocalCode 1.1 reduces unnecessary agent prompt work across inference backends.
 Its Windows bundle also includes a Vulkan alternative, probes actual available
 devices, fits GPU placement while retaining context and precision, and reports

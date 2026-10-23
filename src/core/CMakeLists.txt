@@ -30,6 +30,7 @@ set(LOCALCODE_CORE_SOURCES
     inference/ServerManager.cpp
     inference/BackendManager.cpp
     inference/RuntimeDiagnostics.cpp
+    inference/ToolHistory.cpp
     agent/Presentation.cpp
     agent/ToolCatalog.cpp
     agent/Outcome.cpp

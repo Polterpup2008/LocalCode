@@ -426,6 +426,13 @@ std::string SystemPrompt::build(const PromptContext& context) {
 
     if (context.text_tool_protocol) {
         out += ToolCallParser::protocol_instructions(context.tools);
+    } else if (!context.tools.empty()) {
+        out += small_window(context)
+            ? "Use short, complete JSON calls and small patches.\n\n"
+            : "Use the native tool interface with complete JSON-object arguments. Keep calls "
+               "within the reply-token budget; do not embed another call's markup in an argument. "
+               "Build large programs in small working modules and incremental patches across "
+               "turns, rather than one enormous file-writing call.\n\n";
     }
     return out;
 }

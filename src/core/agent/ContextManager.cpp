@@ -9,6 +9,7 @@
 #include <set>
 
 #include "../inference/RequestTrace.h"
+#include "../inference/ToolHistory.h"
 #include "../util/Log.h"
 #include "../util/Strings.h"
 
@@ -631,10 +632,12 @@ ContextBuildResult ContextManager::build(const std::string& system_prompt,
 ContextBuildResult ContextManager::build(const std::string& system_prompt,
                                          const std::string& skills_block,
                                          const std::string& task_state_block,
-                                         const std::vector<ChatMessage>& history,
+                                         const std::vector<ChatMessage>& original_history,
                                          const std::vector<ToolDefinition>& tools,
                                          const std::vector<SourceAnchor>& source_anchors,
                                          const std::string& current_request_source_context) const {
+    const auto repaired = repair_tool_history(original_history);
+    const auto& history = repaired ? *repaired : original_history;
     ContextBuildResult result;
     result.budget.total = context_size_;
     result.budget.reserved_for_output = reserved_output_;

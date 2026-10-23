@@ -1,5 +1,6 @@
 #include "OpenAiCompatBackend.h"
 #include "RequestTrace.h"
+#include "ToolHistory.h"
 
 #include <algorithm>
 #include <map>
@@ -211,7 +212,7 @@ Error OpenAiCompatBackend::chat_http_error(int status_code, const std::string& b
     // reporting that the backend had failed.
     if (strings::icontains(server_message, "parse tool call") ||
         strings::icontains(server_message, "tool call arguments")) {
-        return make_error(ErrorCode::BackendError,
+        return make_error(ErrorCode::InvalidToolCall,
                           "the model produced a tool call the server could not parse",
                           strings::utf8_truncate(server_message, 600));
     }
@@ -253,7 +254,13 @@ Json OpenAiCompatBackend::build_payload(const ChatRequest& request) const {
     if (request.stream) payload["stream_options"] = {{"include_usage", true}};
 
     Json messages = Json::array();
-    for (const auto& message : request.messages)
+    // Older releases saved malformed native calls before validating them. The
+    // server parses historical arguments while rendering its template, so one
+    // broken stored call otherwise makes every subsequent request fail. Omit
+    // only those rejected calls and their paired error results on the wire;
+    // leave the saved conversation, valid calls and execution evidence intact.
+    const auto repaired = repair_tool_history(request.messages);
+    for (const auto& message : repaired ? *repaired : request.messages)
         messages.push_back(message_to_json(message));
     payload["messages"] = std::move(messages);
 
@@ -273,6 +280,8 @@ Json OpenAiCompatBackend::build_payload(const ChatRequest& request) const {
             tools.push_back(tool.to_openai_json());
         payload["tools"] = std::move(tools);
         payload["tool_choice"] = "auto";
+        if (request.parallel_tool_calls.has_value())
+            payload["parallel_tool_calls"] = *request.parallel_tool_calls;
     }
 
     if (!request.response_schema.is_null()) {
@@ -448,8 +457,13 @@ Result<ChatResult> OpenAiCompatBackend::chat_streaming(const ChatRequest& reques
     parser.finish(handle_event);
 
     if (!protocol_error.empty()) {
+        if (strings::icontains(protocol_error, "parse tool call") ||
+            strings::icontains(protocol_error, "tool call arguments"))
+            return make_error(ErrorCode::InvalidToolCall,
+                              "the model produced a tool call the server could not parse",
+                              strings::utf8_truncate(protocol_error, 600));
         return make_error(ErrorCode::BackendError, "model server reported an error",
-                          protocol_error);
+                          strings::utf8_truncate(protocol_error, 600));
     }
     if (!response->ok()) {
         return chat_http_error(response->status_code,

@@ -27,6 +27,7 @@ enum class ErrorCode {
     BackendError,
     NotSupported,
     Internal,
+    InvalidToolCall,
 };
 
 std::string_view to_string(ErrorCode code) noexcept;

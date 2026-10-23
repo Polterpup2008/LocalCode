@@ -17,6 +17,7 @@ std::string_view to_string(ErrorCode code) noexcept {
         case ErrorCode::BackendError:     return "backend_error";
         case ErrorCode::NotSupported:     return "not_supported";
         case ErrorCode::Internal:         return "internal";
+        case ErrorCode::InvalidToolCall:  return "invalid_tool_call";
     }
     return "unknown";
 }
