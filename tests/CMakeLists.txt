@@ -106,3 +106,9 @@ endif()
 catch_discover_tests(localcode_tests
     DISCOVERY_MODE PRE_TEST
     PROPERTIES TIMEOUT 300)
+
+if(CMAKE_CXX_FLAGS MATCHES "-fsanitize=(address|undefined)")
+    # Apply after PRE_TEST discovery has registered the individual cases.
+    set_property(DIRECTORY APPEND PROPERTY TEST_INCLUDE_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/SanitizerTestProperties.cmake")
+endif()
