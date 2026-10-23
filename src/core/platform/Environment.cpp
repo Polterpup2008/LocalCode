@@ -11,6 +11,7 @@
 #include "../util/Json.h"
 #include "../util/Log.h"
 #include "../util/Strings.h"
+#include "PathEncoding.h"
 #include "Paths.h"
 #include "Process.h"
 
@@ -331,7 +332,7 @@ std::optional<std::filesystem::path> resolve_executable(
 
     // An explicit path that did not resolve is simply absent; the well-known
     // locations are about bare names.
-    const std::filesystem::path as_path{name};
+    const auto as_path = path_from_utf8(name);
     if (as_path.is_absolute() || as_path.has_parent_path()) return std::nullopt;
 
     // A program the agent just built, in the directory it is standing in.
@@ -348,13 +349,14 @@ std::optional<std::filesystem::path> resolve_executable(
 #if defined(_WIN32)
         static const char* kSuffixes[] = {"", ".exe", ".bat", ".cmd", ".com"};
         for (const char* suffix : kSuffixes) {
-            const auto candidate = working_directory / (std::string{name} + suffix);
+            auto candidate = working_directory / as_path;
+            candidate += suffix;
             if (std::filesystem::is_regular_file(candidate, ec)) {
                 return std::filesystem::weakly_canonical(candidate, ec);
             }
         }
 #else
-        const auto candidate = working_directory / std::filesystem::path{name};
+        const auto candidate = working_directory / as_path;
         if (std::filesystem::is_regular_file(candidate, ec)) {
             return std::filesystem::weakly_canonical(candidate, ec);
         }

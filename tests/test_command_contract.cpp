@@ -25,7 +25,9 @@
 
 #include <fstream>
 
+#include "agent/EvidenceInterpreter.h"
 #include "platform/Environment.h"
+#include "platform/PathEncoding.h"
 #include "platform/Process.h"
 #include "support/TempDirectory.h"
 #include "tools/BuildDirectory.h"
@@ -39,11 +41,10 @@ using localcode::test::TempDirectory;
 
 namespace {
 
-// A real program, small and quick, so "did this actually start" is a question
-// the test can answer rather than assume. hostname.exe prints one line and
-// exits 0.
+// A real native program, small and quick, so "did this actually start" is a
+// question the test can answer without depending on a host system utility.
 const std::filesystem::path& sample_program() {
-    static const std::filesystem::path path = R"(C:\Windows\System32\HOSTNAME.EXE)";
+    static const auto path = path_from_utf8(LOCALCODE_TEST_COMMAND_FIXTURE);
     return path;
 }
 
@@ -65,7 +66,7 @@ struct CommandFixture {
     // Copies the sample program to a path inside the workspace and returns the
     // path as written, workspace-relative with forward slashes.
     std::string place_program(const std::string& relative) {
-        const auto destination = temp.path() / relative;
+        const auto destination = temp.path() / path_from_utf8(relative);
         std::filesystem::create_directories(destination.parent_path());
         std::error_code ec;
         std::filesystem::copy_file(sample_program(), destination,
@@ -109,12 +110,16 @@ TEST_CASE("a workspace-relative executable runs", "[command][contract]") {
     CHECK(CommandFixture::ran(result));
 }
 
-TEST_CASE("a backslash path names the same program", "[command][contract]") {
-    // What a model copies out of an MSBuild log. Windows accepts it, so
-    // LocalCode must too - the danger is the JSON escaping on the way in, not
-    // the separator itself.
+TEST_CASE("a backslash path follows the host filesystem rules", "[command][contract]") {
+    // Windows interprets a backslash as a separator; POSIX permits it in a
+    // filename. Preserve the native spelling rather than rewriting a different
+    // valid POSIX filename to a nested path.
     CommandFixture fixture;
+#if defined(_WIN32)
     fixture.place_program("build/Debug/app.exe");
+#else
+    fixture.place_program(R"(build\Debug\app.exe)");
+#endif
 
     auto result = fixture.call(
         "run_command", Json{{"executable", R"(build\Debug\app.exe)"}, {"arguments", Json::array()}});
@@ -153,10 +158,40 @@ TEST_CASE("a non-ASCII path names the same program", "[command][contract]") {
     CommandFixture fixture;
     const auto program = fixture.place_program("bygg-\xC3\xA5\xC3\xA4\xC3\xB6/app.exe");
 
+    const auto expected = std::filesystem::canonical(fixture.temp.path() / path_from_utf8(program));
+    const auto found = find_executable(program, fixture.temp.path());
+    REQUIRE(found.has_value());
+    CHECK(*found == expected);
+    const auto resolved = resolve_executable(program, fixture.temp.path());
+    REQUIRE(resolved.has_value());
+    CHECK(*resolved == expected);
+    const auto bare_program = fixture.place_program("app-\xC3\xA5\xC3\xA4\xC3\xB6.exe");
+    const auto bare_resolved = resolve_executable(bare_program, fixture.temp.path());
+    REQUIRE(bare_resolved.has_value());
+    CHECK(*bare_resolved == std::filesystem::canonical(fixture.temp.path() /
+                                                     path_from_utf8(bare_program)));
+    ProcessRequest request;
+    request.executable = expected;
+    const auto displayed_arguments = split_command_line(ProcessRunner::display_command(request));
+    REQUIRE(displayed_arguments.size() == 1);
+    CHECK(path_from_utf8(displayed_arguments.front()) == expected);
+
     auto result = fixture.call("run_command",
                                Json{{"executable", program}, {"arguments", Json::array()}});
     INFO(result.content);
+    INFO(result.error);
+    REQUIRE(result.ok);
     CHECK(CommandFixture::ran(result));
+    REQUIRE(result.structured.is_object());
+    const auto record = Json::parse(result.structured.dump());
+    CHECK(record.at("executable").get<std::string>() == path_to_utf8(expected));
+    CHECK(record.at("cwd").get<std::string>() == path_to_utf8(fixture.temp.path()));
+    CHECK(record.at("full_log").get<std::string>() == path_to_utf8(result.full_log_path));
+
+    const auto virtual_result = fixture.call(
+        "run_command", Json{{"executable", "/workspace/" + program}, {"arguments", Json::array()}});
+    INFO(virtual_result.error);
+    CHECK(CommandFixture::ran(virtual_result));
 }
 
 TEST_CASE("a bare name is found beside the sources, not only on PATH",
@@ -793,10 +828,14 @@ TEST_CASE("a command that really is silent still passes an empty stdout_equals",
     // The check must keep working for what it actually says. Rejecting it
     // outright would remove a legitimate way to require silence.
     CommandFixture fixture;
+#if defined(_WIN32)
+    const auto command = Json::array({"cmd", "/d", "/s", "/c", "exit 0"});
+#else
+    const auto command = Json::array({"sh", "-c", "exit 0"});
+#endif
     auto result = fixture.call(
         "run_command",
-        Json{{"executable", "cmd"},
-             {"arguments", Json::array({"/d", "/s", "/c", "exit 0"})},
+        Json{{"command", command},
              {"expect", Json{{"description", "prints nothing"}, {"stdout_equals", ""}}}});
     REQUIRE(result.ok);
     INFO(result.content);
@@ -1323,15 +1362,23 @@ TEST_CASE("an invented path to a real program gives the real location",
     // "Microsoft MSVC" where the real directory is "MSVC". LocalCode had
     // resolved cl.exe minutes earlier and answered "not found".
     CommandFixture fixture;
-
+#if defined(_WIN32)
+    const std::string program_name = "hostname.exe";
+    const std::string invented_path = R"(C:\Nowhere\Invented\Path\hostname.exe)";
+#else
+    const std::string program_name = "hostname";
+    const std::string invented_path = "/nowhere/invented/path/hostname";
+#endif
     auto result = fixture.call(
         "run_command",
-        Json{{"executable", R"(C:\Nowhere\Invented\Path\hostname.exe)"},
+        Json{{"executable", invented_path},
              {"arguments", Json::array()}});
     REQUIRE_FALSE(result.ok);
     INFO(result.error);
-    CHECK(result.error.find("hostname.exe is at:") != std::string::npos);
-    CHECK(result.error.find("HOSTNAME.EXE") != std::string::npos);
+    CHECK(result.error.find(program_name + " is at:") != std::string::npos);
+    const auto real_program = find_executable(program_name);
+    REQUIRE(real_program.has_value());
+    CHECK(result.error.find(path_to_utf8(*real_program)) != std::string::npos);
 }
 
 TEST_CASE("a tool run with no arguments settles nothing and says why",

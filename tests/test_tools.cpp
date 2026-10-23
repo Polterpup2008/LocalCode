@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <chrono>
 
 #include "agent/EvidenceInterpreter.h"
@@ -1231,7 +1232,17 @@ TEST_CASE("literal search priority preserves explicit selection and matching con
         const auto regex = fixture.call(
             "search_text", {{"query", "opening\\s+hours"}, {"regex", true}, {"max_results", 1}});
         REQUIRE(regex.ok);
-        CHECK(regex.content.find("a/implementation.cpp") != std::string::npos);
+        const auto files = fixture.workspace.all_files(100000);
+        REQUIRE(files.ok());
+        const auto first_matching =
+            std::find_if(files->begin(), files->end(), [](const auto& file) {
+                return file.relative_path == "a/implementation.cpp" ||
+                       file.relative_path == "docs/information.md";
+            });
+        REQUIRE(first_matching != files->end());
+        CHECK(regex.content.find(first_matching->relative_path) != std::string::npos);
+        CHECK(regex.summary.find("Found 1 match(es)") != std::string::npos);
+        CHECK(regex.truncated);
         CHECK(regex.content.find("Order: literal path affinity") == std::string::npos);
     }
     SECTION("an uncapped zero remains restricted to actually inspected files") {
@@ -1628,8 +1639,13 @@ TEST_CASE("a failing command is reported as a fact, not a tool error", "[tools][
 
 TEST_CASE("a blocked command is refused and says so plainly", "[tools][security]") {
     ToolFixture fixture;
-
-    auto result = fixture.call("run_command", Json{{"shell_command", "format C: /y"}});
+    // A harmless real executable given a blocked basename makes resolution
+    // portable and keeps the test safe even if the policy regresses.
+    const auto sample = path_from_utf8(LOCALCODE_TEST_COMMAND_FIXTURE);
+    const auto executable = fixture.temp.path() / "format.exe";
+    REQUIRE(std::filesystem::copy_file(sample, executable));
+    auto result = fixture.call("run_command", Json{{"executable", path_to_utf8(executable)},
+                                                   {"arguments", Json::array()}});
     CHECK_FALSE(result.ok);
     CHECK(result.error.find("blocked") != std::string::npos);
     CHECK(result.error.find("not something you can override") != std::string::npos);
@@ -2101,7 +2117,14 @@ TEST_CASE("running an environment script is not recorded as a build",
     ToolFixture fixture;
 
     // A stand-in for vcvars64.bat: succeeds, ignores its arguments.
+#if defined(_WIN32)
     fixture.temp.write("vcvars64.bat", "@echo off\r\n@exit /b 0\r\n");
+#else
+    fixture.temp.write("vcvars64.bat", "#!/bin/sh\nexit 0\n");
+    std::filesystem::permissions(fixture.temp.path() / "vcvars64.bat",
+                                 std::filesystem::perms::owner_exec,
+                                 std::filesystem::perm_options::add);
+#endif
     const auto script = (fixture.temp.path() / "vcvars64.bat").string();
 
     auto result = fixture.call("run_command",
@@ -2463,8 +2486,12 @@ TEST_CASE("the last word of a build report is the path that works", "[tools][pro
     ToolFixture fixture;
     const std::string line = "Linking CXX executable " +
                              (fixture.temp.path() / "build" / "Debug" / "fibonacci.exe").string();
-    auto result = fixture.call(
-        "run_command", Json{{"command", Json::array({"cmd", "/d", "/s", "/c", "echo " + line})}});
+#if defined(_WIN32)
+    const auto command = Json::array({"cmd", "/d", "/s", "/c", "echo " + line});
+#else
+    const auto command = Json::array({"echo", line});
+#endif
+    auto result = fixture.call("run_command", Json{{"command", command}});
     REQUIRE(result.ok);
     INFO(result.content);
 

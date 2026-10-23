@@ -41,8 +41,8 @@ enum class CommandIntent {
 
 [[nodiscard]] std::string_view to_string(CommandIntent intent) noexcept;
 
-// Splits a command line into arguments, honouring double quotes. Good enough
-// for classification; it is not a shell.
+// Splits a rendered process command into arguments, honouring double quotes
+// and the POSIX single-quote format emitted by ProcessRunner. It is not a shell.
 [[nodiscard]] std::vector<std::string> split_command_line(std::string_view line);
 
 [[nodiscard]] CommandIntent classify_intent(std::string_view command_line);

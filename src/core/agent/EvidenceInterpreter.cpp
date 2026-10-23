@@ -28,7 +28,21 @@ bool is_environment_script(const std::string& stem) {
 }
 
 std::string stem_of(const std::string& argument) {
-    return strings::to_lower(std::filesystem::path{argument}.stem().string());
+    // Command records can contain Windows paths even when inspected on POSIX.
+    // The host filesystem would treat their backslashes as filename characters.
+    const char* separators = "/\\";
+#if !defined(_WIN32)
+    const bool drive_path = argument.size() >= 3 && argument[1] == ':' &&
+                            ((argument[0] >= 'A' && argument[0] <= 'Z') ||
+                             (argument[0] >= 'a' && argument[0] <= 'z')) &&
+                            (argument[2] == '/' || argument[2] == '\\');
+    // Backslashes in a native POSIX filename are literal characters. Only
+    // interpret them as separators for explicit Windows drive or UNC paths.
+    if (!drive_path && !argument.starts_with("\\\\")) separators = "/";
+#endif
+    const auto separator = argument.find_last_of(separators);
+    const auto filename = argument.substr(separator == std::string::npos ? 0 : separator + 1);
+    return strings::to_lower(std::filesystem::path{filename}.stem().string());
 }
 
 // A PowerShell host can execute a script whose purpose is opaque to us. Do
@@ -155,15 +169,31 @@ std::string_view to_string(CommandIntent intent) noexcept {
 std::vector<std::string> split_command_line(std::string_view line) {
     std::vector<std::string> args;
     std::string current;
-    bool in_quotes = false;
+    char quote = 0;
     bool have_current = false;
-    for (const char c : line) {
-        if (c == '"') {
-            in_quotes = !in_quotes;
+    for (std::size_t index = 0; index < line.size(); ++index) {
+        const char c = line[index];
+#if !defined(_WIN32)
+        // ProcessRunner renders POSIX arguments with single quotes and uses
+        // '\'' for an embedded apostrophe. Decode that display format without
+        // evaluating the command or consuming backslashes in Windows paths.
+        if (quote == 0 && c == '\\' && index + 1 < line.size() && line[index + 1] == '\'') {
+            current.push_back(line[++index]);
             have_current = true;
             continue;
         }
-        if (!in_quotes && (c == ' ' || c == '\t')) {
+        if (c == '\'' && (quote == 0 || quote == '\'')) {
+            quote = quote == 0 ? '\'' : 0;
+            have_current = true;
+            continue;
+        }
+#endif
+        if (c == '"' && (quote == 0 || quote == '"')) {
+            quote = quote == 0 ? '"' : 0;
+            have_current = true;
+            continue;
+        }
+        if (quote == 0 && (c == ' ' || c == '\t')) {
             if (have_current) args.push_back(current);
             current.clear();
             have_current = false;

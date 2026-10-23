@@ -1,9 +1,11 @@
-﻿# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # The core test executable needs no Qt, display or model server. Optional GUI
 # tests are registered separately with the platform plugin shipped by Qt.
 # ---------------------------------------------------------------------------
 add_executable(localcode_server_fixture server_fixture_main.cpp)
 target_link_libraries(localcode_server_fixture PRIVATE LocalCode::warnings)
+add_executable(localcode_command_fixture command_fixture_main.cpp)
+target_link_libraries(localcode_command_fixture PRIVATE LocalCode::warnings)
 
 add_executable(localcode_tests
     test_main.cpp
@@ -69,12 +71,13 @@ target_link_libraries(localcode_tests
 # the real bundled content rather than fixtures.
 target_compile_definitions(localcode_tests PRIVATE
     LOCALCODE_TEST_SERVER_FIXTURE="$<TARGET_FILE:localcode_server_fixture>"
+    LOCALCODE_TEST_COMMAND_FIXTURE="$<TARGET_FILE:localcode_command_fixture>"
     LOCALCODE_TEST_SKILLS_DIR="${CMAKE_SOURCE_DIR}/skills"
     LOCALCODE_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
     # The GUI is not linked into the test binary, so a lifetime rule that lives
     # in its entry point can only be checked by reading the source.
     LOCALCODE_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-add_dependencies(localcode_tests localcode_server_fixture)
+add_dependencies(localcode_tests localcode_server_fixture localcode_command_fixture)
 
 include(Catch)
 find_package(Python3 COMPONENTS Interpreter QUIET)

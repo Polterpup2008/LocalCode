@@ -112,12 +112,18 @@ TEST_CASE("throwing output observers do not terminate process cleanup", "[proces
 }
 
 TEST_CASE("a non-zero exit code is reported, not treated as an error", "[process]") {
-    auto request = shell_command("exit 3");
+    int exit_code = 3;
+    SECTION("ordinary nonzero exit") {}
+    SECTION("exit 127 is distinct from an exec failure") {
+        exit_code = 127;
+    }
+    auto request = shell_command("exit " + std::to_string(exit_code));
     auto result = ProcessRunner::run(request);
 
     // The tool worked; the command failed. Those are different things.
     REQUIRE(result.ok());
-    CHECK(result->exit_code == 3);
+    CHECK(result->started);
+    CHECK(result->exit_code == exit_code);
     CHECK_FALSE(result->success());
 }
 
@@ -135,9 +141,57 @@ TEST_CASE("stderr is captured separately", "[process]") {
 TEST_CASE("a missing executable fails to start", "[process]") {
     ProcessRequest request;
     request.executable = "this-program-does-not-exist-anywhere-12345";
+    bool started = false;
+    request.on_started = [&](std::uint32_t) { started = true; };
     auto result = ProcessRunner::run(request);
     CHECK_FALSE(result.ok());
+    CHECK_FALSE(started);
 }
+
+TEST_CASE("an invalid executable is a launch error rather than a program exit", "[process]") {
+    TempDirectory temp{"lc-invalid-executable"};
+    const auto executable = temp.write("invalid-program.exe", "not an executable image\n");
+#if !defined(_WIN32)
+    std::filesystem::permissions(executable, std::filesystem::perms::owner_exec,
+                                 std::filesystem::perm_options::add);
+#endif
+    ProcessRequest request;
+    request.executable = executable;
+    bool started = false;
+    request.on_started = [&](std::uint32_t) { started = true; };
+    const auto result = ProcessRunner::run(request);
+    CHECK_FALSE(result.ok());
+    CHECK_FALSE(started);
+}
+
+#if !defined(_WIN32)
+TEST_CASE("cancellation before launch never reports a started child", "[process][cancel]") {
+    auto request = shell_command("sleep 30");
+    request.timeout = std::chrono::seconds(60);
+    bool started = false;
+    request.on_started = [&](std::uint32_t) { started = true; };
+    CancellationSource source;
+    source.cancel();
+    const auto result = ProcessRunner::run(request, source.token());
+    REQUIRE_FALSE(result);
+    CHECK(result.error().code == ErrorCode::Cancelled);
+    CHECK_FALSE(started);
+}
+
+TEST_CASE("an executable permission failure never reports a started child", "[process]") {
+    TempDirectory temp{"lc-unexecutable"};
+    ProcessRequest request;
+    request.executable = temp.write("unexecutable", "#!/bin/sh\nexit 0\n");
+    std::filesystem::permissions(request.executable, std::filesystem::perms::owner_read |
+                                                         std::filesystem::perms::owner_write);
+    bool started = false;
+    request.on_started = [&](std::uint32_t) { started = true; };
+    const auto result = ProcessRunner::run(request);
+    REQUIRE_FALSE(result);
+    CHECK(result.error().code == ErrorCode::PermissionDenied);
+    CHECK_FALSE(started);
+}
+#endif
 
 TEST_CASE("a hung process is killed at the timeout", "[process][timeout]") {
 #if defined(_WIN32)
@@ -262,10 +316,14 @@ TEST_CASE("the working directory is honoured", "[process]") {
 }
 
 TEST_CASE("a non-existent working directory is refused", "[process]") {
+    TempDirectory temp{"lc-missing-cwd"};
     auto request = shell_command("echo x");
-    request.working_directory = "Z:/definitely/not/here/at/all";
+    request.working_directory = temp.path() / "directory-that-does-not-exist";
+    bool started = false;
+    request.on_started = [&](std::uint32_t) { started = true; };
     auto result = ProcessRunner::run(request);
     CHECK_FALSE(result.ok());
+    CHECK_FALSE(started);
 }
 
 TEST_CASE("environment variables are passed through", "[process]") {
@@ -732,11 +790,11 @@ TEST_CASE("a build reports the executable it produced", "[tools][process][build]
     // lost its backslashes to escapes and produced "executable not found" for a
     // program sitting exactly where it had been left. The build tool already
     // printed the path; it just was not passed on.
-    const std::filesystem::path cwd{R"(C:\work\proj)"};
+    TempDirectory temp{"lc-build-output"};
+    const auto cwd = temp.path();
 
     const auto msbuild = executables_produced(
-        R"(  fibonacci.vcxproj -> C:\work\proj\build\RelWithDebInfo\fibonacci.exe)"
-        "\n",
+        "  fibonacci.vcxproj -> " + (cwd / "build/RelWithDebInfo/fibonacci.exe").string() + "\n",
         cwd);
     REQUIRE(msbuild.size() == 1);
     CHECK(msbuild[0] == "build/RelWithDebInfo/fibonacci.exe");
@@ -760,11 +818,8 @@ TEST_CASE("a build reports the executable it produced", "[tools][process][build]
     CHECK(executables_produced("[1/1] Building CXX object main.cpp.obj\n", cwd).empty());
 
     // The same binary named twice is one binary.
-    const auto repeated = executables_produced(R"(  a.vcxproj -> C:\work\proj\build\a.exe)"
-                                               "\n"
-                                               R"(  a.vcxproj -> C:\work\proj\build\a.exe)"
-                                               "\n",
-                                               cwd);
+    const auto line = "  a.vcxproj -> " + (cwd / "build/a.exe").string() + "\n";
+    const auto repeated = executables_produced(line + line, cwd);
     CHECK(repeated.size() == 1);
 }
 

@@ -15,6 +15,10 @@
 // A real, harmless owned process for lifecycle tests. It is not an HTTP/model
 // substitute: tests supply a health probe which checks this process is alive.
 int main(int argc, char** argv) {
+    if (argc == 3 && std::string_view(argv[1]) == "--fixture-print") {
+        std::cout << argv[2] << '\n';
+        return 0;
+    }
     if (argc > 1 && (std::string_view(argv[1]) == "--fixture-cpu-allowance" ||
                      std::string_view(argv[1]) == "--fixture-cpu-allowance-wait")) {
         std::vector<unsigned int> cpus;

@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "agent/EvidenceInterpreter.h"
+#include "platform/Process.h"
 
 using namespace localcode;
 
@@ -43,6 +44,16 @@ TEST_CASE("a command line is split into arguments", "[interpreter][parsing]") {
     CHECK(split_command_line("   ").empty());
 }
 
+TEST_CASE("rendered script arguments preserve spaces and apostrophes",
+          "[interpreter][parsing][opaque-powershell]") {
+    const std::string script = "./scripts/owner's run tests.ps1";
+    const auto command = "pwsh -NoProfile -File " + quote_argument(script);
+    const auto arguments = split_command_line(command);
+    REQUIRE(arguments.size() == 4);
+    CHECK(arguments.back() == script);
+    CHECK(classify_intent(command) == CommandIntent::Execution);
+}
+
 TEST_CASE("configuring is not building", "[interpreter][classification]") {
     CHECK(classify_intent("cmake -S . -B build") == CommandIntent::Configure);
     CHECK(classify_intent("cmake -B build -G Ninja") == CommandIntent::Configure);
@@ -56,6 +67,12 @@ TEST_CASE("running the program is its own stage", "[interpreter][classification]
     CHECK(classify_intent("python script.py") == CommandIntent::Execution);
     CHECK(classify_intent("node index.js") == CommandIntent::Execution);
     CHECK(classify_intent("cargo run") == CommandIntent::Execution);
+#if !defined(_WIN32)
+    CHECK(classify_intent(quote_argument(R"(./custom\cmake)") + " --build build") ==
+          CommandIntent::Execution);
+    CHECK(classify_intent(quote_argument(R"(C:\tools\cmake.exe)") + " --build build") ==
+          CommandIntent::Build);
+#endif
 }
 
 TEST_CASE("test runners are recognised as tests", "[interpreter][classification]") {
@@ -80,6 +97,10 @@ TEST_CASE("an environment script proves nothing about what follows it",
     // word "cmake" recorded four builds that never happened.
     CHECK(classify_intent(R"("C:\...\vcvars64.bat" cmake -B build)") == CommandIntent::Unknown);
     CHECK(classify_intent("vsdevcmd.bat cmake --build build") == CommandIntent::Unknown);
+    CHECK(classify_intent(R"("C:\Program Files\Visual Studio\VC\vcvars64.bat" cmake --build build)") ==
+          CommandIntent::Unknown);
+    CHECK(classify_intent("/opt/toolchain/vcvars64.sh cmake --build build") ==
+          CommandIntent::Unknown);
 }
 
 TEST_CASE("wrappers are walked past", "[interpreter][classification]") {

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -12,6 +13,7 @@
 
 #include "../util/Log.h"
 #include "../util/Strings.h"
+#include "PathEncoding.h"
 #include "Paths.h"
 
 #if defined(_WIN32)
@@ -178,7 +180,11 @@ bool is_windows_cmd_script(const ProcessRequest& request) {
 std::string ProcessRunner::display_command(const ProcessRequest& request) {
     auto executable = request.executable;
     executable.make_preferred();
-    std::string out = quote_argument(executable.string());
+    // cmd.exe needs its native backslashes even though the text passed to
+    // the UTF-16 command-line converter must remain UTF-8.
+    const auto native_utf8 = executable.u8string();
+    std::string out = quote_argument(
+        {reinterpret_cast<const char*>(native_utf8.data()), native_utf8.size()});
     if (is_windows_cmd_script(request)) {
         // /s removes precisely these enclosing quotes. Inner quotes belong to
         // cmd's script language; C-runtime backslash escaping corrupts paths.
@@ -196,7 +202,7 @@ std::optional<std::filesystem::path> find_executable(
     if (name.empty()) return std::nullopt;
 
     std::error_code ec;
-    const std::filesystem::path candidate{name};
+    const auto candidate = path_from_utf8(name);
 
     auto is_runnable = [](const std::filesystem::path& p) {
         std::error_code e;
@@ -691,6 +697,33 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
         ::close(err_pipe[1]);
         return make_error(ErrorCode::Internal, "pipe() failed");
     }
+    // fork() succeeding does not mean the requested program started. The
+    // child reports setup/exec errors here; successful exec closes this pipe.
+    int launch_pipe[2];
+#if defined(__linux__)
+    const auto launch_pipe_status = ::pipe2(launch_pipe, O_CLOEXEC);
+#else
+    const auto launch_pipe_status = ::pipe(launch_pipe);
+#endif
+    if (launch_pipe_status != 0) {
+        for (const int fd :
+             {out_pipe[0], out_pipe[1], err_pipe[0], err_pipe[1], in_pipe[0], in_pipe[1]})
+            ::close(fd);
+        return make_error(ErrorCode::Internal, "cannot create the process launch pipe");
+    }
+#if !defined(__linux__)
+    if (::fcntl(launch_pipe[1], F_SETFD, FD_CLOEXEC) == -1 ||
+        ::fcntl(launch_pipe[0], F_SETFD, FD_CLOEXEC) == -1) {
+        for (const int fd : {out_pipe[0], out_pipe[1], err_pipe[0], err_pipe[1], in_pipe[0],
+                             in_pipe[1], launch_pipe[0], launch_pipe[1]})
+            ::close(fd);
+        return make_error(ErrorCode::Internal, "cannot configure the process launch pipe");
+    }
+#endif
+    struct LaunchError {
+        int stage;
+        int error;
+    };
 
     std::vector<std::string> argv_storage;
     argv_storage.push_back(request.executable.string());
@@ -723,6 +756,8 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
     const auto start = std::chrono::steady_clock::now();
     const pid_t pid = ::fork();
     if (pid < 0) {
+        ::close(launch_pipe[0]);
+        ::close(launch_pipe[1]);
         ::close(out_pipe[0]);
         ::close(out_pipe[1]);
         ::close(err_pipe[0]);
@@ -733,6 +768,15 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
     }
 
     if (pid == 0) {
+        ::close(launch_pipe[0]);
+        const auto launch_failed = [&](int stage) {
+            const LaunchError failure{stage, errno};
+            ssize_t written;
+            do {
+                written = ::write(launch_pipe[1], &failure, sizeof(failure));
+            } while (written < 0 && errno == EINTR);
+            ::_exit(127);
+        };
         // Child: become a process-group leader so we can kill the whole tree.
         ::setpgid(0, 0);
         ::dup2(in_pipe[0], STDIN_FILENO);
@@ -748,25 +792,84 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
         if (!request.cpu_allowance.empty()) {
             cpu_set_t actual{};
             if (::sched_setaffinity(0, sizeof(cpu_allowance), &cpu_allowance) != 0 ||
-                ::sched_getaffinity(0, sizeof(actual), &actual) != 0 ||
-                std::memcmp(&actual, &cpu_allowance, sizeof(actual)) != 0) {
-                constexpr char error[] = "Cannot apply the requested child CPU allowance.\n";
-                (void)::write(STDERR_FILENO, error, sizeof(error) - 1);
-                ::_exit(126);
+                ::sched_getaffinity(0, sizeof(actual), &actual) != 0)
+                launch_failed(1);
+            if (std::memcmp(&actual, &cpu_allowance, sizeof(actual)) != 0) {
+                errno = EINVAL;
+                launch_failed(1);
             }
         }
 #endif
         if (!request.working_directory.empty()) {
-            if (::chdir(request.working_directory.c_str()) != 0) ::_exit(127);
+            if (::chdir(request.working_directory.c_str()) != 0) launch_failed(2);
         }
         ::execve(request.executable.c_str(), argv.data(), envp.data());
-        ::_exit(127);
+        launch_failed(3);
     }
 
     ::setpgid(pid, pid);   // also set in the parent to avoid a race
     ::close(out_pipe[1]);
     ::close(err_pipe[1]);
     ::close(in_pipe[0]);
+    ::close(launch_pipe[1]);
+    std::atomic<bool> cancelled{false};
+    CancellationRegistration registration{cancel, [&cancelled, pid]() {
+                                              cancelled.store(true);
+                                              ::kill(-pid, SIGKILL);
+                                          }};
+    set_nonblocking(launch_pipe[0]);
+    LaunchError launch_error{};
+    std::size_t received = 0;
+    int launch_read_error = 0;
+    bool launch_timed_out = false;
+    while (received < sizeof(launch_error)) {
+        if (cancelled.load()) break;
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - start);
+        if (request.timeout.count() > 0 && elapsed >= request.timeout) {
+            launch_timed_out = true;
+            break;
+        }
+        const auto count = ::read(launch_pipe[0], reinterpret_cast<char*>(&launch_error) + received,
+                                  sizeof(launch_error) - received);
+        if (count > 0)
+            received += static_cast<std::size_t>(count);
+        else if (count == 0)
+            break;
+        else if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            struct pollfd launch_fd{launch_pipe[0], POLLIN, 0};
+            ::poll(&launch_fd, 1, 20);
+        } else if (errno != EINTR) {
+            launch_read_error = errno;
+            break;
+        }
+    }
+    ::close(launch_pipe[0]);
+    if (received != 0 || launch_read_error != 0 || launch_timed_out || cancelled.load()) {
+        ::close(out_pipe[0]);
+        ::close(err_pipe[0]);
+        ::close(in_pipe[1]);
+        ::kill(-pid, SIGKILL);
+        int failed_status = 0;
+        while (::waitpid(pid, &failed_status, 0) < 0 && errno == EINTR) {
+        }
+        if (cancelled.load())
+            return make_error(ErrorCode::Cancelled, "process launch was cancelled");
+        if (launch_timed_out)
+            return make_error(ErrorCode::Timeout, "process launch timed out");
+        if (received != sizeof(launch_error))
+            return make_error(ErrorCode::Internal, "cannot read the child process launch result");
+        const auto code = launch_error.error == ENOENT || launch_error.error == ENOTDIR
+                              ? ErrorCode::NotFound
+                          : launch_error.error == EACCES || launch_error.error == EPERM
+                              ? ErrorCode::PermissionDenied
+                              : ErrorCode::IoError;
+        const char* message = launch_error.stage == 1 ? "cannot apply the child CPU allowance"
+                              : launch_error.stage == 2
+                                  ? "cannot enter the process working directory"
+                                  : "cannot start the process";
+        return make_error(code, message, std::system_category().message(launch_error.error));
+    }
 
     if (!request.stdin_data.empty()) {
         [[maybe_unused]] ssize_t n =
@@ -774,11 +877,6 @@ Result<ProcessResult> ProcessRunner::run(const ProcessRequest& request, Cancella
     }
     ::close(in_pipe[1]);
 
-    std::atomic<bool> cancelled{false};
-    CancellationRegistration registration{cancel, [&cancelled, pid]() {
-                                              cancelled.store(true);
-                                              ::kill(-pid, SIGKILL);
-                                          }};
     if (request.on_started) {
         try {
             request.on_started(static_cast<std::uint32_t>(pid));

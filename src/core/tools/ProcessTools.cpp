@@ -14,6 +14,7 @@
 #include <regex>
 
 #include "../platform/Environment.h"
+#include "../platform/PathEncoding.h"
 #include "../platform/Paths.h"
 #include "../platform/Process.h"
 #include "../util/Log.h"
@@ -496,7 +497,7 @@ public:
             const auto decision = paths(context).evaluate(token, PathAccess::Read);
             if (!decision.allowed || decision.reinterpreted_from.empty()) continue;
             rewritten_arguments.push_back(token);
-            token = decision.canonical.generic_string();
+            token = path_to_utf8(decision.canonical);
         }
 
         if (!shape.use_shell) {
@@ -1050,7 +1051,7 @@ public:
                       "). There is no /workspace on this machine.\n";
         }
         report += "command:  " + display + "\n";
-        report += "cwd:      " + working_directory.string() + "\n";
+        report += "cwd:      " + path_to_utf8(working_directory) + "\n";
         report += "exit:     " + std::to_string(process.exit_code);
         if (process.timed_out) report += "  (TIMED OUT)";
         if (process.cancelled) report += "  (CANCELLED)";
@@ -1605,9 +1606,9 @@ public:
                              {"requested_command", shape.display()},
                              {"form", std::string{to_string(shape.form)}},
                              {"shell", shape.use_shell},
-                             {"executable", request.executable.generic_string()},
+                             {"executable", path_to_utf8(request.executable)},
                              {"arguments", request.arguments},
-                             {"cwd", working_directory.generic_string()},
+                             {"cwd", path_to_utf8(working_directory)},
                              {"msvc_environment_applied", msvc_environment_applied},
                              {"exit_code", process.exit_code},
                              {"duration_ms", process.duration_ms},
@@ -1617,7 +1618,7 @@ public:
                              {"warning_count", diagnostics.warning_count()},
                              {"stdout_bytes", process.stdout_total_bytes},
                              {"stderr_bytes", process.stderr_total_bytes},
-                             {"full_log", process.full_log_path.generic_string()}};
+                             {"full_log", path_to_utf8(process.full_log_path)}};
 
         // Progress diagnostics come from actual output, never from the rendered
         // command/cwd prefix. These bounded tails are data, not instructions.

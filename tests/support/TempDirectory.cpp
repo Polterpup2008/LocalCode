@@ -17,10 +17,15 @@ std::string unique_suffix() {
 }  // namespace
 
 TempDirectory::TempDirectory(std::string label) {
-    std::error_code ec;
-    const auto base = std::filesystem::temp_directory_path(ec);
+    const auto base = std::filesystem::temp_directory_path();
     path_ = base / (label + "-" + unique_suffix());
-    std::filesystem::create_directories(path_, ec);
+    std::filesystem::create_directories(path_);
+    // Windows runners can expose TEMP through an 8.3 alias (RUNNER~1).
+    // Git and repository scans resolve that alias to its long spelling, so
+    // use the same existing directory identity in all fixture expectations.
+    // Keep filesystem errors visible: a fixture that was not created must
+    // fail at setup rather than accidentally operating in another directory.
+    path_ = std::filesystem::canonical(path_);
 }
 
 TempDirectory::~TempDirectory() {

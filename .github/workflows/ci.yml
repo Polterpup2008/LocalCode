@@ -229,15 +229,18 @@ jobs:
           ./build/linux-core/bin/localcode-doctor skills skills
 
       - name: No stray TODO or FIXME in the engine
+        # Check unfinished marker comments. Search tools and the integrity
+        # detector legitimately contain these words in patterns and examples.
         run: |
-          if grep -rn --include='*.cpp' --include='*.h' -E '\b(TODO|FIXME|XXX|HACK)\b' src/; then
+          if grep -rn --include='*.cpp' --include='*.h' -E '^[[:space:]]*(//+|/\*+|\*)[[:space:]]*(TODO|FIXME|XXX|HACK)\b' src/; then
             echo "::error::Unresolved markers found in src/. Finish it or open an issue."
             exit 1
           fi
 
-      - name: No tabs in C++ sources
+      - name: No tab indentation in C++ sources
+        # Literal tabs are valid test data (for example captured search output).
         run: |
-          if grep -rnP '\t' --include='*.cpp' --include='*.h' src/ tests/; then
-            echo "::error::Tabs found; this project indents with spaces."
+          if grep -rnP '^[ \t]*\t' --include='*.cpp' --include='*.h' src/ tests/; then
+            echo "::error::Tab indentation found; this project indents with spaces."
             exit 1
           fi

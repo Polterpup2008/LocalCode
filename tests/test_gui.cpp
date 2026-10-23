@@ -37,6 +37,7 @@
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
 #include <thread>
 
 #include "MainWindow.h"
@@ -1643,15 +1644,20 @@ TEST_CASE("file-only tasks update changed files without queuing a Git refresh",
 
 TEST_CASE("long status paths do not force panels outside the window", "[gui][geometry]") {
     StatusStrip strip;
-    strip.resize(1280, 30);
+    // A native CI desktop can be narrower than 1280 pixels. Exercise the
+    // available width without asking the window manager for an oversized
+    // top-level window that it is free to shrink on show().
+    const int width = std::min(1280, QApplication::primaryScreen()->availableGeometry().width() - 64);
+    REQUIRE(width > 0);
+    strip.resize(width, 30);
     strip.setModelName("Qwen3.5-9B", "llama.cpp");
     strip.setActivity("Running: " + QString(3000, 'x'));
     strip.setWorkspace("L:/" + QString(3000, 'x'));
     strip.setContext(12000, 32768, true);
-    CHECK(strip.minimumSizeHint().width() < 1280);
+    CHECK(strip.minimumSizeHint().width() < width);
     strip.show();
     QApplication::processEvents();
-    CHECK(strip.width() == 1280);
+    CHECK(strip.width() == width);
 }
 
 TEST_CASE("model unload leaves the GUI responsive while owned shutdown is queued",

@@ -136,8 +136,8 @@ struct FinalizationFixture {
                     turn.content = "Checking it.";
                     turn.tool_calls.push_back(
                         call("run_command",
-                             Json{{"executable", "cmd"},
-                                  {"arguments", Json::array({"/c", "echo done"})},
+                             Json{{"executable", "cmake"},
+                                  {"arguments", Json::array({"-E", "echo", "done"})},
                                   {"expect", Json{{"criterion", 1},
                                                   {"description", "the command reports success"},
                                                   {"exit_code", 0}}}},
@@ -396,8 +396,8 @@ TEST_CASE("cancellation during finalization does not fabricate an answer",
             case 1:
                 turn.tool_calls.push_back(FinalizationFixture::call(
                     "run_command",
-                    Json{{"executable", "cmd"},
-                         {"arguments", Json::array({"/c", "echo done"})},
+                    Json{{"executable", "cmake"},
+                         {"arguments", Json::array({"-E", "echo", "done"})},
                          {"expect", Json{{"criterion", 1},
                                          {"description", "the command reports success"},
                                          {"exit_code", 0}}}},
@@ -662,8 +662,8 @@ TEST_CASE("closed finalization refreshes source witnesses after an intervening m
         else if (turn == 1)
             reply.tool_calls = {
                 FinalizationFixture::call("run_command",
-                                          {{"executable", "cmd"},
-                                           {"arguments", Json::array({"/c", "echo done"})},
+                                          {{"executable", "cmake"},
+                                           {"arguments", Json::array({"-E", "echo", "done"})},
                                            {"expect",
                                             {{"criterion", 1},
                                              {"description", "the command reports success"},

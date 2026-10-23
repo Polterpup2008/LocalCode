@@ -2762,15 +2762,23 @@ TEST_CASE("running the program without an expectation is pointed out on the spot
     // not in a system prompt read twenty turns earlier.
     AgentFixture fixture;
     // A produced program, not a build step and not an inspection.
-    fixture.temp.write("app.bat", "@echo off\r\necho 1 3 6 12\r\n");
+#if defined(_WIN32)
+    const std::string program = "./app.exe";
+#else
+    const std::string program = "./app";
+#endif
+    std::filesystem::copy_file(LOCALCODE_TEST_SERVER_FIXTURE, fixture.temp.path() / program);
 
-    fixture.backend->set_responder([](const ChatRequest&, int turn) -> test::ScriptedTurn {
+    fixture.backend->set_responder([program](const ChatRequest&, int turn) -> test::ScriptedTurn {
         test::ScriptedTurn scripted;
         if (turn == 0) {
             ToolCall call;
             call.id = "c1";
             call.name = "run_command";
-            call.arguments_json = Json{{"command", Json::array({".\\app.bat"})}}.dump();
+            call.arguments_json =
+                Json{{"executable", program},
+                     {"arguments", Json::array({"--fixture-print", "1 3 6 12"})}}
+                    .dump();
             scripted.tool_calls.push_back(call);
             return scripted;
         }

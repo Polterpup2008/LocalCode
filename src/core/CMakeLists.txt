@@ -1,4 +1,4 @@
-﻿# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # localcode_core - the portable heart of the application.
 #
 # This target must never link Qt. Everything the agent does - policy, tools,
