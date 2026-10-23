@@ -1,0 +1,26 @@
+[
+  {
+    "phase": 0,
+    "variant": "baseline",
+    "rss_bytes": 6079868928,
+    "private_bytes": 6067470336,
+    "file_virtual_bytes": 5680525312,
+    "file_resident_bytes": 5097455616,
+    "file_locked_bytes": 0,
+    "file_regions": 1,
+    "page_bytes": 4096,
+    "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+  },
+  {
+    "phase": 1,
+    "variant": "candidate",
+    "rss_bytes": 2724814848,
+    "private_bytes": 6067769344,
+    "file_virtual_bytes": 5680525312,
+    "file_resident_bytes": 1742290944,
+    "file_locked_bytes": 0,
+    "file_regions": 1,
+    "page_bytes": 4096,
+    "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+  }
+]

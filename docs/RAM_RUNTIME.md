@@ -1,10 +1,19 @@
-# Optional Windows RAM runtime
+# Windows RAM runtime
 
-**RC2 does not include this optional component.** Its setup control is hidden
-unless a compatible package is supplied at build time. The default bundled
-llama.cpp.localcode runtime is unchanged upstream b10655.
+The RC4 default **llama.cpp.localcode** runtime uses upstream b11829 with a
+LocalCode core change that releases unused unlocked mapped model pages after
+loading. It keeps model weights, context capacity and cache precision unchanged.
+It needs no extra setup checkbox. See the [benchmark study](https://github.com/Polterpup2008/LocalCode/blob/main/docs/benchmarks/2026-10-23-runtime.md)
+for measured scope, tests and limitations. This is a resident working-set change;
+no private commit, VRAM or universal throughput improvement is claimed.
 
-In **Set up runtime and model…**, select your existing `llama-server.exe` and
+## Separate legacy runtime-copy component
+
+RC4 does not ship the older optional b10655 copy component described below.
+Its setup control stays hidden unless a compatible package is explicitly supplied
+at build time. Its historical results do not describe the RC4 default runtime.
+
+In **Set up runtime and modelâ€¦**, select your existing `llama-server.exe` and
 model. **Prepare a runtime copy with RAM optimizations** is unchecked by default.
 Selecting it prepares a separate copy of a compatible runtime, then checks that
 the copied server starts. **Use these files** returns that path to the open

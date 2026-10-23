@@ -1,9 +1,20 @@
-# LocalCode 1.0 for Windows — Release candidate 3
+# LocalCode 1.0 for Windows — Release candidate 4
 
 The Windows x64 package is unsigned. Release status and completed validation
 are recorded with the distribution.
 
-RC3 adds an optional **LocalCode Discord plugin** checkbox to the installer's
+RC4 updates the default **llama.cpp.localcode** runtime to upstream b11829 with
+LocalCode's Windows mapped-file working-set change. The matched 9B test reduced
+resident process memory from 5.27 GiB to 0.52 GiB with the same 32K context,
+f16 cache and generated tokens. The six-pair timing run stayed within the
+predeclared 5% observed-median regression limit. This is a resident memory saving;
+no decode speed gain, private commit or VRAM reduction is claimed. CPU backends
+and the stock CUDA backend are retained. The tested CUDA kernel experiment showed
+no useful speed gain and is excluded. The source patch and provenance accompany
+the bundled runtime; see the [benchmark report](https://github.com/Polterpup2008/LocalCode/blob/main/docs/benchmarks/2026-10-23-runtime.md)
+for measurements, hardware, thermal conditions and coverage limits.
+
+RC3 added an optional **LocalCode Discord plugin** checkbox to the installer's
 **Choose Components** page. It installs the plugin worker, manifest and clean
 configuration; no bot connects during setup. Configure your own credentials,
 allowed servers/channels, model and runtime from **View > Plugins** before

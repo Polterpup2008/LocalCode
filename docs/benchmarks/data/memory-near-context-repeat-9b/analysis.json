@@ -1,0 +1,53 @@
+{
+  "workloads": {
+    "cached": {
+      "independent_process_pairs": 2,
+      "pairs": [
+        {
+          "decode_ratio": 0.9892577146301649,
+          "wall_ratio": 0.9889696818911426,
+          "ttft_ratio": 0.9842558420515386
+        },
+        {
+          "decode_ratio": 1.037252124115003,
+          "wall_ratio": 1.042289935562746,
+          "ttft_ratio": 1.3522367551200332
+        }
+      ],
+      "median_decode_gain_percent": 1.325491937258394,
+      "paired_bootstrap_95_percent": [
+        -1.0742285369835125,
+        3.7252124115003005
+      ],
+      "median_wall_gain_percent": 1.5629808726944194,
+      "median_ttft_gain_percent": 16.824629858578575
+    },
+    "long": {
+      "independent_process_pairs": 2,
+      "pairs": [
+        {
+          "decode_ratio": 0.9814507140986306,
+          "wall_ratio": 0.9766356537963464,
+          "ttft_ratio": 0.9757513413419489
+        },
+        {
+          "decode_ratio": 1.0688558956411454,
+          "wall_ratio": 1.0240130160519854,
+          "ttft_ratio": 1.0159302781477497
+        }
+      ],
+      "median_decode_gain_percent": 2.5153304869887982,
+      "paired_bootstrap_95_percent": [
+        -1.8549285901369394,
+        6.885589564114536
+      ],
+      "median_wall_gain_percent": 0.03243349241659477,
+      "median_ttft_gain_percent": -0.41591902551507687
+    }
+  },
+  "performance_gate_passed": false,
+  "sufficient_process_pairs": false,
+  "matched_tokens_and_requests": true,
+  "no_observed_median_regression_over_5_percent": true,
+  "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates."
+}

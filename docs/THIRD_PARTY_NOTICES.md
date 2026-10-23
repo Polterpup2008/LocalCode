@@ -38,14 +38,21 @@ licenses; their notice inventory is supplied with the plugin and tracked in its
 separate repository. Earlier MIT grants remain applicable to earlier versions.
 No Discord credentials, private persona or history are bundled.
 Model files are separately supplied by the operator. The Windows distribution
-includes an unchanged llama.cpp b10655 runtime in `bin/llama.cpp.localcode/`,
-with its MIT LICENSE and upstream commit recorded in manifest.json. CPU backends,
-LLVM OpenMP, Microsoft compiler redistributables, and the available CUDA runtime
-libraries are included beside the server. LLVM/OpenMP and the NVIDIA CUDA 13.3
-EULA, supplement and attachments have separate notice files in that directory;
-their component terms apply. The CUDA notice source is
-https://docs.nvidia.com/cuda/archive/13.3.0/eula/index.html . CUDA GPU use needs a
-compatible NVIDIA GPU and driver. This package makes no custom optimization claim.
+includes upstream llama.cpp b11829 with a modified core in
+`bin/llama.cpp.localcode/`. Its MIT LICENSE, exact upstream commit, source patch,
+core/patch digests and optimization receipt are in that directory. Corresponding
+original source: https://github.com/ggml-org/llama.cpp/tree/184f6536024668e8908ab8c86033d56708e62b40 .
+Original llama.cpp portions retain MIT terms. LocalCode additions use the
+separate proprietary LICENSE-LOCALCODE-MODIFICATIONS.txt in that directory;
+those terms do not restrict rights in the upstream portions.
+Only the core's Windows unused mapped-page handling is modified; CPU backends,
+LLVM OpenMP and the stock CUDA backend remain upstream binaries. Microsoft
+compiler redistributables and the CUDA 13.4 runtime libraries accompany them.
+LLVM/OpenMP and the full NVIDIA CUDA EULA, supplement and attachments have
+separate notice files in that directory. The actual supplied CUDA SDK license
+text is included; its NVIDIA notice source is
+https://docs.nvidia.com/cuda/archive/13.4.1/eula/index.html . Their component terms
+apply independently. CUDA GPU use needs a compatible NVIDIA GPU and driver.
 Custom runtimes retain their own licenses. The optional RAM runtime component
 contains a modified llama.cpp core DLL (MIT, copyright the ggml authors), its
 source patch and compiler redistributables. It is used only to prepare an

@@ -44,6 +44,9 @@ jobs:
             exit 1
           fi
 
+      - name: Runtime benchmark protocol controls
+        run: python3 -m unittest discover -s tools/llama.cpp.localcode -p test_benchmark_protocol.py -v
+
       - name: Source files are valid UTF-8
         # A PowerShell Get-Content/Set-Content round trip once read UTF-8 as ANSI
         # and rewrote a middle dot as two characters.

@@ -1,0 +1,241 @@
+diff --git a/src/llama-mmap-intervals.h b/src/llama-mmap-intervals.h
+new file mode 100644
+index 0000000..fcf6897
+--- /dev/null
++++ b/src/llama-mmap-intervals.h
+@@ -0,0 +1,34 @@
++#pragma once
++#include <algorithm>
++#include <cstddef>
++#include <utility>
++#include <vector>
++
++namespace llama_mmap_intervals {
++using ranges = std::vector<std::pair<size_t, size_t>>;
++struct host_span { size_t file; size_t first; size_t last; };
++
++// Called only after weights finish loading. Keep lazy rows and complete no-copy spans.
++template<class LazyByFile>
++std::vector<ranges> collect(size_t files, const LazyByFile & lazy, const std::vector<host_span> & host) {
++    std::vector<ranges> retained(files);
++    for (const auto & entry : lazy) retained.at(entry.first) = entry.second;
++    for (const auto & span : host) retained.at(span.file).emplace_back(span.first, span.last);
++    return retained;
++}
++
++// Emit only gaps in a clamped union. The caller rounds gaps inward to full pages.
++template<class Emit>
++void for_unused(size_t size, std::vector<std::pair<size_t, size_t>> retained, Emit emit) {
++    std::sort(retained.begin(), retained.end());
++    size_t cursor = 0;
++    for (const auto & range : retained) {
++        if (range.first >= range.second || range.first >= size) continue;
++        const size_t first = range.first;
++        const size_t last = std::min(range.second, size);
++        if (first > cursor) emit(cursor, first);
++        cursor = std::max(cursor, last);
++    }
++    if (cursor < size) emit(cursor, size);
++}
++} // namespace llama_mmap_intervals
+diff --git a/src/llama-mmap.cpp b/src/llama-mmap.cpp
+index 4d1cd31..9de31ee 100644
+--- a/src/llama-mmap.cpp
++++ b/src/llama-mmap.cpp
+@@ -479,7 +479,8 @@ struct llama_mmap::impl {
+ #ifdef _POSIX_MAPPED_FILES
+     std::vector<std::pair<size_t, size_t>> mapped_fragments;
+ 
+-    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges) {
++    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges, bool preserve_locked) {
++        GGML_UNUSED(preserve_locked);
+         size = file->size();
+         int fd = file->file_id();
+         int flags = MAP_SHARED;
+@@ -585,9 +586,11 @@ struct llama_mmap::impl {
+     }
+ #elif defined(_WIN32)
+     HANDLE hMapping = nullptr;
++    bool keep_locked = false;
+ 
+-    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges) {
++    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges, bool preserve_locked) {
+         GGML_UNUSED(numa);
++        this->keep_locked = preserve_locked;
+ 
+         size = file->size();
+ 
+@@ -640,6 +643,40 @@ struct llama_mmap::impl {
+         GGML_UNUSED(last);
+     }
+ 
++    void reclaim_unused(size_t first, size_t last) {
++        // Keep explicit locking behavior. Windows cannot partially unmap this
++        // view; release only unused complete pages from the unlocked working set.
++        if (keep_locked || !addr || first >= size) {
++            return;
++        }
++        last = std::min(last, size);
++        if (first >= last) {
++            return;
++        }
++        SYSTEM_INFO info;
++        GetSystemInfo(&info);
++        const size_t page_size = info.dwPageSize;
++        const size_t rem = first % page_size;
++        const size_t skip = rem ? page_size - rem : 0;
++        if (skip >= last - first) {
++            return;
++        }
++        first += skip;
++        last -= last % page_size;
++        if (first >= last) {
++            return;
++        }
++        // ERROR_NOT_LOCKED is expected: VirtualUnlock documents that this
++        // removes unlocked pages from the working set without losing the view.
++        if (!VirtualUnlock((uint8_t *) addr + first, last - first)) {
++            const DWORD error = GetLastError();
++            if (error != ERROR_NOT_LOCKED) {
++                LLAMA_LOG_WARN("warning: VirtualUnlock unused mapped pages failed: %s\n",
++                        llama_format_win_err(error).c_str());
++            }
++        }
++    }
++
+     ~impl() {
+         if (hMapping) {
+             if (addr) {
+@@ -655,7 +692,8 @@ struct llama_mmap::impl {
+         }
+     }
+ #else
+-    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges) {
++    impl(struct llama_file * file, size_t prefetch, bool numa, const llama_mmap::ranges & lazy_ranges, bool preserve_locked) {
++        GGML_UNUSED(preserve_locked);
+         GGML_UNUSED(file);
+         GGML_UNUSED(prefetch);
+         GGML_UNUSED(numa);
+@@ -677,13 +715,16 @@ struct llama_mmap::impl {
+ };
+ 
+ llama_mmap::llama_mmap(struct llama_file * file, size_t prefetch, bool numa,
+-        const ranges & lazy_ranges) : pimpl(std::make_unique<impl>(file, prefetch, numa, lazy_ranges)) {}
++        const ranges & lazy_ranges, bool preserve_locked) : pimpl(std::make_unique<impl>(file, prefetch, numa, lazy_ranges, preserve_locked)) {}
+ llama_mmap::~llama_mmap() = default;
+ 
+ size_t llama_mmap::size() const { return pimpl->size; }
+ void * llama_mmap::addr() const { return pimpl->addr; }
+ 
+ void llama_mmap::unmap_fragment(size_t first, size_t last) { pimpl->unmap_fragment(first, last); }
++#ifdef _WIN32
++void llama_mmap::reclaim_unused(size_t first, size_t last) { pimpl->reclaim_unused(first, last); }
++#endif
+ 
+ #if defined(_POSIX_MEMLOCK_RANGE) || defined(_WIN32)
+ const bool llama_mmap::SUPPORTED  = true;
+diff --git a/src/llama-mmap.h b/src/llama-mmap.h
+index 6c6393d..c7b5376 100644
+--- a/src/llama-mmap.h
++++ b/src/llama-mmap.h
+@@ -50,13 +50,16 @@ struct llama_mmap {
+ 
+     llama_mmap(const llama_mmap &) = delete;
+     llama_mmap(struct llama_file * file, size_t prefetch = (size_t) -1, bool numa = false,
+-               const ranges & lazy_ranges = {});
++               const ranges & lazy_ranges = {}, bool preserve_locked = false);
+     ~llama_mmap();
+ 
+     size_t size() const;
+     void * addr() const;
+ 
+     void unmap_fragment(size_t first, size_t last);
++#ifdef _WIN32
++    void reclaim_unused(size_t first, size_t last);
++#endif
+ 
+     static const bool SUPPORTED;
+ 
+diff --git a/src/llama-model-loader.cpp b/src/llama-model-loader.cpp
+index 066e69e..e31b622 100644
+--- a/src/llama-model-loader.cpp
++++ b/src/llama-model-loader.cpp
+@@ -1437,7 +1437,7 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
+             const size_t prefetch_size = prefetch && use_mmap ? -1 : 0;
+ 
+             std::unique_ptr<llama_mmap> mapping = std::make_unique<llama_mmap>(file.get(), prefetch_size, is_numa,
+-                    lazy.for_file(idx));
++                    lazy.for_file(idx), mlock_mmaps != nullptr);
+             mmaps_used.emplace_back(mapping->size(), 0);
+             if (mlock_mmaps) {
+                 std::unique_ptr<llama_mlock> mlock_mmap(new llama_mlock());
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index 4cb0409..d587525 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -5,6 +5,9 @@
+ #include "llama-hparams.h"
+ #include "llama-impl.h"
+ #include "llama-mmap.h"
++#ifdef _WIN32
++#include "llama-mmap-intervals.h"
++#endif
+ #include "llama-cparams.h"
+ #include "llama-model-loader.h"
+ 
+@@ -1901,6 +1904,10 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+     // note: the buffers are owned by pimpl->ctxs_bufs, this is a raw-pointer view used to load the data
+     std::vector<std::pair<ggml_context *, std::vector<ggml_backend_buffer_t>>> ctx_bufs;
+     ctx_bufs.reserve(ml.ctx_map.size());
++#ifdef _WIN32
++    const bool reclaim_mmap = ml.use_mmap && use_mmap_buffer && !use_mlock && !ml.no_alloc;
++    std::vector<llama_mmap_intervals::host_span> mmap_host_spans;
++#endif
+ 
+     // reserve hint: each context creates one buffer per file, or more when its tensors are spread
+     //     across disjoint ranges of a file (see get_mapping_ranges)
+@@ -1948,6 +1955,11 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+                 void * addr = ml.mappings.at(idx)->addr();
+ 
+                 for (const auto & range : ml.get_mapping_ranges(idx, ctx)) {
++#ifdef _WIN32
++                    if (reclaim_mmap) {
++                        mmap_host_spans.push_back({idx, range.first, range.last});
++                    }
++#endif
+                     ggml_backend_buffer_t buf = ggml_backend_dev_buffer_from_host_ptr(dev, (char *) addr + range.first, range.last - range.first, max_size);
+                     if (buf == nullptr) {
+                         throw std::runtime_error(format("unable to allocate %s buffer", ggml_backend_buft_name(buft)));
+@@ -2053,6 +2065,32 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+ 
+     load_tensors_hadamard();
+ 
++#ifdef _WIN32
++    if (reclaim_mmap) {
++        for (size_t idx = 0; idx < pimpl->mappings.size(); ++idx) {
++            auto & mapping = pimpl->mappings[idx];
++            auto retained = ml.lazy.for_file(idx);
++            for (const auto & span : mmap_host_spans) {
++                if (span.file == idx) retained.emplace_back(span.first, span.last);
++            }
++            const auto base = reinterpret_cast<uintptr_t>(mapping->addr());
++            for (const auto & entry : ctx_bufs) {
++                for (auto * tensor = ggml_get_first_tensor(entry.first); tensor;
++                        tensor = ggml_get_next_tensor(entry.first, tensor)) {
++                    const auto pointer = reinterpret_cast<uintptr_t>(tensor->data);
++                    if (pointer >= base && pointer - base < mapping->size()) {
++                        const size_t first = pointer - base;
++                        const size_t bytes = std::min(ggml_nbytes(tensor), mapping->size() - first);
++                        retained.emplace_back(first, first + bytes);
++                    }
++                }
++            }
++            llama_mmap_intervals::for_unused(mapping->size(), std::move(retained),
++                    [&](size_t first, size_t last) { mapping->reclaim_unused(first, last); });
++        }
++    }
++#endif
++
+     return true;
+ }
+ 

@@ -1,0 +1,43 @@
+{
+  "workloads": {
+    "cached": {
+      "independent_process_pairs": 1,
+      "pairs": [
+        {
+          "decode_ratio": 1.0001946204678454,
+          "wall_ratio": 0.99785647677075,
+          "ttft_ratio": 0.8602132102583144
+        }
+      ],
+      "median_decode_gain_percent": 0.019462046784535225,
+      "paired_bootstrap_95_percent": [
+        0.019462046784535225,
+        0.019462046784535225
+      ],
+      "median_wall_gain_percent": -0.2143523229250044,
+      "median_ttft_gain_percent": -13.978678974168556
+    },
+    "long": {
+      "independent_process_pairs": 1,
+      "pairs": [
+        {
+          "decode_ratio": 0.9981374263317284,
+          "wall_ratio": 1.003040458542517,
+          "ttft_ratio": 1.003926364263393
+        }
+      ],
+      "median_decode_gain_percent": -0.18625736682715832,
+      "paired_bootstrap_95_percent": [
+        -0.18625736682715832,
+        -0.18625736682715832
+      ],
+      "median_wall_gain_percent": 0.30404585425169994,
+      "median_ttft_gain_percent": 0.39263642633931006
+    }
+  },
+  "performance_gate_passed": false,
+  "sufficient_process_pairs": false,
+  "matched_tokens_and_requests": true,
+  "no_observed_median_regression_over_5_percent": false,
+  "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates."
+}

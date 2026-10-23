@@ -1,0 +1,148 @@
+{
+  "workloads": {
+    "cached": {
+      "independent_process_pairs": 6,
+      "pairs": [
+        {
+          "decode_ratio": 0.9930850074934823,
+          "wall_ratio": 0.9941985376465736,
+          "ttft_ratio": 1.0851087916089337
+        },
+        {
+          "decode_ratio": 1.0164485947231472,
+          "wall_ratio": 1.0180118797393396,
+          "ttft_ratio": 1.1118593573507207
+        },
+        {
+          "decode_ratio": 0.9800368737746448,
+          "wall_ratio": 0.9775539249472927,
+          "ttft_ratio": 0.841594271880375
+        },
+        {
+          "decode_ratio": 1.0028896297502607,
+          "wall_ratio": 1.000505761600208,
+          "ttft_ratio": 0.8946159437017679
+        },
+        {
+          "decode_ratio": 0.991460779854645,
+          "wall_ratio": 0.9910511117943223,
+          "ttft_ratio": 0.9620116388646407
+        },
+        {
+          "decode_ratio": 1.0061518615689442,
+          "wall_ratio": 1.0060677059906757,
+          "ttft_ratio": 0.993830651759121
+        }
+      ],
+      "median_decode_gain_percent": -0.2012681378128489,
+      "paired_bootstrap_95_percent": [
+        -1.1308943130339477,
+        0.7719540405445979
+      ],
+      "median_wall_gain_percent": -0.26478503766091954,
+      "median_ttft_gain_percent": -2.207885468811921
+    },
+    "long": {
+      "independent_process_pairs": 6,
+      "pairs": [
+        {
+          "decode_ratio": 0.9896221444299464,
+          "wall_ratio": 1.0032566654080444,
+          "ttft_ratio": 1.008344126323207
+        },
+        {
+          "decode_ratio": 1.0155532171587662,
+          "wall_ratio": 1.006559264845403,
+          "ttft_ratio": 1.0030874131541614
+        },
+        {
+          "decode_ratio": 0.9832326785015423,
+          "wall_ratio": 1.0140367572633981,
+          "ttft_ratio": 1.026088495528051
+        },
+        {
+          "decode_ratio": 1.0017397499496437,
+          "wall_ratio": 0.9981755005789147,
+          "ttft_ratio": 0.996976747913244
+        },
+        {
+          "decode_ratio": 0.9881783641601604,
+          "wall_ratio": 0.9920342099145336,
+          "ttft_ratio": 0.9932754677929259
+        },
+        {
+          "decode_ratio": 1.0098674462791244,
+          "wall_ratio": 0.9969996429772162,
+          "ttft_ratio": 0.9921924989582862
+        }
+      ],
+      "median_decode_gain_percent": -0.43190528102049486,
+      "paired_bootstrap_95_percent": [
+        -1.0988669508289806,
+        0.7690381732171403
+      ],
+      "median_wall_gain_percent": 0.07160829934795832,
+      "median_ttft_gain_percent": 0.0032080533702627534
+    },
+    "short": {
+      "independent_process_pairs": 6,
+      "pairs": [
+        {
+          "decode_ratio": 1.000707956381789,
+          "wall_ratio": 0.9980818505512354,
+          "ttft_ratio": 0.9198620660170196
+        },
+        {
+          "decode_ratio": 0.9891550706873804,
+          "wall_ratio": 0.9891192185071411,
+          "ttft_ratio": 0.9857569906730286
+        },
+        {
+          "decode_ratio": 1.010431186335565,
+          "wall_ratio": 1.1165668975683802,
+          "ttft_ratio": 0.9170823330303379
+        },
+        {
+          "decode_ratio": 0.9919612263002892,
+          "wall_ratio": 0.9919459961083887,
+          "ttft_ratio": 0.9954048924164115
+        },
+        {
+          "decode_ratio": 0.9931028477310142,
+          "wall_ratio": 0.9944377734272701,
+          "ttft_ratio": 1.0430783944640223
+        },
+        {
+          "decode_ratio": 1.000637741464801,
+          "wall_ratio": 0.9968837216971375,
+          "ttft_ratio": 0.8968984017365855
+        }
+      ],
+      "median_decode_gain_percent": -0.3129705402092453,
+      "paired_bootstrap_95_percent": [
+        -0.7623633158776566,
+        0.39151111046047404
+      ],
+      "median_wall_gain_percent": -0.4339252437796204,
+      "median_ttft_gain_percent": -4.719047165497592
+    }
+  },
+  "performance_gate_passed": false,
+  "sufficient_process_pairs": true,
+  "matched_tokens_and_requests": true,
+  "no_observed_median_regression_over_5_percent": true,
+  "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+  "memory": {
+    "median_process_working_set_reduction_percent": 90.09215954098624,
+    "process_pair_reduction_percent": [
+      90.09870311891432,
+      90.08998247263929,
+      90.08605054428689,
+      90.09346132684678,
+      90.10032447271374,
+      90.09085775512568
+    ],
+    "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+    "memory_gate_passed": true
+  }
+}

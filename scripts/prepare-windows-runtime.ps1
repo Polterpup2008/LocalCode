@@ -6,7 +6,9 @@ param(
     [string]$NvidiaLicense = '',
     [string]$NvidiaLicenseSource = 'https://docs.nvidia.com/cuda/archive/13.3.0/eula/index.html',
     [ValidatePattern('^b[0-9]+$')][string]$UpstreamRevision = 'b10655',
-    [ValidatePattern('^([a-fA-F0-9]{40})?$')][string]$UpstreamCommit = ''
+    [ValidatePattern('^([a-fA-F0-9]{40})?$')][string]$UpstreamCommit = '',
+    [string]$OptimizationReceipt = '',
+    [string]$OptimizationPatch = ''
 )
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
@@ -63,6 +65,23 @@ if (-not (Test-Path -LiteralPath $taskLlvm -PathType Leaf) -or
     (Get-Content -LiteralPath $taskLlvm -Raw) -notmatch 'LLVM Project') { throw 'The actual LLVM/OpenMP notice is missing.' }
 $taskInputs += [pscustomobject]@{ name='LICENSE'; path=$taskMit; component='llama.cpp MIT notice' }
 $taskInputs += [pscustomobject]@{ name='LICENSE-LLVM-OpenMP'; path=$taskLlvm; component='LLVM/OpenMP notice' }
+$taskOptimization = $null
+if ($OptimizationReceipt -or $OptimizationPatch) {
+    if (-not $OptimizationReceipt -or -not $OptimizationPatch) { throw 'Supply both the optimization receipt and source patch.' }
+    $taskReceiptPath = (Resolve-Path -LiteralPath $OptimizationReceipt).Path
+    $taskPatchPath = (Resolve-Path -LiteralPath $OptimizationPatch).Path
+    $taskOptimization = Get-Content -LiteralPath $taskReceiptPath -Raw | ConvertFrom-Json
+    if ($taskOptimization.format -ne 1 -or $taskOptimization.id -ne 'localcode.windows-working-set' -or
+        $taskOptimization.upstream_commit -ne $UpstreamCommit -or
+        $taskOptimization.core_sha256 -ne (Get-FileHash -LiteralPath (Join-Path $taskSource 'llama.dll')).Hash.ToLowerInvariant() -or
+        $taskOptimization.patch_sha256 -ne (Get-FileHash -LiteralPath $taskPatchPath).Hash.ToLowerInvariant() -or
+        $taskOptimization.qualification_passed -ne $true -or $taskOptimization.memory_gate_passed -ne $true) {
+        throw 'Optimization receipt does not bind this source, patch, qualified core and passed memory gate.'
+    }
+    $taskInputs += [pscustomobject]@{ name='localcode-optimization.json'; path=$taskReceiptPath; component='optimization provenance and qualification' }
+    $taskInputs += [pscustomobject]@{ name='windows-working-set.patch'; path=$taskPatchPath; component='LocalCode source additions; upstream portions retain MIT terms' }
+    $taskInputs += [pscustomobject]@{ name='LICENSE-LOCALCODE-MODIFICATIONS.txt'; path=(Join-Path $taskRoot 'LICENSE'); component='proprietary terms for LocalCode additions only' }
+}
 if ($taskHasCuda) {
     if (-not $NvidiaLicense -or -not (Test-Path -LiteralPath $NvidiaLicense -PathType Leaf)) { throw 'CUDA DLLs are present: provide the real NVIDIA CUDA EULA/redistribution notice; GPU files will not be silently omitted.' }
     $taskNotice = Get-Content -LiteralPath $NvidiaLicense -Raw
@@ -114,7 +133,7 @@ declared upstream revision $UpstreamRevision (source commit $UpstreamCommit).
 Source distribution directory: $taskSource
 The source path is preparation provenance, never a runtime requirement.
 No runtime was rebuilt, downloaded, benchmarked or executed by this script.
-No custom optimization or target-PC compatibility/performance is claimed.
+$(if ($taskOptimization) { 'The core includes the LocalCode Windows mapped-file working-set change. See localcode-optimization.json and windows-working-set.patch for its measured scope and provenance. No universal speed or compatibility claim is made.' } else { 'No custom optimization or target-PC compatibility/performance is claimed.' })
 
 The payload includes the server and its implementation/common/core/multimodal
 libraries, every supplied ggml CPU backend, OpenMP, and the available complete
@@ -123,6 +142,7 @@ weights, model profiles, settings, logs and user conversations. MSVC runtime DLL
 are copied beside the server so its loader does not need a developer PATH.
 
 llama.cpp is covered by LICENSE (MIT); OpenMP by LICENSE-LLVM-OpenMP.
+$(if ($taskOptimization) { 'LocalCode additions are covered separately by LICENSE-LOCALCODE-MODIFICATIONS.txt. That license does not restrict rights in the original MIT-licensed portions.' })
 CUDA DLLs, when present, have separate NVIDIA-CUDA-EULA.md and source notice;
 their distribution remains subject to those terms. MSVC DLLs are Microsoft
 redistributables and retain their own binary copyright/version information.
@@ -141,8 +161,9 @@ foreach ($taskName in $taskGenerated.Keys) {
 if ($taskRecords.Count -gt 96) { throw 'Runtime payload exceeds the packaging file-count bound.' }
 $taskManifest = [ordered]@{ format=1; id='localcode.runtime'; architecture='windows-x64';
     upstream_revision=$UpstreamRevision; upstream_commit=$UpstreamCommit;
-    source_directory=$taskSource; source_kind='existing local runtime distribution, copied unchanged';
-    custom_optimization_claimed=$false; runtime_execution_tested=$false;
+    source_directory=$taskSource; source_kind=$(if ($taskOptimization) { 'upstream runtime with qualified LocalCode core modification' } else { 'existing local runtime distribution, copied unchanged' });
+    custom_optimization_claimed=($null -ne $taskOptimization); runtime_execution_tested=$false;
+    optimization=$(if ($taskOptimization) { $taskOptimization.id } else { $null });
     cuda_included=$taskHasCuda; cpu_backend_count=$taskCpu.Count;
     license_status='notices included; redistribution subject to supplied component terms';
     nvidia_license_source=$(if ($taskHasCuda) { $NvidiaLicenseSource } else { $null });

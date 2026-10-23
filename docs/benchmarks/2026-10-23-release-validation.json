@@ -1,0 +1,135 @@
+{
+  "artifact_checks": {
+    "passed": true,
+    "payload_files": 661,
+    "runtime_files": 42,
+    "core_sha256": "6581eb6d8187a684f3c983b40e447218f1b9516034da0d4e48cf72a8c426f388",
+    "portable_sha256": "63b2a0cdc2ecf504aaebffbf687193ca13097af3d9b81a19058beae23f42f91d",
+    "installer_sha256": "b2f2133d159893b4c08104dfbc203d0d5c391fb1adf97cf72437e37100477b63",
+    "clean_path_cli": [
+      "skills",
+      "backends"
+    ],
+    "installer_executed": false,
+    "user_installation_modified": false,
+    "scope": "Both archives extracted and all portable payload files match installer bytes; default runtime, core/patch digests, proprietary license, unchanged optional worker, private-output exclusions and fresh-home restricted-PATH CLI checks."
+  },
+  "packaged_native_cli": {
+    "exit_code": 0,
+    "literal_ready_present": true,
+    "actual_context": 32768,
+    "remaining_owned_before_cleanup": [],
+    "restricted_path": true,
+    "fresh_home": true,
+    "non_ascii_path": true,
+    "passed": true
+  },
+  "ctest": {
+    "registered": 1012,
+    "failures": 0,
+    "opt_in_skips": 7,
+    "note": "Core binary current; GUI group additionally rebuilt/relinked and rerun."
+  },
+  "fresh_gui_group": {
+    "cases": 105,
+    "passed": 99,
+    "opt_in_skips": 6,
+    "assertions_passed": 3656
+  },
+  "protocol_controls": {
+    "passed": 6,
+    "site_packages_required": false
+  },
+  "runtime_quality": {
+    "passed": 15,
+    "total": 15
+  },
+  "abi": {
+    "upstream_c_exports": 255,
+    "prepared_c_exports": 255,
+    "missing": []
+  },
+  "native_mapping_class": {
+    "page_bytes": 4096,
+    "file_bytes": 16777253,
+    "metadata_fuzz_cases": 20000,
+    "grouped_metadata_cases": 5000,
+    "trials": [
+      {
+        "case": 0,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 1,
+        "protected_pages": 4097,
+        "protected_valid": 4097,
+        "unused_pages": 0,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 2,
+        "protected_pages": 536,
+        "protected_valid": 536,
+        "unused_pages": 3561,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 3,
+        "protected_pages": 5,
+        "protected_valid": 5,
+        "unused_pages": 4092,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 4,
+        "protected_pages": 2,
+        "protected_valid": 2,
+        "unused_pages": 4095,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 5,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 6,
+        "protected_pages": 4,
+        "protected_valid": 4,
+        "unused_pages": 4093,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 7,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 8,
+        "protected_pages": 4097,
+        "protected_valid": 4097,
+        "unused_pages": 0,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      }
+    ],
+    "actual_locked_pages_preserved": 5,
+    "normal_warnings": 0,
+    "status": "passed"
+  }
+}

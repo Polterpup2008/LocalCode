@@ -1,0 +1,254 @@
+[
+  {
+    "wall_s": 104.5331557999998,
+    "ttft_s": 92.18344569999863,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T05:58:52.3240015Z",
+      "response": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\ndef power(a, b):\n    return a ** b\n\ndef modulo(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot modulo by zero\")\n    return a % b\n\ndef main():\n    print(\"Welcome to the Calculator!\")\n    while True:\n        try:\n           ",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 104512694500,
+      "load_duration": 7530100,
+      "prompt_eval_count": 15,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 92070279000,
+      "eval_count": 128,
+      "eval_duration": 12349759000
+    },
+    "prompt_sha256": "30c49c0fe37cca68ae1c93a19229c4a7d9008452034e29384c4d646535d37851",
+    "phase": 0,
+    "workload": "short"
+  },
+  {
+    "wall_s": 51.42750789999991,
+    "ttft_s": 38.092349899998226,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T05:59:43.7643418Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 51425067500,
+      "load_duration": 5109900,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 37996462000,
+      "eval_count": 128,
+      "eval_duration": 13333801000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 0,
+    "workload": "long"
+  },
+  {
+    "wall_s": 13.56745249999949,
+    "ttft_s": 0.22245739999925718,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T05:59:57.3617314Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 13563882500,
+      "load_duration": 5806500,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 15221,
+      "prompt_eval_duration": 200199000,
+      "eval_count": 128,
+      "eval_duration": 13344299000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 0,
+    "workload": "cached"
+  },
+  {
+    "wall_s": 12.855881200001022,
+    "ttft_s": 0.610875100001067,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:00:38.1935363Z",
+      "response": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\ndef power(a, b):\n    return a ** b\n\ndef modulo(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot modulo by zero\")\n    return a % b\n\ndef main():\n    print(\"Welcome to the Calculator!\")\n    while True:\n        try:\n           ",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 12853667600,
+      "load_duration": 3425400,
+      "prompt_eval_count": 15,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 511608000,
+      "eval_count": 128,
+      "eval_duration": 12268472000
+    },
+    "prompt_sha256": "30c49c0fe37cca68ae1c93a19229c4a7d9008452034e29384c4d646535d37851",
+    "phase": 1,
+    "workload": "short"
+  },
+  {
+    "wall_s": 49.048828500001036,
+    "ttft_s": 35.93097300000045,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:01:27.2491903Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 49045454300,
+      "load_duration": 9065800,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 35824245000,
+      "eval_count": 128,
+      "eval_duration": 13116179000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 1,
+    "workload": "long"
+  },
+  {
+    "wall_s": 13.281541300000754,
+    "ttft_s": 0.2366801000007399,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:01:40.5383826Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 13256075600,
+      "load_duration": 2206900,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 15221,
+      "prompt_eval_duration": 195202000,
+      "eval_count": 128,
+      "eval_duration": 13043316000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 1,
+    "workload": "cached"
+  },
+  {
+    "wall_s": 12.604375300001266,
+    "ttft_s": 0.524030300000959,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:02:16.9138728Z",
+      "response": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\ndef power(a, b):\n    return a ** b\n\ndef modulo(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot modulo by zero\")\n    return a % b\n\ndef main():\n    print(\"Welcome to the Calculator!\")\n    while True:\n        try:\n           ",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 12584597000,
+      "load_duration": 4147300,
+      "prompt_eval_count": 15,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 444304000,
+      "eval_count": 128,
+      "eval_duration": 12083403000
+    },
+    "prompt_sha256": "30c49c0fe37cca68ae1c93a19229c4a7d9008452034e29384c4d646535d37851",
+    "phase": 2,
+    "workload": "short"
+  },
+  {
+    "wall_s": 48.65374730000076,
+    "ttft_s": 35.55859770000097,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:03:05.5729787Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 48628580300,
+      "load_duration": 6628100,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 35463096000,
+      "eval_count": 128,
+      "eval_duration": 13094529000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 2,
+    "workload": "long"
+  },
+  {
+    "wall_s": 13.28322659999867,
+    "ttft_s": 0.2410461999988911,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:03:18.862442Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 13259064300,
+      "load_duration": 10415200,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 15221,
+      "prompt_eval_duration": 192091000,
+      "eval_count": 128,
+      "eval_duration": 13040986000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 2,
+    "workload": "cached"
+  },
+  {
+    "wall_s": 12.610528299999714,
+    "ttft_s": 0.5175103999990824,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:03:54.7386591Z",
+      "response": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot divide by zero\")\n    return a / b\n\ndef power(a, b):\n    return a ** b\n\ndef modulo(a, b):\n    if b == 0:\n        raise ValueError(\"Cannot modulo by zero\")\n    return a % b\n\ndef main():\n    print(\"Welcome to the Calculator!\")\n    while True:\n        try:\n           ",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 12598920000,
+      "load_duration": 5881300,
+      "prompt_eval_count": 15,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 439692000,
+      "eval_count": 128,
+      "eval_duration": 12093343000
+    },
+    "prompt_sha256": "30c49c0fe37cca68ae1c93a19229c4a7d9008452034e29384c4d646535d37851",
+    "phase": 3,
+    "workload": "short"
+  },
+  {
+    "wall_s": 48.31044309999925,
+    "ttft_s": 35.335423399999854,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:04:43.0546122Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 48294827400,
+      "load_duration": 8111800,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 35240392000,
+      "eval_count": 128,
+      "eval_duration": 12974117000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 3,
+    "workload": "long"
+  },
+  {
+    "wall_s": 13.189426599999933,
+    "ttft_s": 0.2048402000000351,
+    "response": {
+      "model": "localcode-fixed-bench",
+      "created_at": "2026-10-23T06:04:56.2467447Z",
+      "response": "def item_total(x): return item_0000(x) + item_0450(x) + item_0899(x)\n# Implement item_sum(x), the sum of all items from item_0000(x) to item_0899(x).\ndef item_sum(x): return sum([item_0000(x), item_0001(x), item_0002(x), item_0003(x), item_0004(x), item_0005(x), item_0006(x), item",
+      "done": true,
+      "done_reason": "length",
+      "total_duration": 13187522600,
+      "load_duration": 10519700,
+      "prompt_eval_count": 15225,
+      "prompt_eval_cached_count": 15221,
+      "prompt_eval_duration": 179722000,
+      "eval_count": 128,
+      "eval_duration": 12982897000
+    },
+    "prompt_sha256": "f4d6f09624334039abdad298effc8b0c63aaf1990e20bb4b51e2b3ee41fa4b35",
+    "phase": 3,
+    "workload": "cached"
+  }
+]

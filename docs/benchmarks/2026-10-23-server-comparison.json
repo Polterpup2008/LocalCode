@@ -1,0 +1,96 @@
+{
+  "workloads": {
+    "short": {
+      "baseline": {
+        "samples": 6,
+        "median_decode_tps": 10.555531826968323,
+        "median_ttft_s": 0.38625445000070613,
+        "median_wall_s": 12.429389400000218
+      },
+      "candidate": {
+        "samples": 6,
+        "median_decode_tps": 10.489196674932987,
+        "median_ttft_s": 0.39798120000068593,
+        "median_wall_s": 12.507393000000775
+      },
+      "ollama0409": {
+        "samples": 4,
+        "median_decode_tps": 10.508791318803118,
+        "median_ttft_s": 0.567452700001013,
+        "median_wall_s": 12.733204750000368
+      },
+      "shipped_b10655": {
+        "samples": 1,
+        "decode_tps": 10.67043789628704,
+        "ttft_s": 0.3883791999996902,
+        "wall_s": 12.29412880000018,
+        "same_output_text_as_b11829": true
+      }
+    },
+    "long": {
+      "baseline": {
+        "samples": 6,
+        "median_decode_tps": 9.786824705488469,
+        "median_ttft_s": 35.10307345000001,
+        "median_wall_s": 48.21932239999933
+      },
+      "candidate": {
+        "samples": 6,
+        "median_decode_tps": 9.691367262695152,
+        "median_ttft_s": 35.19409379999979,
+        "median_wall_s": 48.32147304999944
+      },
+      "ollama0409": {
+        "samples": 4,
+        "median_decode_tps": 9.76700723467875,
+        "median_ttft_s": 35.74478535000071,
+        "median_wall_s": 48.8512879000009
+      },
+      "shipped_b10655": {
+        "samples": 1,
+        "decode_tps": 9.93366191071093,
+        "ttft_s": 39.87865430000056,
+        "wall_s": 52.651698400000896,
+        "same_output_text_as_b11829": true
+      }
+    },
+    "cached": {
+      "baseline": {
+        "samples": 6,
+        "median_decode_tps": 9.749464049038185,
+        "median_ttft_s": 0.21456359999956476,
+        "median_wall_s": 13.248570849999851
+      },
+      "candidate": {
+        "samples": 6,
+        "median_decode_tps": 9.697349760913657,
+        "median_ttft_s": 0.22978739999962272,
+        "median_wall_s": 13.343932749999112
+      },
+      "ollama0409": {
+        "samples": 4,
+        "median_decode_tps": 9.814332085353376,
+        "median_ttft_s": 0.22956874999999854,
+        "median_wall_s": 13.282383949999712
+      },
+      "shipped_b10655": {
+        "samples": 1,
+        "decode_tps": 9.995243208665105,
+        "ttft_s": 0.19007149999924877,
+        "wall_s": 12.899603100000604,
+        "same_output_text_as_b11829": true
+      }
+    }
+  },
+  "ollama_version": "0.40.9",
+  "context": 32768,
+  "kv": [
+    "f16",
+    "f16"
+  ],
+  "gpu_layers": "all 33",
+  "outputs": 128,
+  "same_output_text_and_token_counts": true,
+  "ollama_first_shape_ttft_s": 92.18344569999863,
+  "limits": "Sequential named-server screen under variable laptop background/thermal load; not a paired cross-provider confidence estimate, cold-shape outlier retained, no universal speed claim."
+}

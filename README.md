@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.3"><img src="https://img.shields.io/badge/release-1.0_RC3-d97757?style=flat-square" alt="Release 1.0 RC3"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.4"><img src="https://img.shields.io/badge/release-1.0_RC4-d97757?style=flat-square" alt="Release 1.0 RC4"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.3/LocalCode-1.0.0-rc.3-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.4/LocalCode-1.0.0-rc.4-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.3/LocalCode-1.0.0-rc.3-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.4/LocalCode-1.0.0-rc.4-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -30,7 +30,7 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-> **1.0 release candidate 3:** available for testing on Windows 10/11 x64.
+> **1.0 release candidate 4:** available for testing on Windows 10/11 x64.
 > The package is unsigned, and some interactive acceptance checks remain open.
 > See the [release status](docs/RELEASE_STATUS_1.0.md) before relying on it.
 
@@ -82,8 +82,11 @@ Read [how verification works](docs/VERIFICATION_MODEL.md).
 ## The runtime is included. The choice stays yours.
 
 **Default:** LocalCode starts and stops its bundled **llama.cpp.localcode**
-runtime when you load and unload models. RC3 includes upstream build **b10655**;
-no custom performance optimization is claimed.
+runtime when you load and unload models. RC4 includes upstream **b11829** with a
+LocalCode Windows memory optimization. In the matched 9B test, resident process
+memory fell from **5.27 GiB to 0.52 GiB**, retaining the same 32K context, f16 cache
+and output tokens. No decode speed gain is claimed. See the
+[benchmark results and limits](docs/benchmarks/2026-10-23-runtime.md).
 
 **Custom runtime:** select **Settings → Models → Custom llama.cpp** and choose
 your `llama-server.exe`, keeping its supporting DLLs together. A model must be

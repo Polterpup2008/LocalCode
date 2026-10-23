@@ -1,9 +1,53 @@
-# LocalCode 1.0 — Release candidate 3
+# LocalCode 1.0 — Release candidate 4
 
-Windows x64, 22 October 2026. The package is unsigned. **RC3 is not Stable:**
+Windows x64, 23 October 2026. The package is unsigned. **RC4 is not Stable:**
 the remaining installed-GUI checks below have not been completed.
 
-## RC3 scope and validation
+## RC4 runtime update
+
+RC4 replaces the default runtime with upstream b11829 plus the LocalCode Windows
+unused mapped-page change. A matched twelve-process test retained 32K context,
+f16 cache, exact 128-token outputs and equal prompt work. Median process working
+set fell 90.092% (5.269 GiB to 0.522 GiB). Observed median timing changes in this
+predeclared 15K-prompt campaign stayed within the 5% regression limit; no decode
+speed gain is claimed.
+The 9B API/answer screen passes 15/15. Mapping-class tests and CPU, heap-loading
+and explicit locking controls pass. The separate CUDA experiment is excluded
+because it did not demonstrate the required speed gain.
+
+See the [benchmark study](benchmarks/2026-10-23-runtime.md) for raw synthetic data,
+compiler/source provenance, model coverage, thermal/background limitations and
+precise results. This update uses CLI/API checks; previous interactive GUI
+coverage and the remaining Stable gaps below keep their original scope.
+
+## RC4 completed validation
+
+- Full CTest run: **1,012 registered tests, zero failures, seven existing opt-in
+  skips**. The HTTP transport wrapper passed. The GUI test binary was then
+  freshly relinked against the current core and rerun: **99 passed, six opt-in
+  skips, 3,656 assertions passed**. Benchmark protocol controls pass **6/6**
+  without site packages.
+- The clean pinned-source build recipe and actual Windows mapped-file class
+  tests passed. The distributed core retains all **255** upstream public C exports.
+  The prepared runtime passed all **15/15** API/answer checks again.
+- Installer and portable ZIP were extracted and **all 661 portable payload files
+  matched installer bytes**. The 42-file runtime includes all 14 CPU backends,
+  stock CUDA, the qualified core, source patch and both applicable license notices.
+  Private data, models, test conversations and developer outputs were excluded.
+- Extracted-package CLI checks passed with a fresh private home, a restricted
+  System32 PATH and non-ASCII paths. The app's managed default server reported
+  actual context **32,768**, returned the literal **READY**, exited successfully
+  and left no owned server process. The optional Discord worker hash is unchanged.
+- The RC4 installer was **not executed against the user's installation**. Its
+  archive payload was checked without registration or shortcut changes. The
+  unchanged installer-control behavior has the earlier RC3 evidence below;
+  this does not claim a new interactive installation or GUI acceptance pass.
+
+[Machine-readable release validation](benchmarks/2026-10-23-release-validation.json)
+records hashes, counts and scope. The earlier incomplete interactive checks remain
+listed under Remaining before Stable.
+
+## Previous RC3 scope and validation
 
 RC3 adds the optional **LocalCode Discord plugin** installer component and
 changes LocalCode's first-party license to proprietary with publicly visible
@@ -64,7 +108,7 @@ interactive conversation/file-persistence restart, and small-window GUI
 acceptance remain incomplete. The passed automated installer restart does not
 replace those interactive checks. These gaps are not claimed passes.
 
-Distribution: `dist/1.0.0-rc.3`. See [Getting started](GETTING_STARTED.md),
+Distribution: `dist/1.0.0-rc.4`. See [Getting started](GETTING_STARTED.md),
 [release notes](RELEASE_NOTES_1.0.md) and [known limitations](KNOWN_LIMITATIONS_1.0.md).
 OS-level command confinement is not implemented; application checks and user
 approvals remain in place. This status document is outside the installed payload.
