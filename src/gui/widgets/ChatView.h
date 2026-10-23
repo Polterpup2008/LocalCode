@@ -69,6 +69,9 @@ public:
         bool timingsFromServer = false;
         int promptTokensEvaluated = 0;
         double promptTokensPerSecond = 0.0;
+        double promptMs = 0.0;
+        double decodeMs = 0.0;
+        int cachedPromptTokens = 0;
         double decodeTokensPerSecond = 0.0;
         int reasoningCharacters = 0;
         int estimatedReasoningTokens = 0;

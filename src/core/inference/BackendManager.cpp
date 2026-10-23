@@ -200,6 +200,8 @@ std::vector<std::filesystem::path> BackendManager::candidate_binaries(
     if (bundled && kind == BackendPreference::LlamaCpp) {
         const auto binary = AppPaths::bundled_llama_server();
         if (std::filesystem::is_regular_file(binary, ec)) candidates.push_back(binary);
+        const auto vulkan = binary.parent_path() / "vulkan" / binary.filename();
+        if (std::filesystem::is_regular_file(vulkan, ec)) candidates.push_back(vulkan);
         return candidates;
     }
 
@@ -260,14 +262,15 @@ std::vector<std::pair<std::filesystem::path, bool>> BackendManager::scan_runtime
     return scan_for_servers(root, max_depth);
 }
 
-std::vector<RuntimeInstall> BackendManager::discover_runtimes(bool refresh) {
+std::vector<RuntimeInstall> BackendManager::discover_runtimes(bool refresh, CancellationToken cancel) {
     {
         std::lock_guard lock(mutex_);
         if (runtimes_valid_ && !refresh) return runtimes_;
     }
 
     const auto request = runtime_discovery();
-    auto found = discover_runtimes(request);
+    auto found = discover_runtimes(request, cancel);
+    if (cancel.cancelled()) return found;
     {
         std::lock_guard lock(mutex_);
         if (llama_binary_ == request.llama_binary && ik_llama_binary_ == request.ik_llama_binary &&
@@ -338,7 +341,50 @@ std::vector<RuntimeInstall> BackendManager::discover_runtimes(const RuntimeDisco
     return found;
 }
 
-Result<BackendSelection> BackendManager::select(const ModelProfile& profile) {
+Result<BackendSelection> BackendManager::select(const ModelProfile& profile, CancellationToken cancel) {
+    if (cancel.cancelled()) return make_error(ErrorCode::Cancelled, "Runtime selection cancelled");
+    auto selection = select_runtime(profile, cancel);
+    if (!selection || profile.gpu_layers == 0) return selection;
+    auto probe = ModelServer::probe_devices(selection->install.server_binary, selection->install.features, cancel);
+    if (!probe) return probe.error();
+    if (!probe->supported) return selection;
+    if (probe->succeeded && !probe->devices.empty()) {
+        if (selection->install.source.starts_with("llama.cpp.localcode") &&
+            selection->install.server_binary.parent_path().filename() == "vulkan") {
+            selection->device = prefer_dedicated_device(probe->devices, probe_graphics_adapters());
+            selection->compatibility_fallback = true;
+        }
+        selection->reason += "; enumerated GPU devices: " + strings::join(probe->devices, "; ");
+        if (!selection->device.empty()) selection->reason += "; selected " + selection->device;
+        return selection;
+    }
+    const auto primary_detail = probe->detail;
+    if (use_bundled_llama() && profile.server_binary.empty() &&
+        selection->chosen == BackendPreference::LlamaCpp) {
+        const auto alternative = AppPaths::bundled_llama_server().parent_path() / "vulkan" /
+            AppPaths::bundled_llama_server().filename();
+        auto features = ModelServer::probe_binary(alternative, cancel);
+        if (features) {
+            auto devices = ModelServer::probe_devices(alternative, *features, cancel);
+            if (!devices && devices.error().code == ErrorCode::Cancelled) return devices.error();
+            if (devices && devices->succeeded && !devices->devices.empty()) {
+                selection->install.server_binary = alternative;
+                selection->install.features = *features;
+                selection->compatibility_fallback = true;
+                selection->device = prefer_dedicated_device(devices->devices, probe_graphics_adapters());
+                selection->reason = "The primary bundled backend reported no usable GPU; using the "
+                    "bundled Vulkan runtime" + (selection->device.empty() ? std::string{} : " on " + selection->device) + ".";
+                return selection;
+            }
+        }
+    }
+    selection->force_cpu = true;
+    selection->reason += "; GPU device enumeration found no usable device. CPU fallback selected. " +
+        strings::utf8_truncate(primary_detail, 600);
+    return selection;
+}
+
+Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& profile, CancellationToken cancel) {
     // A profile that pins a binary wins outright: the user was explicit.
     if (!profile.server_binary.empty()) {
         std::error_code ec;
@@ -347,7 +393,7 @@ Result<BackendSelection> BackendManager::select(const ModelProfile& profile) {
                               "the server binary set on this model profile does not exist",
                               path_to_utf8(profile.server_binary));
         }
-        auto features = ModelServer::probe_binary(profile.server_binary);
+        auto features = ModelServer::probe_binary(profile.server_binary, cancel);
         if (!features) return features.error();
 
         BackendSelection selection;
@@ -370,7 +416,8 @@ Result<BackendSelection> BackendManager::select(const ModelProfile& profile) {
                 "Reinstall LocalCode, or select Custom llama.cpp in Settings > Models.");
         }
     }
-    auto runtimes = discover_runtimes();
+    auto runtimes = discover_runtimes(false, cancel);
+    if (cancel.cancelled()) return make_error(ErrorCode::Cancelled, "Runtime selection cancelled");
     if (runtimes.empty()) {
         return make_error(
             ErrorCode::NotFound, "no llama.cpp or ik_llama.cpp server was found",
@@ -506,7 +553,7 @@ Result<BackendPtr> BackendManager::activate(const ModelProfile& profile, Cancell
         return backend;
     }
 
-    auto selection = select(profile);
+    auto selection = select(profile, cancel);
     if (!selection) return selection.error();
 
     // Unload the current model before loading another: two large models will
@@ -522,6 +569,29 @@ Result<BackendPtr> BackendManager::activate(const ModelProfile& profile, Cancell
     ServerConfig config;
     config.binary = selection->install.server_binary;
     config.profile = profile;
+    config.device = selection->device;
+    const auto ram = probe_system_memory_bytes();
+    if (ram && *ram <= 16ull * 1024 * 1024 * 1024) {
+        if (!config.profile.prompt_cache_mib && selection->install.features.cache_ram)
+            config.profile.prompt_cache_mib = 128;
+        if (profile.context_size >= 16384) {
+            std::function<void(const std::string&)> callback;
+            { std::lock_guard lock(mutex_); callback = advisory_callback_; }
+            if (callback) callback("This saved profile requests " + std::to_string(profile.context_size) +
+                " context tokens on a system with 16 GiB RAM or less. The setting is retained. "
+                "For a smaller memory footprint, choose a 4K or 8K context preset in Models; "
+                "this is a configuration tradeoff, not an inference speed optimization.");
+        }
+    }
+    if (selection->force_cpu) {
+        config.profile.gpu_layers = 0;
+        config.profile.auto_gpu_layers = false;
+    }
+    if (selection->force_cpu || selection->compatibility_fallback) {
+        std::function<void(const std::string&)> callback;
+        { std::lock_guard lock(mutex_); callback = advisory_callback_; }
+        if (callback) callback(selection->reason);
+    }
     config.startup_timeout = std::chrono::seconds(900);
 
     auto probe = [http](const std::string& base_url, CancellationToken token) -> Status {

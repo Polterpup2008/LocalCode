@@ -47,6 +47,13 @@ std::optional<StartupDiagnosis> diagnose_startup_failure(const std::vector<std::
     };
 
     for (const auto& line : lines) {
+        if (has(line, "driver version is insufficient") || has(line, "CUDA_ERROR_INSUFFICIENT_DRIVER") ||
+            has(line, "failed to initialize Vulkan")) {
+            return StartupDiagnosis{strings::trim(line),
+                "The selected GPU backend could not initialize with this driver. "
+                "Use the bundled Vulkan alternative or a compatible custom runtime. "
+                "LocalCode does not install or update GPU drivers."};
+        }
         // Both runtimes print this pair when the model plus its KV cache will not
         // fit in what is left on the device.
         if (has(line, "memory available on all devices")) {
@@ -438,6 +445,9 @@ Result<ServerBinaryFeatures> ModelServer::probe_binary(const std::filesystem::pa
     }
     features.parallel = advertises(help_lower, "--parallel");
     features.device = advertises(help_lower, "--device");
+    features.list_devices = advertises(help_lower, "--list-devices");
+    features.fit = advertises(help_lower, "--fit") && advertises(help_lower, "--fit-ctx");
+    features.log_verbosity = advertises(help_lower, "--log-verbosity");
     features.chat_template_file = advertises(help_lower, "--chat-template-file");
     features.mlock = advertises(help_lower, "--mlock");
     features.no_mmap = advertises(help_lower, "--no-mmap");
@@ -488,6 +498,33 @@ Result<ServerBinaryFeatures> ModelServer::probe_binary(const std::filesystem::pa
     return features;
 }
 
+Result<DeviceProbe> ModelServer::probe_devices(const std::filesystem::path& binary,
+    const ServerBinaryFeatures& features, CancellationToken cancel) {
+    DeviceProbe probe;
+    probe.supported = features.list_devices;
+    if (!probe.supported) return probe;
+    ProcessRequest request;
+    request.executable = binary;
+    request.arguments = {"--list-devices"};
+    request.timeout = std::chrono::seconds(15);
+    request.max_captured_bytes = 32 * 1024;
+    const auto result = ProcessRunner::run(request, cancel);
+    if (cancel.cancelled() || (result && result->cancelled))
+        return make_error(ErrorCode::Cancelled, "GPU device probe cancelled");
+    if (!result) { probe.detail = result.error().to_string(); return probe; }
+    const auto output = result->stdout_text + "\n" + result->stderr_text;
+    probe.succeeded = result->success() && !result->stdout_truncated && !result->stderr_truncated;
+    probe.detail = strings::utf8_truncate(output, 1800);
+    if (probe.succeeded) {
+        probe.devices = parse_device_listing(output);
+        // A custom backend's unfamiliar output is not evidence that it has no
+        // GPU. Preserve its configured placement and show unconfirmed status.
+        if (probe.devices.empty() && output.find("Available devices:") == std::string::npos)
+            probe.supported = false;
+    }
+    return probe;
+}
+
 std::vector<std::string> ModelServer::build_arguments(const ServerConfig& config,
                                                       const ServerBinaryFeatures& features,
                                                       std::uint16_t port) {
@@ -507,10 +544,23 @@ std::vector<std::string> ModelServer::build_arguments(const ServerConfig& config
     add("--host", config.host);
     add("--port", std::to_string(port));
     add("--ctx-size", std::to_string(profile.context_size));
-    add("--n-gpu-layers", std::to_string(profile.gpu_layers < 0 ? 999 : profile.gpu_layers));
+    // Upstream b11829 maps core INFO (offload and buffer allocation evidence)
+    // to trace level 4. Level 3 alone cannot establish CPU/GPU placement.
+    if (features.log_verbosity) add("--log-verbosity", "4");
+    // One owned agent runs at a time. Auto slot counts can divide its context
+    // between idle slots and multiply recurrent-state allocations.
+    if (features.parallel) add("--parallel", "1");
+    if (profile.auto_gpu_layers && profile.gpu_layers != 0 && features.fit) {
+        add("--n-gpu-layers", "auto");
+        add("--fit", "on");
+        add("--fit-ctx", std::to_string(profile.context_size));
+    } else {
+        add("--n-gpu-layers", std::to_string(profile.gpu_layers < 0 ? 999 : profile.gpu_layers));
+    }
     // Zero offloaded layers can still leave operations on CUDA. Select no GPU
     // device for CPU profiles when the runtime offers explicit selection.
     if (profile.gpu_layers == 0 && features.device) add("--device", "none");
+    else if (features.device && !config.device.empty()) add("--device", config.device);
     add("--alias", profile.id);
 
     if (features.batch_size && profile.batch_size > 0)
@@ -623,6 +673,7 @@ void ModelServer::append_log(std::string_view chunk) {
         if (newline == std::string::npos) break;
         std::string line = log_partial_.substr(start, newline - start);
         if (!line.empty() && line.back() == '\r') line.pop_back();
+        status_.acceleration.observe(line);
         log_lines_.push_back(std::move(line));
         if (log_lines_.size() > kMaxLogLines) log_lines_.pop_front();
         start = newline + 1;
@@ -843,6 +894,7 @@ void ModelServer::run_process(ServerConfig config) {
             status_.process_id = 0;
             status_.started_unix_ms = now_unix_ms();
             status_.ready_unix_ms = 0;
+            status_.acceleration = {};
         }
         if (restarts == 0)
             set_state(ServerState::Starting, "launching " + config.binary.filename().string());

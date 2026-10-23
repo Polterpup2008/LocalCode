@@ -28,6 +28,7 @@
 #include "../platform/CpuPlacement.h"
 #include "../util/Cancellation.h"
 #include "../util/Result.h"
+#include "RuntimeDiagnostics.h"
 
 namespace localcode {
 
@@ -63,6 +64,9 @@ struct ServerBinaryFeatures {
     bool ngram_mod = false;   // --spec-type explicitly advertises ngram-mod
     bool parallel = false;
     bool device = false;   // --device none: disable GPU operation offload too
+    bool list_devices = false;
+    bool fit = false;  // --fit and --fit-ctx: layer fitting with fixed context
+    bool log_verbosity = false;
     bool chat_template_file = false;
     bool mlock = false;
     bool no_mmap = false;
@@ -77,6 +81,7 @@ struct ServerConfig {
     std::string host = "127.0.0.1";
     std::uint16_t port = 0;   // 0 = choose a free port
     std::vector<std::string> extra_arguments;
+    std::string device; // machine-local compatible device selection; never persisted
     std::chrono::seconds startup_timeout{600};
     bool auto_restart = true;
     std::size_t max_restarts = 1;   // budget per explicit start, never reset on recovery
@@ -95,6 +100,7 @@ struct ServerStatus {
     std::size_t restart_count = 0;
     std::int64_t started_unix_ms = 0;
     std::int64_t ready_unix_ms = 0;
+    AccelerationInfo acceleration;
 };
 
 class ModelServer {
@@ -131,6 +137,8 @@ public:
     // Reads a binary's --help once and caches the result per path.
     static Result<ServerBinaryFeatures> probe_binary(const std::filesystem::path& binary,
                                                      CancellationToken cancel = {});
+    static Result<DeviceProbe> probe_devices(const std::filesystem::path& binary,
+        const ServerBinaryFeatures& features, CancellationToken cancel = {});
 
     // Builds the argument vector for a profile against a probed binary. Physical
     // placement requires config.cpu_placement; unresolved requests return empty.

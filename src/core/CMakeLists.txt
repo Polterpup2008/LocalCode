@@ -29,6 +29,7 @@ set(LOCALCODE_CORE_SOURCES
     inference/RequestTrace.cpp
     inference/ServerManager.cpp
     inference/BackendManager.cpp
+    inference/RuntimeDiagnostics.cpp
     agent/Presentation.cpp
     agent/ToolCatalog.cpp
     agent/Outcome.cpp
@@ -55,6 +56,8 @@ set(LOCALCODE_CORE_SOURCES
     agent/ToolCallParser.cpp
     agent/SystemPrompt.cpp
     agent/Agent.cpp
+    agent/Conversation.cpp
+    agent/AgentConversation.cpp
     tools/Tool.cpp
     tools/ToolRegistry.cpp
     tools/FileTools.cpp
@@ -104,7 +107,7 @@ target_compile_definitions(localcode_core PUBLIC
     LOCALCODE_VERSION="${PROJECT_VERSION}")
 
 if(WIN32)
-    target_link_libraries(localcode_core PUBLIC winhttp ws2_32 shlwapi shell32 ole32 advapi32)
+    target_link_libraries(localcode_core PUBLIC winhttp ws2_32 shlwapi shell32 ole32 advapi32 dxgi)
 endif()
 if(LOCALCODE_HTTP_BACKEND STREQUAL "libcurl")
     target_link_libraries(localcode_core PUBLIC CURL::libcurl)

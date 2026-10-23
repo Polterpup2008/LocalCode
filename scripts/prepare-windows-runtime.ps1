@@ -42,6 +42,10 @@ if (-not ($taskCpu -contains 'ggml-cpu-x64.dll')) { throw 'The portable x64 CPU 
 $taskCuda = @('ggml-cuda.dll','cublas64_13.dll','cublasLt64_13.dll','cudart64_13.dll')
 $taskHasCuda = @($taskCuda | Where-Object { Test-Path -LiteralPath (Join-Path $taskSource $_) -PathType Leaf }).Count -gt 0
 if ($taskHasCuda) { $taskRequired += $taskCuda }
+$taskHasVulkan = Test-Path -LiteralPath (Join-Path $taskSource 'ggml-vulkan.dll') -PathType Leaf
+if ($taskHasVulkan) {
+    $taskRequired += 'ggml-vulkan.dll'
+}
 $taskRequired += $taskCpu
 $taskMsvc = @('concrt140.dll','msvcp140.dll','msvcp140_1.dll','msvcp140_2.dll',
     'msvcp140_atomic_wait.dll','msvcp140_codecvt_ids.dll','vcruntime140.dll','vcruntime140_1.dll')
@@ -137,7 +141,7 @@ $(if ($taskOptimization) { 'The core includes the LocalCode Windows mapped-file 
 
 The payload includes the server and its implementation/common/core/multimodal
 libraries, every supplied ggml CPU backend, OpenMP, and the available complete
-CUDA dependency group. It excludes benchmark/CLI/RPC helper programs, model
+CUDA dependency group, plus the Vulkan backend when present. It excludes benchmark/CLI/RPC helper programs, model
 weights, model profiles, settings, logs and user conversations. MSVC runtime DLLs
 are copied beside the server so its loader does not need a developer PATH.
 
@@ -164,10 +168,10 @@ $taskManifest = [ordered]@{ format=1; id='localcode.runtime'; architecture='wind
     source_directory=$taskSource; source_kind=$(if ($taskOptimization) { 'upstream runtime with qualified LocalCode core modification' } else { 'existing local runtime distribution, copied unchanged' });
     custom_optimization_claimed=($null -ne $taskOptimization); runtime_execution_tested=$false;
     optimization=$(if ($taskOptimization) { $taskOptimization.id } else { $null });
-    cuda_included=$taskHasCuda; cpu_backend_count=$taskCpu.Count;
+    cuda_included=$taskHasCuda; vulkan_included=$taskHasVulkan; cpu_backend_count=$taskCpu.Count;
     license_status='notices included; redistribution subject to supplied component terms';
     nvidia_license_source=$(if ($taskHasCuda) { $NvidiaLicenseSource } else { $null });
     files=@($taskRecords | Sort-Object { $_.name }) }
 $taskManifestPath = Join-Path $taskOutput 'manifest.json'
 [IO.File]::WriteAllText($taskManifestPath, ($taskManifest | ConvertTo-Json -Depth 8) + "`n", [Text.UTF8Encoding]::new($false))
-[pscustomobject]@{ output=$taskOutput; manifest=$taskManifestPath; manifestSha256=(Get-FileHash -LiteralPath $taskManifestPath -Algorithm SHA256).Hash.ToLowerInvariant(); files=$taskRecords.Count; cudaIncluded=$taskHasCuda; cpuBackends=$taskCpu.Count; runtimeExecuted=$false }
+[pscustomobject]@{ output=$taskOutput; manifest=$taskManifestPath; manifestSha256=(Get-FileHash -LiteralPath $taskManifestPath -Algorithm SHA256).Hash.ToLowerInvariant(); files=$taskRecords.Count; cudaIncluded=$taskHasCuda; vulkanIncluded=$taskHasVulkan; cpuBackends=$taskCpu.Count; runtimeExecuted=$false }

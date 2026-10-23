@@ -7,12 +7,15 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidgetItem>
 #include <QMessageBox>
+#include <QMenu>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QSplitter>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <limits>
 
@@ -58,16 +61,38 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     form->addRow(tr("Backend"), backend_);
 
     context_ = new QSpinBox(settings);
-    context_->setRange(1024, std::numeric_limits<int>::max());
+    context_->setObjectName("ModelContextSize");
+    context_->setRange(512, std::numeric_limits<int>::max());
     context_->setSingleStep(1024);
     context_->setToolTip(tr("Context window to load the model with. Larger costs more memory."));
-    form->addRow(tr("Context size"), context_);
+    auto* contextRow = new QWidget(settings);
+    auto* contextLayout = new QHBoxLayout(contextRow);
+    contextLayout->setContentsMargins(0, 0, 0, 0);
+    contextLayout->setSpacing(4);
+    contextLayout->addWidget(context_, 1);
+    auto* presets = new QToolButton(contextRow);
+    presets->setText(tr("Presets"));
+    presets->setObjectName("ContextPresets");
+    presets->setPopupMode(QToolButton::InstantPopup);
+    auto* presetMenu = new QMenu(presets);
+    for (const int tokens : {4096, 8192, 16384, 32768})
+        presetMenu->addAction(tr("%1K (%2 tokens)").arg(tokens / 1024).arg(tokens),
+            this, [this, tokens] { context_->setValue(tokens); });
+    presets->setMenu(presetMenu);
+    contextLayout->addWidget(presets);
+    form->addRow(tr("Context size"), contextRow);
 
     gpuLayers_ = new QSpinBox(settings);
     gpuLayers_->setRange(-1, 999);
     gpuLayers_->setSpecialValueText(tr("all"));
     gpuLayers_->setToolTip(tr("-1 offloads every layer to the GPU; 0 keeps everything on CPU."));
     form->addRow(tr("GPU layers"), gpuLayers_);
+    autoGpuLayers_ = new QCheckBox(tr("Fit GPU layers to available memory"), settings);
+    autoGpuLayers_->setObjectName("AutoGpuLayers");
+    autoGpuLayers_->setToolTip(tr("Compatible runtimes adjust GPU placement while retaining your context size. "
+                                "Disable this to choose the layer count manually."));
+    form->addRow(QString(), autoGpuLayers_);
+    connect(autoGpuLayers_, &QCheckBox::toggled, gpuLayers_, &QWidget::setDisabled);
 
     flashAttention_ = new QCheckBox(tr("Flash attention"), settings);
     form->addRow(QString(), flashAttention_);
@@ -109,6 +134,8 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
             explicitLocalRuntime);
         if (dialog.exec() != QDialog::Accepted) return;
         tuning_ = dialog.settings();
+        if (tuning_.value("gpuLayers").toInt() != gpuLayers_->value())
+            autoGpuLayers_->setChecked(false);
         context_->setValue(tuning_.value("contextSize").toInt());
         gpuLayers_->setValue(tuning_.value("gpuLayers").toInt());
         flashAttention_->setChecked(tuning_.value("flash_attention").toString() == "on");
@@ -190,6 +217,7 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
         if (selected.cpuStartingProfile) {
             imported->context_size = 4096;
             imported->gpu_layers = 0;
+            imported->auto_gpu_layers = false;
             imported->threads = 0;
             imported->batch_size = 512;
             imported->ubatch_size = 128;
@@ -282,6 +310,8 @@ void ModelPanel::showSelected() {
                                                                                : 0);
     context_->setValue(static_cast<int>(profile->context_size));
     gpuLayers_->setValue(profile->gpu_layers);
+    autoGpuLayers_->setChecked(profile->auto_gpu_layers);
+    gpuLayers_->setDisabled(profile->auto_gpu_layers);
     flashAttention_->setChecked(profile->flash_attention);
     tuning_ = {{"threads", static_cast<int>(profile->threads)},
                {"threads_batch", static_cast<int>(profile->threads_batch)},
@@ -378,6 +408,7 @@ void ModelPanel::applyEdits() {
                                                        : BackendPreference::Auto;
     profile->context_size = static_cast<std::uint32_t>(context_->value());
     profile->gpu_layers = gpuLayers_->value();
+    profile->auto_gpu_layers = autoGpuLayers_->isChecked();
     profile->flash_attention = flashAttention_->isChecked();
     profile->threads = static_cast<std::uint32_t>(tuning_.value("threads").toInt());
     profile->threads_batch = static_cast<std::uint32_t>(tuning_.value("threads_batch").toInt());

@@ -1,0 +1,101 @@
+{
+  "format": 1,
+  "version": "1.1.0",
+  "date": "2026-10-23",
+  "local_regression": {
+    "platform": "Windows x64, MSVC Release, Qt 6.9.1 Fusion",
+    "core_ctest_passed": 1013,
+    "core_ctest_expected_skips": 7,
+    "gui_cases_passed": 104,
+    "gui_cases_expected_skips": 6,
+    "gui_assertions_passed": 4394,
+    "focused_low_end_cases_passed": 9,
+    "focused_low_end_assertions_passed": 103,
+    "benchmark_protocol_controls_passed": 6,
+    "coverage_note": "Focused cases overlap the full core suite; counts are not additive.",
+    "initial_failures": "A GUI locator assumed the old context minimum. It was changed to the stable ModelContextSize identifier; the full GUI suite then passed. Earlier focused regressions and their fixes are covered by the final full core run.",
+    "visual_checks": [
+      "dark and light at 1280x800 and 900x620",
+      "280 logical-pixel Models panel",
+      "packaged startup with fresh settings"
+    ],
+    "desktop_input_used": false
+  },
+  "actual_inference": {
+    "installed_models": [
+      "Qwen3.5-0.8B-Q4_K_M.gguf",
+      "Huihui-Qwen3.5-4B-abliterated.Q4_K_M.gguf",
+      "Qwen3.5-9B-Q4_K_M.gguf"
+    ],
+    "cuda_9b_offload": "33/33",
+    "cpu_08b_offload": "0/25",
+    "vulkan_4b_offload": "33/33",
+    "restricted_budget_cuda_9b_offload": "12/33",
+    "context_retained": 32768,
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "restricted_budget_note": "A 4096 MiB reserve on the real 8 GiB device; not an emulation of the older GPU.",
+    "coding_fixture": {
+      "only_requested_calculator_file_changed": true,
+      "model_ran_test_command": true,
+      "independent_unittest_exit": 0,
+      "arithmetic_assertions": 2,
+      "task_state_verdict": "partially verified"
+    },
+    "cold_vulkan_result_retained": true,
+    "old_gtx1650ti_directly_tested": false,
+    "driver_process_memory_counter_available": false,
+    "benchmark_scope": "Application request work reduction. No identical-work kernel gain or universal performance percentage established.",
+    "measured_candidate_vs_shipping_binary": "Greeting measurements precede final diagnostic parser breadth/RS buffer reporting and GUI test locator updates. The benchmark JSON retains the actual measured hashes; the final shipping binary was additionally exercised below."
+  },
+  "packaged_payload": {
+    "passed": true,
+    "payload_files": 697,
+    "runtime_files": 42,
+    "vulkan_runtime_files": 34,
+    "vulkan_core_sha256": "5987a7ff433f4eb97137c6386c8e11f282054988f6f9af84aa35398d81a98fac",
+    "application_sha256": "8f98e52f29a5eabe8a9e82ad577d45c21c4c7b63332ab23ab1e83f6166ee7a8b",
+    "cli_sha256": "ca2bf9f1639abcb9f0db97f22fc029d31a30ad19214cd23c8326cef7aa8aba6c",
+    "core_sha256": "6581eb6d8187a684f3c983b40e447218f1b9516034da0d4e48cf72a8c426f388",
+    "portable_sha256": "f3cc63975130bba380001c9c178d6a032c40428c8373c9af35f275f2471d1ea1",
+    "installer_sha256": "8666bcf8b635e9c3db62c775e8d66ed52425988804f32cf9acee3c6197fc6a51",
+    "clean_path_cli": [
+      "skills",
+      "backends"
+    ],
+    "installer_executed": false,
+    "user_installation_modified": false,
+    "scope": "Both archives extracted and all portable payload files match installer bytes; default runtime, core/patch digests, proprietary license, unchanged optional worker, private-output exclusions and fresh-home restricted-PATH CLI checks."
+  },
+  "packaged_gui": {
+    "passed": true,
+    "gui_exit_code": 0,
+    "gui_image_bytes": 58494,
+    "gui_application_sha256": "8f98e52f29a5eabe8a9e82ad577d45c21c4c7b63332ab23ab1e83f6166ee7a8b",
+    "baseline_matches_rc5_distribution": true,
+    "baseline_cli_sha256": "d683ba51b714bbf1d2b6c505de4daf122d15af12b7913177c23efacb9bf706ab",
+    "desktop_input_used": false,
+    "installer_executed": false,
+    "existing_user_settings_used": false
+  },
+  "packaged_inference": {
+    "exit_code": 0,
+    "model": "Huihui-Qwen3.5-4B-abliterated.Q4_K_M.gguf",
+    "backend": "bundled Vulkan compatibility runtime",
+    "offloaded_layers": "33/33",
+    "context_actual": 32768,
+    "tools_requested": 0,
+    "normal_greeting_answer": true,
+    "cuda_hidden_only_in_owned_child_environment": true
+  },
+  "harness_correction": "An initial packaged GUI check requested the unshipped Qt offscreen platform and timed out. Retried successfully with the shipped Windows platform and the no-screen diagnostic snapshot; no desktop input was used.",
+  "user_environment": {
+    "model_downloads": false,
+    "driver_changes": false,
+    "power_setting_changes": false,
+    "user_applications_closed": false,
+    "existing_installation_modified": false,
+    "discord_bot_started": false
+  },
+  "cloud_ci": "Recorded separately against the published source commit in the GitHub Actions runs and release validation receipt."
+}

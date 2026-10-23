@@ -703,6 +703,9 @@ AgentRunSummary Agent::run(const std::string& user_message, CancellationToken ca
     RunDeadline run_deadline(cancel, started + config.wall_clock_budget);
     cancel = run_deadline.token();
 
+    if (use_conversation_path(user_message, config.request_mode))
+        return run_conversation(user_message, backend, profile, config, cancel, started);
+
     // --- Set up the task -------------------------------------------------
     {
         std::lock_guard lock(mutex_);

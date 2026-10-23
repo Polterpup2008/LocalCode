@@ -1,4 +1,4 @@
-# LocalCode 1.0 for Windows — Getting started
+# LocalCode 1.1 for Windows — Getting started
 
 The Windows x64 package is unsigned. See the distribution's release status
 and validation notes for the checks performed on that package.
@@ -41,11 +41,30 @@ memory if offloading, for your chosen model and context size.
    for **FAST** chat or smaller tasks. These describe how to use the models;
    imported profile names come from the model, and weights are not downloaded
    or assigned to these roles automatically.
+   These roles do not limit the model library: compatible installed 1.5B–4B
+   GGUFs can also be imported and selected for a computer with less memory.
 5. Choose a model from the toolbar, or select it in **Models** and click **Load**.
    Wait for loading to finish. The model profile provides context size, GPU
    layers, tool calling and native reasoning controls; click **Apply** after
    changing a profile. If memory is insufficient, lower context size or GPU
    layers, or choose a smaller model.
+
+The bundled runtime checks actual GPU devices and can use its Vulkan alternative
+when CUDA is unavailable. The loaded notice reports actual full/partial offload
+or CPU placement; an unknown result stays unconfirmed. No driver is installed
+or updated by LocalCode. First Vulkan use may take longer while driver pipelines
+are initialized; loading, prompt evaluation and generation are reported separately.
+
+New low-memory profiles start with a 4K context and bounded saved prompt states.
+Use **Models > Context size > Presets** for 4K, 8K, 16K or 32K, or enter a manual
+value. **Fit GPU layers to available memory** adjusts placement while retaining
+that context. Disable it for a manual layer count. Smaller contexts trade capacity
+for memory and are not counted as engine optimization gains.
+
+Beside Send, **Auto** routes greetings to lightweight conversation and keeps
+coding tools for other requests. **Chat** uses no project tools or coding-agent
+instructions. **Code** always enables the full coding workflow and its checks.
+Switching modes does not delete the conversation or the preceding coding record.
 
 Stop an active task before switching models. Selecting Ling unloads the previous
 model before loading Ling; choose Qwen again when returning to agent work.
@@ -131,7 +150,7 @@ By default, the conversation database is
 `%LOCALAPPDATA%\LocalCode\logs`. **Settings > General** shows the actual paths,
 and **View > Open the log folder** opens logs. Close LocalCode before backing
 up its data folder. Keep that data when updating to retain conversations and
-profiles. Read [Known limitations](KNOWN_LIMITATIONS_1.0.md) before using tools
+profiles. Read [Known limitations](KNOWN_LIMITATIONS_1.1.md) before using tools
 on important projects.
 
 The normal distribution includes user help, license notices and built-in skill

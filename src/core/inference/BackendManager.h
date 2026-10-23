@@ -37,6 +37,9 @@ struct BackendSelection {
     BackendPreference chosen = BackendPreference::LlamaCpp;
     RuntimeInstall install;
     std::string reason;
+    bool force_cpu = false;
+    bool compatibility_fallback = false;
+    std::string device;
 };
 
 // A value snapshot can be scanned without borrowing the manager's lifetime or
@@ -77,7 +80,7 @@ public:
     [[nodiscard]] ExternalEndpoint external_endpoint() const;
 
     // Scans configured paths, the managed runtime directory and PATH.
-    std::vector<RuntimeInstall> discover_runtimes(bool refresh = false);
+    std::vector<RuntimeInstall> discover_runtimes(bool refresh = false, CancellationToken cancel = {});
     [[nodiscard]] RuntimeDiscovery runtime_discovery() const;
     static std::vector<RuntimeInstall> discover_runtimes(const RuntimeDiscovery& request,
                                                          CancellationToken cancel = {});
@@ -90,7 +93,7 @@ public:
         const std::filesystem::path& root, int max_depth = 3);
 
     // Decides which runtime to use for a profile, without starting anything.
-    [[nodiscard]] Result<BackendSelection> select(const ModelProfile& profile);
+    [[nodiscard]] Result<BackendSelection> select(const ModelProfile& profile, CancellationToken cancel = {});
 
     // Stops any running model, starts the selected runtime for `profile`, waits
     // for it to load, probes it and returns a ready backend.
@@ -119,6 +122,7 @@ public:
     void set_advisory_callback(std::function<void(const std::string&)> callback);
 
 private:
+    [[nodiscard]] Result<BackendSelection> select_runtime(const ModelProfile& profile, CancellationToken cancel);
     // Full-offload file-size advice; skips GPU queries when this heuristic
     // cannot apply. Advisory: it never stops a load.
     void warn_if_vram_is_short(const ModelProfile& profile);

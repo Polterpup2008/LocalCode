@@ -401,8 +401,22 @@ void MainWindow::buildUi() {
     sendButton_->setMinimumWidth(70);
     sendButton_->setToolTip(tr("Ctrl+Enter"));
 
-    buttonLayout->addWidget(stopButton_);
-    buttonLayout->addWidget(sendButton_);
+    auto* modeLayout = new QVBoxLayout();
+    modeLayout->setContentsMargins(0, 0, 0, 0);
+    requestMode_ = new QComboBox(buttons);
+    requestMode_->setObjectName("RequestMode");
+    requestMode_->addItem(tr("Auto"), static_cast<int>(RequestMode::Auto));
+    requestMode_->addItem(tr("Chat"), static_cast<int>(RequestMode::Chat));
+    requestMode_->addItem(tr("Code"), static_cast<int>(RequestMode::Code));
+    requestMode_->setToolTip(tr("Auto: greetings use lightweight chat; other requests keep coding tools. "
+                               "Chat: conversation without project tools. Code: full coding agent."));
+    modeLayout->addWidget(requestMode_);
+    auto* sendLayout = new QHBoxLayout();
+    sendLayout->setSpacing(6);
+    sendLayout->addWidget(stopButton_);
+    sendLayout->addWidget(sendButton_);
+    modeLayout->addLayout(sendLayout);
+    buttonLayout->addLayout(modeLayout);
     composerLayout->addWidget(buttons, 0, Qt::AlignBottom);
 
     centreLayout->addWidget(composerBar);
@@ -1035,11 +1049,20 @@ void MainWindow::loadModel(const QString& profileId) {
         const auto profile = application_.backends().current_profile();
         const auto info = application_.backends().current_info();
         status_->setModelState(ModelState::Ready, tr("Model loaded"));
-        status_->setModelName(
-            QString::fromStdString(profile.display_name),
-            QString::fromStdString(application_.backends().current_backend()
-                                       ? application_.backends().current_backend()->id()
-                                       : std::string{}));
+        const auto observed = application_.backends().server_status();
+        const auto acceleration = QString::fromStdString(observed.acceleration.describe());
+        const auto loadMs = qMax<qint64>(0, observed.ready_unix_ms - observed.started_unix_ms);
+        timeline_->addNote(tr("Model startup: %1 s. %2").arg(loadMs / 1000.0, 0, 'f', 2).arg(acceleration),
+                           TimelineEntry::State::Info);
+        status_->setModelState(ModelState::Ready, acceleration);
+        const auto loadedBackend = application_.backends().current_backend();
+        auto placement = loadedBackend ? QString::fromStdString(loadedBackend->id()) : QString{};
+        if (observed.acceleration.offloaded_layers == 0) placement += tr(" · CPU");
+        else if (observed.acceleration.offloaded_layers > 0)
+            placement += tr(" · GPU %1/%2").arg(observed.acceleration.offloaded_layers)
+                                          .arg(observed.acceleration.total_layers);
+        else placement += tr(" · acceleration unconfirmed");
+        status_->setModelName(QString::fromStdString(profile.display_name), placement);
         status_->setContext(0, static_cast<int>(profile.context_size), false);
 
         chat_->setShowReasoning(application_.settings().show_reasoning &&
@@ -1051,6 +1074,7 @@ void MainWindow::loadModel(const QString& profileId) {
         updateWindowTitle();
 
         QString note = tr("Loaded **%1**").arg(QString::fromStdString(profile.display_name));
+        note += tr("\n\n%1\n\nModel startup: %2 s.").arg(acceleration).arg(loadMs / 1000.0, 0, 'f', 2);
         if (info.context_size > 0) {
             note += tr(" with a %1-token context").arg(info.context_size);
         }
@@ -1309,6 +1333,9 @@ void MainWindow::submitPrompt(const QString& text) {
         }
     }
 
+    auto runConfig = application_.agent().config();
+    runConfig.request_mode = static_cast<RequestMode>(requestMode_->currentData().toInt());
+    application_.agent().set_config(runConfig);
     composer_->clearPrompt();
     pendingDraft_.clear();
     if (auto saved = application_.checkpoint_session(toStdStrings(editor_->openFiles()), {});
@@ -1358,11 +1385,13 @@ void MainWindow::onRunStarted(const QString& message) {
 
 void MainWindow::onPromptProcessing() {
     chat_->setActivityNote(tr("Processing the prompt..."));
+    status_->setActivity(tr("Processing prompt"));
 }
 
 void MainWindow::onContentDelta(const QString& text) {
     if (text.isEmpty()) {
         chat_->clearActivityNote();
+        status_->setActivity(tr("Generating"));
         return;
     }
     if (!chat_->streaming()) chat_->beginAssistantMessage();
@@ -1424,6 +1453,9 @@ void MainWindow::onGenerationStats(const UiTurnStats& stats) {
     view.timingsFromServer = stats.timingsFromServer;
     view.promptTokensEvaluated = stats.promptTokensEvaluated;
     view.promptTokensPerSecond = stats.promptTokensPerSecond;
+    view.promptMs = stats.promptMs;
+    view.decodeMs = stats.decodeMs;
+    view.cachedPromptTokens = stats.cachedPromptTokens;
     view.decodeTokensPerSecond = stats.decodeTokensPerSecond;
     view.reasoningCharacters = stats.reasoningCharacters;
     view.estimatedReasoningTokens = stats.estimatedReasoningTokens;
@@ -1586,6 +1618,7 @@ void MainWindow::onBusyChanged(bool busy) {
     // surviving the work.
     if (!busy) statusBar()->clearMessage();
     const bool unavailable = busy || closePending_;
+    requestMode_->setEnabled(!unavailable);
     sendButton_->setEnabled(!unavailable && !modelCancel_);
     stopButton_->setEnabled(busy);
     composer_->setBusy(unavailable);

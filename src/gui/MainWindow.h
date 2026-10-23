@@ -136,6 +136,7 @@ private:
     ProjectExplorer* explorer_ = nullptr;
     ChatView* chat_ = nullptr;
     PromptComposer* composer_ = nullptr;
+    QComboBox* requestMode_ = nullptr;
     ActivityTimeline* timeline_ = nullptr;
     TaskPanel* task_ = nullptr;
     VerificationPanel* verification_ = nullptr;

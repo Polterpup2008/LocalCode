@@ -1,0 +1,269 @@
+{
+  "format": 1,
+  "version": "1.1.0",
+  "date": "2026-10-23",
+  "hardware": {
+    "cpu": "Intel i5-12450H",
+    "ram_gib": 32,
+    "gpu": "RTX 4060 Laptop",
+    "vram_gib": 8,
+    "nvidia_driver": "610.78",
+    "os": "Windows"
+  },
+  "controls": {
+    "context": 32768,
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "threads": 8,
+    "batch": 512,
+    "ubatch": 512,
+    "temperature": 0,
+    "seed": 42,
+    "reasoning_enabled": false,
+    "output_budget": 64
+  },
+  "scope": "Application greeting work reduction, not identical-work kernel optimization. One fresh process per build/backend; descriptive measurements without a universal performance claim.",
+  "comparisons": [
+    {
+      "model": "Qwen3.5-9B-Q4_K_M.gguf",
+      "model_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+      "gpu_layers": -1,
+      "cases": [
+        {
+          "build": "before",
+          "exit_code": 1,
+          "process_wall_s": 15.35899999999674,
+          "binary_sha256": "d683ba51b714bbf1d2b6c505de4daf122d15af12b7913177c23efacb9bf706ab",
+          "tool_schemas": 31,
+          "message_bytes": 14191,
+          "payload_bytes": 33886,
+          "sampling": {
+            "max_tokens": 64,
+            "temperature": 0.0,
+            "seed": 42
+          },
+          "decode_tokens_s": 32.2212,
+          "prompt_tokens_s": 1478.87,
+          "evaluated_prompt_tokens": 8637,
+          "ttft_s": 5.947,
+          "component_estimates": {
+            "system": 2457,
+            "skills": 717,
+            "task": 170,
+            "tools": 5091
+          },
+          "acceleration": "See owned server log; v1.0 did not print an offload summary.",
+          "prompt_ms": 5840.28,
+          "decode_ms": 1862.13,
+          "completion_tokens": 61,
+          "startup_reported": "5.15s"
+        },
+        {
+          "build": "after",
+          "exit_code": 0,
+          "process_wall_s": 7.10899999999674,
+          "binary_sha256": "581af5e377593823d9cc8038d2bb783dff9c18bb269bb552416ea4fddcfcfbd8",
+          "tool_schemas": 0,
+          "message_bytes": 408,
+          "payload_bytes": 793,
+          "sampling": {
+            "max_tokens": 64,
+            "temperature": 0.0,
+            "seed": 42
+          },
+          "decode_tokens_s": 33.4998,
+          "prompt_tokens_s": 391.094,
+          "evaluated_prompt_tokens": 97,
+          "ttft_s": 0.265,
+          "component_estimates": {
+            "system": 112,
+            "skills": 0,
+            "task": 0,
+            "tools": 0
+          },
+          "acceleration": "acceleration             Full GPU offload: 33/33 layers on CUDA0; 6021 MiB of device buffers reported by the runtime.",
+          "prompt_ms": 248.02,
+          "decode_ms": 895.53,
+          "completion_tokens": 31,
+          "startup_reported": "5.38s"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.5-0.8B-Q4_K_M.gguf",
+      "model_sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+      "gpu_layers": 0,
+      "cases": [
+        {
+          "build": "before",
+          "exit_code": 1,
+          "process_wall_s": 43.43699999999808,
+          "binary_sha256": "d683ba51b714bbf1d2b6c505de4daf122d15af12b7913177c23efacb9bf706ab",
+          "tool_schemas": 31,
+          "message_bytes": 14191,
+          "payload_bytes": 33886,
+          "sampling": {
+            "max_tokens": 64,
+            "temperature": 0.0,
+            "seed": 42
+          },
+          "decode_tokens_s": 23.0867,
+          "prompt_tokens_s": 233.597,
+          "evaluated_prompt_tokens": 8638,
+          "ttft_s": 37.078,
+          "component_estimates": {
+            "system": 2458,
+            "skills": 717,
+            "task": 170,
+            "tools": 5091
+          },
+          "acceleration": "See owned server log; v1.0 did not print an offload summary.",
+          "prompt_ms": 36978.22,
+          "decode_ms": 2728.84,
+          "completion_tokens": 64,
+          "startup_reported": "1.79s"
+        },
+        {
+          "build": "after",
+          "exit_code": 0,
+          "process_wall_s": 3.0159999999959837,
+          "binary_sha256": "581af5e377593823d9cc8038d2bb783dff9c18bb269bb552416ea4fddcfcfbd8",
+          "tool_schemas": 0,
+          "message_bytes": 408,
+          "payload_bytes": 793,
+          "sampling": {
+            "max_tokens": 64,
+            "temperature": 0.0,
+            "seed": 42
+          },
+          "decode_tokens_s": 35.7838,
+          "prompt_tokens_s": 221.643,
+          "evaluated_prompt_tokens": 97,
+          "ttft_s": 0.449,
+          "component_estimates": {
+            "system": 112,
+            "skills": 0,
+            "task": 0,
+            "tools": 0
+          },
+          "acceleration": "acceleration             CPU inference: the runtime reports 0/25 layers offloaded.",
+          "prompt_ms": 437.64,
+          "decode_ms": 503.02,
+          "completion_tokens": 19,
+          "startup_reported": "1.77s"
+        }
+      ]
+    }
+  ],
+  "functional_checks": [
+    {
+      "scenario": "vulkan",
+      "exit_code": 0,
+      "elapsed_s": 58.07800000000134,
+      "model": "Huihui-Qwen3.5-4B-abliterated.Q4_K_M.gguf",
+      "context_requested": 32768,
+      "driver_changed": false,
+      "cuda_hidden_in_child_only": true,
+      "acceleration": "acceleration             Full GPU offload: 33/33 layers on Vulkan1; 3706 MiB of device buffers reported by the runtime.",
+      "server_context": "server context           32768",
+      "decode_tokens_s": 19.8072,
+      "prompt_tokens_s": 2.60557,
+      "evaluated_prompt_tokens": 97,
+      "ttft_s": 37.261
+    },
+    {
+      "scenario": "vulkan",
+      "exit_code": 0,
+      "elapsed_s": 7.171999999998661,
+      "model": "Huihui-Qwen3.5-4B-abliterated.Q4_K_M.gguf",
+      "context_requested": 32768,
+      "driver_changed": false,
+      "cuda_hidden_in_child_only": true,
+      "acceleration": "acceleration             Full GPU offload: 33/33 layers on Vulkan1; 3706 MiB of device buffers reported by the runtime.",
+      "server_context": "server context           32768",
+      "decode_tokens_s": 51.4409,
+      "prompt_tokens_s": 472.284,
+      "evaluated_prompt_tokens": 97,
+      "ttft_s": 0.214
+    },
+    {
+      "scenario": "fit",
+      "exit_code": 0,
+      "elapsed_s": 12.453000000001339,
+      "model": "Qwen3.5-9B-Q4_K_M.gguf",
+      "context_requested": 32768,
+      "driver_changed": false,
+      "cuda_hidden_in_child_only": false,
+      "acceleration": "acceleration             Partial GPU offload: 12/33 layers on CUDA0; 2882 MiB of device buffers reported by the runtime.",
+      "server_context": "server context           32768",
+      "decode_tokens_s": 8.63468,
+      "prompt_tokens_s": 67.5215,
+      "evaluated_prompt_tokens": 97,
+      "ttft_s": 1.455
+    },
+    {
+      "scenario": "coding",
+      "exit_code": 0,
+      "elapsed_s": 32.59399999999732,
+      "model": "Qwen3.5-9B-Q4_K_M.gguf",
+      "context_requested": 32768,
+      "driver_changed": false,
+      "cuda_hidden_in_child_only": false,
+      "acceleration": "acceleration             Full GPU offload: 33/33 layers on CUDA0; 6021 MiB of device buffers reported by the runtime.",
+      "server_context": "server context           32768",
+      "independent_test_exit": 0,
+      "model_ran_test_command": true,
+      "decode_tokens_s": 32.3172,
+      "prompt_tokens_s": 1478.8,
+      "evaluated_prompt_tokens": 9979,
+      "ttft_s": 0.0,
+      "agent_task_state_verdict": "partially verified",
+      "only_requested_file_changed": true
+    }
+  ],
+  "prompt_components": {
+    "baseline_rendered_tokens": 8637,
+    "after_rendered_tokens": 97,
+    "method": "Render the actual captured request through the same pinned server /apply-template, then /tokenize. Ablations remove one component at a time; deltas overlap and are not additive.",
+    "ablations": {
+      "tool_definitions_native_rendering": {
+        "tokens_with_component_removed": 3332,
+        "reduction": 5305
+      },
+      "skills": {
+        "tokens_with_component_removed": 7920,
+        "reduction": 717
+      },
+      "task_and_verification_state": {
+        "tokens_with_component_removed": 8499,
+        "reduction": 138
+      },
+      "workspace_context": {
+        "tokens_with_component_removed": 8525,
+        "reduction": 112
+      },
+      "repository_intelligence": {
+        "tokens_with_component_removed": 8284,
+        "reduction": 353
+      },
+      "machine_context": {
+        "tokens_with_component_removed": 8108,
+        "reduction": 529
+      },
+      "agent_instructions": {
+        "tokens_with_component_removed": 7899,
+        "reduction": 738
+      },
+      "verification_instructions": {
+        "tokens_with_component_removed": 7912,
+        "reduction": 725
+      }
+    },
+    "framing_without_tools_delta": 15,
+    "conversation_history_older_turns": 0,
+    "latest_user_message_raw_tokens": 4,
+    "after_message_content_raw_tokens": 80,
+    "driver_memory_counter_available": false,
+    "driver_memory_counter_note": "nvidia-smi returned [N/A] for the owned server under WDDM; buffer figures come from runtime allocation logs."
+  }
+}

@@ -495,9 +495,13 @@ TEST_CASE("deferred tools preserve read-only policy and clear between human requ
     next->then_say("Hello.");
     REQUIRE(fixture.agent.run("Hello.", {}).completed);
     REQUIRE(next->requests().size() == 1);
-    REQUIRE(next->requests()[0].tools.size() == 1);
+    CHECK(next->requests()[0].tools.empty());
+    next->then_say("I have not inspected the layout yet.");
+    REQUIRE(fixture.agent.run("Explain this project's layout.", {}).completed);
+    REQUIRE(next->requests().size() == 2);
+    REQUIRE(next->requests()[1].tools.size() == 1);
     const auto next_allowed =
-        next->requests()[0].tools[0].parameters["properties"]["names"]["items"]["enum"];
+        next->requests()[1].tools[0].parameters["properties"]["names"]["items"]["enum"];
     CHECK(std::find(next_allowed.begin(), next_allowed.end(), Json("write_file")) !=
           next_allowed.end());
 }
@@ -2906,6 +2910,9 @@ TEST_CASE("a very long conventions file is capped rather than dropped", "[agent]
     // A 60 KB AGENTS.md must not eat an 8k window, and must not be silently
     // ignored either - a truncated convention still tells the model something.
     AgentFixture fixture;
+    auto config = fixture.agent.config();
+    config.request_mode = RequestMode::Code;
+    fixture.agent.set_config(config);
     std::string huge = "# Conventions\n\n- Write everything in C++.\n";
     huge += std::string(60000, 'x');
     fixture.temp.write("AGENTS.md", huge);

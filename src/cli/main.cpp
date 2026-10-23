@@ -121,6 +121,7 @@ int usage() {
                  "  --backend <auto|llama.cpp|ik_llama.cpp>\n"
                  "  --server <path>              use this server binary\n"
                  "  --ctx <tokens>               context size (default: from the model)\n"
+                 "  --mode <auto|chat|code>      greeting detection, conversation or full agent\n"
                  "  --gpu-layers <n>             -1 for all (default)\n"
                  "  --max-steps <n>              agent iteration budget (default 30)\n"
                  "  --time-budget <minutes>      task wall-clock budget (1 to 480)\n"
@@ -257,6 +258,11 @@ int command_backends(Application& application) {
         if (runtime.features.no_webui) features.emplace_back("--no-webui");
         print_row("supports",
                   features.empty() ? "(nothing recognised)" : strings::join(features, ", "));
+          const auto devices = ModelServer::probe_devices(runtime.server_binary, runtime.features);
+          if (devices && devices->supported) {
+              print_row("GPU devices", devices->devices.empty() ? "none enumerated" : strings::join(devices->devices, "; "));
+              if (!devices->succeeded) print_row("GPU probe", devices->detail);
+          } else print_row("GPU devices", "enumeration unsupported or unavailable; acceleration unconfirmed");
     }
     return 0;
 }
@@ -826,6 +832,8 @@ struct AgentOptions {
     std::string server;
     int context = 0;
     int gpu_layers = -1;
+    bool gpu_layers_explicit = false;
+    RequestMode mode = RequestMode::Auto;
     int max_steps = 30;
     int time_budget_minutes = 0;
     bool approve_everything = false;
@@ -880,6 +888,7 @@ int command_agent(Application& application, AgentOptions options) {
     }
     if (options.context > 0) profile->context_size = static_cast<std::uint32_t>(options.context);
     profile->gpu_layers = options.gpu_layers;
+    if (options.gpu_layers_explicit) profile->auto_gpu_layers = false;
     profile->backend = backend_preference_from_string(options.backend);
     if (!options.server.empty()) profile->server_binary = path_from_utf8(options.server);
     application.save_model_profile(*profile);
@@ -919,6 +928,7 @@ int command_agent(Application& application, AgentOptions options) {
                              std::chrono::steady_clock::now() - load_started)
                              .count();
     std::cout << "ready in " << strings::human_duration_ms(load_ms) << "\n";
+    print_row("acceleration", application.backends().server_status().acceleration.describe());
 
     const auto info = application.backends().current_info();
     if (info.context_size) print_row("server context", std::to_string(info.context_size));
@@ -930,6 +940,7 @@ int command_agent(Application& application, AgentOptions options) {
     // --- Agent ------------------------------------------------------------
     AgentConfig config = application.agent().config();
     config.max_iterations = options.max_steps;
+    config.request_mode = options.mode;
     if (options.time_budget_minutes > 0)
         config.wall_clock_budget = std::chrono::minutes(options.time_budget_minutes);
     application.agent().set_config(config);
@@ -1162,8 +1173,17 @@ int main(int argc, char** argv) {
                     options.server = next();
                 else if (argument == "--ctx")
                     options.context = std::atoi(next().c_str());
-                else if (argument == "--gpu-layers")
+                else if (argument == "--gpu-layers") {
                     options.gpu_layers = std::atoi(next().c_str());
+                    options.gpu_layers_explicit = true;
+                }
+                else if (argument == "--mode") {
+                    const auto mode = next();
+                    if (mode == "auto") options.mode = RequestMode::Auto;
+                    else if (mode == "chat") options.mode = RequestMode::Chat;
+                    else if (mode == "code") options.mode = RequestMode::Code;
+                    else { std::cerr << "error: --mode must be auto, chat or code\n"; return 1; }
+                }
                 else if (argument == "--max-steps")
                     options.max_steps = std::atoi(next().c_str());
                 else if (argument == "--time-budget") {

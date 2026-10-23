@@ -2328,9 +2328,7 @@ TEST_CASE("main model edits preserve default and explicit prompt cache budgets",
     // already strips its own display-only -1 sentinel).
     for (int reopen = 0; reopen < 2; ++reopen) {
         ModelPanel panel(application);
-        QSpinBox* context = nullptr;
-        for (auto* spin : panel.findChildren<QSpinBox*>())
-            if (spin->minimum() == 1024) context = spin;
+        auto* context = panel.findChild<QSpinBox*>("ModelContextSize");
         REQUIRE(context);
         context->setValue(4096 + reopen * 1024);
         QPushButton* apply = nullptr;

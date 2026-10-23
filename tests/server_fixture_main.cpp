@@ -49,6 +49,21 @@ int main(int argc, char** argv) {
     }
     for (int i = 1; i < argc; ++i) {
         const std::string_view arg{argv[i]};
+        if (arg == "--list-devices") {
+            const auto stem = std::filesystem::path(argv[0]).stem().string();
+            if (stem.starts_with("device-odd")) {
+                std::cout << "Custom device listing v2: GPU ready\n";
+                return 0;
+            }
+            if (stem.starts_with("device-failed")) {
+                std::cerr << "CUDA driver version is insufficient for CUDA runtime version\n";
+                return 1;
+            }
+            std::cout << "Available devices:\n";
+            if (stem.starts_with("device-gpu"))
+                std::cout << "  Vulkan0: Fixture GPU (4096 MiB, 3000 MiB free)\n";
+            return 0;
+        }
         if (arg.starts_with("--query-gpu=")) {
             if (const auto* marker = std::getenv("LOCALCODE_GPU_PROBE_MARKER")) {
                 const auto text = std::string_view(marker);
@@ -98,6 +113,7 @@ int main(int argc, char** argv) {
                 return 0;
             }
             std::cout << "LocalCode process fixture\n  --version  print the build version\n";
+            if (stem.starts_with("device-")) std::cout << "  --list-devices  list usable devices\n";
             std::cout << "  --device DEVICES  comma-separated devices to use, or none for CPU\n";
             std::cout << "  --spec-type none,draft-simple";
             const auto binary = std::filesystem::path(argv[0]);

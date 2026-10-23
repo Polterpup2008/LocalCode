@@ -251,6 +251,14 @@ void ChatView::setTurnStats(const TurnStatsView& stats) {
 
     auto& message = messages_.last();
     message.statsLine = parts.join(QStringLiteral("  ·  "));
+    if (stats.timingsFromServer && (stats.promptMs > 0 || stats.decodeMs > 0)) {
+        parts << tr("prompt %1 · generation %2")
+                     .arg(formatDuration(static_cast<qint64>(stats.promptMs)),
+                          formatDuration(static_cast<qint64>(stats.decodeMs)));
+        if (stats.cachedPromptTokens > 0)
+            parts << tr("%1 prompt tokens reused").arg(stats.cachedPromptTokens);
+        message.statsLine = parts.join(QStringLiteral("  ·  "));
+    }
 
     // The header above the reasoning block uses the same rule.
     message.reasoningSummary =

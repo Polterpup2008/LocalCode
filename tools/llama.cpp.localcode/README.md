@@ -1,4 +1,17 @@
-# LocalCode runtime optimization study
+# LocalCode runtime optimization and compatibility
+
+LocalCode 1.1 reduces unnecessary agent prompt work across inference backends.
+Its Windows bundle also includes a Vulkan alternative, probes actual available
+devices, fits GPU placement while retaining context and precision, and reports
+the runtime's real layer counts. The primary runtime retains the qualified
+Windows working-set patch; the Vulkan alternative uses the matching stock core.
+See the [1.1 measurements and hardware coverage](../../docs/benchmarks/2026-10-23-low-end.md).
+
+`benchmark_agent_prompt.py` compares the actual greeting requests made by two
+LocalCode CLI builds in fresh homes and a synthetic project, using an existing
+model. It measures application work reduction, not identical-prompt kernel speed.
+
+## Earlier fixed-work runtime study
 
 The first study targets Windows x64 CUDA inference on an RTX 4060 Laptop GPU.
 It compares the shipped b10655 runtime, upstream b11829 (184f6536024668e8908ab8c86033d56708e62b40),

@@ -377,8 +377,8 @@ TEST_CASE("a profile built from metadata has sensible defaults", "[model]") {
     CHECK_FALSE(profile.id.empty());
     CHECK(profile.display_name.find("Some Model") != std::string::npos);
     CHECK(profile.display_name.find("Q4_K_M") != std::string::npos);
-    // The trained context is capped to something a workstation can hold.
-    CHECK(profile.context_size == 32768);
+    // Unknown hardware starts conservatively; saved/manual context is retained.
+    CHECK(profile.context_size == 8192);
     CHECK(profile.capabilities.supports_tools);
     CHECK(profile.tool_protocol == ToolProtocol::Native);
     CHECK(profile.backend == BackendPreference::Auto);
@@ -423,13 +423,13 @@ TEST_CASE("model and runtime paths survive UTF-8 JSON serialization", "[model][u
     CHECK(restored.id == profile.id);
 }
 
-TEST_CASE("a tiny context is raised to a usable floor", "[model]") {
+TEST_CASE("a small trained context is not expanded without a manual override", "[model]") {
     GgufMetadata metadata;
     metadata.path = "L:/models/tiny.gguf";
     metadata.context_length = 512;
 
     const auto profile = ModelProfile::from_gguf(metadata);
-    CHECK(profile.context_size >= 4096);
+    CHECK(profile.context_size == 512);
 }
 
 TEST_CASE("backend preference parses the names users type", "[model][backend]") {

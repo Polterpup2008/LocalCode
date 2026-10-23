@@ -19,6 +19,7 @@ add_executable(localcode_tests
     test_filesystem.cpp
     test_storage.cpp
     test_model_profile.cpp
+    test_low_end.cpp
     test_model_lifecycle.cpp
     test_server_recovery.cpp
     test_skills.cpp

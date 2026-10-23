@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.5"><img src="https://img.shields.io/badge/release-1.0_RC5-d97757?style=flat-square" alt="Release 1.0 RC5"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.1.0"><img src="https://img.shields.io/badge/release-1.1-d97757?style=flat-square" alt="Release 1.1"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.5/LocalCode-1.0.0-rc.5-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.1.0/LocalCode-1.1.0-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.0.0-rc.5/LocalCode-1.0.0-rc.5-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.1.0/LocalCode-1.1.0-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -30,13 +30,20 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-> **1.0 release candidate 5:** available for testing on Windows 10/11 x64.
-> The package is unsigned, and some interactive acceptance checks remain open.
-> See the [release status](docs/RELEASE_STATUS_1.0.md) before relying on it.
+**New in 1.1:** lightweight conversation, visible Chat/Code modes, automatic
+GPU-layer fitting, memory-aware starting profiles and a bundled Vulkan fallback
+for computers whose CUDA backend cannot initialize. The familiar orange/grey
+layout, expanding prompt editor and steady chat scrolling remain.
 
-RC5 keeps the familiar orange/grey layout with clearer text, expanding prompt
-editing, steadier chat scrolling and model controls that fit the sidebar.
-[UI changes and validation](docs/UI_UPDATE_RC5.md).
+A greeting should not carry an entire coding task. In the controlled local
+comparison, its prompt fell from **8,637 tokens to 97**, with the same model,
+32K context capacity and f16 cache. First-token latency was **0.265 s on CUDA**
+and **0.449 s in the separate 0.8B CPU check**, excluding model startup.
+These are measured examples on one laptop; read the
+[results, first-use Vulkan cost and hardware limits](docs/benchmarks/2026-10-23-low-end.md).
+
+The Windows 10/11 x64 package is unsigned. The reported GTX 1650 Ti laptop still
+needs a direct check; see the [1.1 hardware checklist](docs/KNOWN_LIMITATIONS_1.1.md).
 
 ## From model to working folder
 
@@ -66,6 +73,7 @@ separately. A local model does not supply a development toolchain.
 | Follow the work | Tool activity, command output and visible approval requests. |
 | Check the result | Separate records for configure, build, tests, execution, behaviour and the task objective. |
 | Use your own model | GGUF metadata inspection, model profiles, context and GPU-layer controls; capabilities depend on the model and runtime. |
+| Chat without coding overhead | Auto recognizes greetings; Chat omits project tools; Code keeps the complete agent workflow. |
 | Start without a repository | A unique dated output folder that stays on disk after closing the app. |
 | Pick up later | Saved conversations and session recovery; right-click a chat to delete it without deleting project files. |
 | Connect your Discord bot | An optional plugin, configured from the app with your own bot credentials, model and permitted channels. |
@@ -86,11 +94,17 @@ Read [how verification works](docs/VERIFICATION_MODEL.md).
 ## The runtime is included. The choice stays yours.
 
 **Default:** LocalCode starts and stops its bundled **llama.cpp.localcode**
-runtime when you load and unload models. RC4 includes upstream **b11829** with a
+runtime when you load and unload models. The primary runtime includes upstream **b11829** with a
 LocalCode Windows memory optimization. In the matched 9B test, resident process
 memory fell from **5.27 GiB to 0.52 GiB**, retaining the same 32K context, f16 cache
 and output tokens. No decode speed gain is claimed. See the
 [benchmark results and limits](docs/benchmarks/2026-10-23-runtime.md).
+
+Version 1.1 also includes a matching **Vulkan alternative**. It probes actual
+devices before selecting a compatible backend and reports the model's actual
+GPU layer count after loading. A detected GPU alone is never shown as proof of
+GPU inference. New low-memory profiles have conservative context recommendations;
+manual presets and placement controls remain available.
 
 **Custom runtime:** select **Settings → Models → Custom llama.cpp** and choose
 your `llama-server.exe`, keeping its supporting DLLs together. A model must be
@@ -114,19 +128,18 @@ See the [setup guide](docs/GETTING_STARTED.md#optional-discord-plugin).
 
 ## Before you use it on important work
 
-RC3 passed installation with and without Discord, native plugin-panel startup,
-bundled-runtime inference, restart and uninstall checks, including user-data
-preservation. Its installed license files and runtime digests were verified.
-The previous RC2's affected automated checks passed **24 cases / 383 assertions**;
-the full suite was not repeated for RC3. Remaining interactive checks and earlier
-baseline results are listed in the
-[release status](docs/RELEASE_STATUS_1.0.md).
+The 1.1 checks include real CPU/CUDA greeting comparisons, a 4B Vulkan fallback,
+context-preserving placement with a restricted memory budget, and a coding task
+that edited and tested a small project. Automated and package checks are recorded
+in the [validation record](docs/benchmarks/2026-10-23-low-end-validation.json).
+Earlier installer and user-data-preservation checks remain documented in the
+[1.0 release history](docs/RELEASE_STATUS_1.0.md).
 
 The app is **unsigned**. File tools check workspace boundaries and commands use
 application policies and approvals, but **OS-level command confinement is not
 implemented**. Approved commands run with your account's access. Review changes
 and commands, and keep version control or backups. See
-[known limitations](docs/KNOWN_LIMITATIONS_1.0.md) and
+[known limitations](docs/KNOWN_LIMITATIONS_1.1.md) and
 [security boundaries](docs/SECURITY.md).
 
 ## Build from source
@@ -158,7 +171,7 @@ Windows x64.
 | | |
 |---|---|
 | [User guide](docs/GETTING_STARTED.md) | Models, projects, chats, output folders and settings |
-| [Release notes](docs/RELEASE_NOTES_1.0.md) | What's included in 1.0 RC3 |
+| [Release notes](docs/RELEASE_NOTES_1.1.md) | What's included in 1.1 |
 | [Runtime guide](docs/BACKENDS.md) | Backend discovery and server management |
 | [Model guide](docs/MODELS.md) | GGUF metadata, capabilities and profiles |
 | [Architecture](docs/ARCHITECTURE.md) | The native core, desktop app and data flow |

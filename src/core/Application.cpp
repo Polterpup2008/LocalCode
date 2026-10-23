@@ -6,6 +6,7 @@
 #include "model/GgufMetadata.h"
 #include "platform/PathEncoding.h"
 #include "platform/Paths.h"
+#include "platform/GpuProbe.h"
 #include "util/Log.h"
 #include "util/Strings.h"
 
@@ -568,6 +569,15 @@ Result<ModelProfile> Application::import_model(const std::filesystem::path& gguf
         merged.file_size = profile.file_size;
         merged.trained_context = profile.trained_context;
         profile = merged;
+    } else {
+        const auto gpu = probe_gpu_memory();
+        std::optional<std::uint64_t> capacity = gpu ? std::optional<std::uint64_t>(gpu->total_bytes) : std::nullopt;
+        if (!capacity) {
+            for (const auto& adapter : probe_graphics_adapters())
+                if (adapter.dedicated_bytes > capacity.value_or(0)) capacity = adapter.dedicated_bytes;
+        }
+        profile = ModelProfile::from_gguf(*metadata, probe_system_memory_bytes(),
+            capacity);
     }
 
     if (auto status = model_repo_->save(profile); !status) return status.error();

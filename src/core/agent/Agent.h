@@ -28,6 +28,7 @@
 #include "../skills/SkillRegistry.h"
 #include "../tools/ToolRegistry.h"
 #include "ContextManager.h"
+#include "Conversation.h"
 #include "Presentation.h"
 #include "ProgressMonitor.h"
 #include "SourceWitnesses.h"
@@ -147,6 +148,7 @@ struct AgentEvent {
 using AgentEventSink = std::function<void(const AgentEvent&)>;
 
 struct AgentConfig {
+    RequestMode request_mode = RequestMode::Auto;
     int max_iterations = 40;
     // Stops a runaway loop from spending the whole evening on one request.
     std::chrono::milliseconds wall_clock_budget{std::chrono::minutes(45)};
@@ -161,6 +163,7 @@ struct AgentConfig {
 };
 
 struct AgentRunSummary {
+    bool conversational = false;
     bool completed = false;
     bool cancelled = false;
     std::string final_message;
@@ -228,6 +231,10 @@ public:
     [[nodiscard]] ContextBudget last_context() const;
 
 private:
+    AgentRunSummary run_conversation(const std::string& user_message, BackendPtr backend,
+                                    const ModelProfile& profile, const AgentConfig& config,
+                                    CancellationToken cancel,
+                                    std::chrono::steady_clock::time_point started);
     // Named `publish` rather than `emit`: Qt defines `emit` as a macro, and the
     // GUI includes this header after Qt's.
     void publish(AgentEvent event) const;

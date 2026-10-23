@@ -249,6 +249,7 @@ Json OpenAiCompatBackend::build_payload(const ChatRequest& request) const {
     Json payload;
     payload["model"] = "local";   // llama-server ignores this but requires it
     payload["stream"] = request.stream;
+    payload["cache_prompt"] = true;
     if (request.stream) payload["stream_options"] = {{"include_usage", true}};
 
     Json messages = Json::array();

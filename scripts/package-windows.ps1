@@ -1,6 +1,7 @@
 param(
     [string]$BuildDirectory = 'build\audit-release',
     [string]$RuntimePackage = '',
+    [string]$VulkanRuntimePackage = '',
     [string]$DiscordPackage = '',
     [string]$NSISCompiler = '',
     [string]$MemoryRuntimePackage = '',
@@ -14,10 +15,11 @@ try {
     $taskBuild = [IO.Path]::GetFullPath($BuildDirectory, $taskRoot)
     if (-not $RuntimePackage) { throw 'Pass -RuntimePackage with the prepared bundled llama.cpp runtime directory.' }
     $taskRuntimePackage = (Resolve-Path -LiteralPath $RuntimePackage).Path
+    $taskVulkanPackage = if ($VulkanRuntimePackage) { (Resolve-Path -LiteralPath $VulkanRuntimePackage).Path } else { '' }
     $taskPlugin = if ($DiscordPackage) { (Resolve-Path -LiteralPath $DiscordPackage).Path } else { '' }
     $taskMemoryPackage = if ($MemoryRuntimePackage) { (Resolve-Path -LiteralPath $MemoryRuntimePackage).Path } else { '' }
     $taskReasoningPackage = if ($ReasoningRuntimePackage) { (Resolve-Path -LiteralPath $ReasoningRuntimePackage).Path } else { '' }
-    & cmake -S $taskRoot -B $taskBuild -DCMAKE_BUILD_TYPE=Release -DLOCALCODE_INSTALL_DEVELOPER_TOOLS=OFF "-DLOCALCODE_LLAMA_RUNTIME_PACKAGE=$taskRuntimePackage" "-DLOCALCODE_DISCORD_PACKAGE=$taskPlugin" "-DLOCALCODE_MEMORY_RUNTIME_PACKAGE=$taskMemoryPackage" "-DLOCALCODE_REASONING_RUNTIME_PACKAGE=$taskReasoningPackage"
+    & cmake -S $taskRoot -B $taskBuild -DCMAKE_BUILD_TYPE=Release -DLOCALCODE_INSTALL_DEVELOPER_TOOLS=OFF "-DLOCALCODE_LLAMA_RUNTIME_PACKAGE=$taskRuntimePackage" "-DLOCALCODE_VULKAN_RUNTIME_PACKAGE=$taskVulkanPackage" "-DLOCALCODE_DISCORD_PACKAGE=$taskPlugin" "-DLOCALCODE_MEMORY_RUNTIME_PACKAGE=$taskMemoryPackage" "-DLOCALCODE_REASONING_RUNTIME_PACKAGE=$taskReasoningPackage"
     if ($LASTEXITCODE -ne 0) { throw 'CMake configure failed.' }
     $taskVersion = (Get-Content -LiteralPath (Join-Path $taskBuild 'LocalCodePackageVersion.txt') -Raw).Trim()
     if ($taskVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'CMake did not provide a valid package version.' }

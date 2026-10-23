@@ -4,6 +4,12 @@
 #include <mutex>
 #include <string_view>
 #include <vector>
+#if defined(_WIN32)
+#include <windows.h>
+#include <dxgi1_2.h>
+#else
+#include <unistd.h>
+#endif
 
 #include "Process.h"
 #include "util/Log.h"
@@ -34,6 +40,49 @@ std::optional<std::uint64_t> parse_mib(std::string_view text) {
 
 }  // namespace
 
+std::vector<GraphicsAdapter> probe_graphics_adapters() {
+    std::vector<GraphicsAdapter> adapters;
+#if defined(_WIN32)
+    IDXGIFactory1* factory = nullptr;
+    if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&factory))))
+        return adapters;
+    for (UINT i = 0; ; ++i) {
+        IDXGIAdapter1* adapter = nullptr;
+        if (factory->EnumAdapters1(i, &adapter) != S_OK) break;
+        DXGI_ADAPTER_DESC1 description{};
+        if (SUCCEEDED(adapter->GetDesc1(&description)) &&
+            !(description.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)) {
+            const auto length = WideCharToMultiByte(CP_UTF8, 0, description.Description, -1,
+                                                    nullptr, 0, nullptr, nullptr);
+            if (length > 1) {
+                std::string name(static_cast<std::size_t>(length), '\0');
+                WideCharToMultiByte(CP_UTF8, 0, description.Description, -1,
+                                    name.data(), length, nullptr, nullptr);
+                name.pop_back();
+                adapters.push_back({std::move(name), description.DedicatedVideoMemory});
+            }
+        }
+        adapter->Release();
+    }
+    factory->Release();
+#endif
+    return adapters;
+}
+
+std::optional<std::uint64_t> probe_system_memory_bytes() {
+#if defined(_WIN32)
+    MEMORYSTATUSEX memory{};
+    memory.dwLength = sizeof(memory);
+    if (GlobalMemoryStatusEx(&memory)) return memory.ullTotalPhys;
+#else
+    const auto pages = sysconf(_SC_PHYS_PAGES);
+    const auto size = sysconf(_SC_PAGESIZE);
+    if (pages > 0 && size > 0)
+        return static_cast<std::uint64_t>(pages) * static_cast<std::uint64_t>(size);
+#endif
+    return std::nullopt;
+}
+
 void set_gpu_memory_for_testing(std::optional<GpuMemory> memory) {
     std::lock_guard lock(override_mutex());
     override_value() = std::move(memory);
@@ -59,7 +108,7 @@ std::optional<GpuMemory> probe_gpu_memory() {
 
     ProcessRequest request;
     request.executable = *binary;
-    request.arguments = {"--query-gpu=name,memory.total,memory.free", "--format=csv,noheader,nounits"};
+    request.arguments = {"--query-gpu=name,memory.total,memory.free,driver_version", "--format=csv,noheader,nounits"};
     // Short: this runs before a model load and must never be what makes one
     // feel slow. A driver that cannot answer in three seconds is treated as
     // absent.
@@ -88,6 +137,7 @@ std::optional<GpuMemory> probe_gpu_memory() {
         memory.name = std::string{strings::trim(fields[0])};
         memory.total_bytes = *total;
         memory.free_bytes = *free;
+        if (fields.size() > 3) memory.driver_version = std::string(strings::trim(fields[3]));
         if (!best.has_value() || memory.free_bytes > best->free_bytes) best = memory;
     }
 

@@ -90,6 +90,7 @@ struct ModelProfile {
     std::uint32_t context_size = 8192;
     // -1 offloads every layer to the GPU; 0 is CPU-only.
     int gpu_layers = -1;
+    bool auto_gpu_layers = false;  // new profiles can fit layers without changing context
     std::uint32_t batch_size = 512;
     std::uint32_t ubatch_size = 0;     // 0 = runtime's physical batch default
     std::uint32_t threads = 0;         // 0 = let the runtime decide
@@ -127,7 +128,9 @@ struct ModelProfile {
     std::int64_t last_used_unix_ms = 0;
 
     // Builds a sensible default profile from a model file's own metadata.
-    [[nodiscard]] static ModelProfile from_gguf(const GgufMetadata& metadata);
+    [[nodiscard]] static ModelProfile from_gguf(const GgufMetadata& metadata,
+        std::optional<std::uint64_t> ram_bytes = {},
+        std::optional<std::uint64_t> vram_bytes = {});
 
     // A stable identifier: the file stem plus a short hash of the full path, so
     // two quantizations of the same model in different folders stay distinct.

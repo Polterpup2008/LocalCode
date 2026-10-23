@@ -194,7 +194,8 @@ std::string ModelProfile::make_id(const std::filesystem::path& path) {
     return sanitized + "-" + short_hash(path_to_utf8(path));
 }
 
-ModelProfile ModelProfile::from_gguf(const GgufMetadata& metadata) {
+ModelProfile ModelProfile::from_gguf(const GgufMetadata& metadata,
+    std::optional<std::uint64_t> ram_bytes, std::optional<std::uint64_t> vram_bytes) {
     ModelProfile profile;
     profile.model_path = metadata.path;
     profile.id = make_id(metadata.path);
@@ -211,12 +212,20 @@ ModelProfile ModelProfile::from_gguf(const GgufMetadata& metadata) {
     profile.trained_context = metadata.context_length;
     profile.created_unix_ms = now_unix_ms();
 
-    // Default the context window to something a workstation can actually hold:
-    // the model's trained context, capped at 32k, and never below 4k.
-    std::uint64_t context = metadata.context_length ? metadata.context_length : 8192;
-    context = std::min<std::uint64_t>(context, 32768);
-    context = std::max<std::uint64_t>(context, 4096);
+    // A starting recommendation for NEW imports, not an inference speed claim.
+    // Saved profiles/manual overrides are retained by Application::import_model.
+    constexpr std::uint64_t gib = 1024ull * 1024 * 1024;
+    std::uint64_t context = 8192;
+    const bool low_memory = (ram_bytes && *ram_bytes <= 16 * gib) ||
+                            (vram_bytes && *vram_bytes <= 4 * gib);
+    if (low_memory)
+        context = 4096;
+    else if (ram_bytes && *ram_bytes >= 30 * gib && vram_bytes && *vram_bytes >= 7 * gib)
+        context = *vram_bytes >= 15 * gib ? 32768 : 16384;
+    if (metadata.context_length > 0) context = std::min(context, metadata.context_length);
     profile.context_size = static_cast<std::uint32_t>(context);
+    profile.auto_gpu_layers = true;
+    profile.prompt_cache_mib = low_memory ? 128 : 512;
 
     profile.capabilities = ModelCapabilities::infer(metadata);
     profile.tool_protocol =
@@ -251,6 +260,7 @@ Json to_json(const ModelProfile& profile) {
 
     out["context_size"] = profile.context_size;
     out["gpu_layers"] = profile.gpu_layers;
+    out["auto_gpu_layers"] = profile.auto_gpu_layers;
     out["batch_size"] = profile.batch_size;
     out["ubatch_size"] = profile.ubatch_size;
     out["threads"] = profile.threads;
@@ -323,6 +333,9 @@ ModelProfile model_profile_from_json(const Json& json) {
 
     profile.context_size = static_cast<std::uint32_t>(json_int(json, "context_size", 8192));
     profile.gpu_layers = static_cast<int>(json_int(json, "gpu_layers", -1));
+    // Legacy unbounded offload was the old default. Fit placement on upgrade;
+    // explicit layer counts and any saved 1.1 override remain manual.
+    profile.auto_gpu_layers = json_bool(json, "auto_gpu_layers", profile.gpu_layers < 0);
     profile.batch_size = static_cast<std::uint32_t>(json_int(json, "batch_size", 512));
     profile.ubatch_size = static_cast<std::uint32_t>(json_int(json, "ubatch_size", 0));
     profile.threads = static_cast<std::uint32_t>(json_int(json, "threads", 0));
