@@ -207,8 +207,8 @@ jobs:
 
       - name: Package
         run: |
-          cmake --install build/windows-release --prefix dist
-        continue-on-error: true
+          $taskInstallPrefix = Join-Path $env:GITHUB_WORKSPACE 'dist'
+          cmake --install build/windows-release --prefix "$taskInstallPrefix"
 
       - name: Upload the build
         uses: actions/upload-artifact@v4
