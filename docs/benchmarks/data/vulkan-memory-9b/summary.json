@@ -1,0 +1,36 @@
+{
+  "baseline": {
+    "short": {
+      "samples": 12,
+      "median_wall_s": 4.846411249999619,
+      "median_ttft_s": 0.315542049999749
+    },
+    "long": {
+      "samples": 12,
+      "median_wall_s": 18.602121349999834,
+      "median_ttft_s": 13.862130200000138
+    },
+    "cached": {
+      "samples": 36,
+      "median_wall_s": 4.629872700000078,
+      "median_ttft_s": 0.13030000000003383
+    }
+  },
+  "candidate": {
+    "short": {
+      "samples": 12,
+      "median_wall_s": 4.547968649999802,
+      "median_ttft_s": 0.2599751999998716
+    },
+    "long": {
+      "samples": 12,
+      "median_wall_s": 17.59199215000035,
+      "median_ttft_s": 12.99046935000024
+    },
+    "cached": {
+      "samples": 36,
+      "median_wall_s": 4.636889999999994,
+      "median_ttft_s": 0.12657145000002856
+    }
+  }
+}

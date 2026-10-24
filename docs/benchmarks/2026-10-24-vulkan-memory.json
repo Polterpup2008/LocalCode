@@ -1,0 +1,2387 @@
+{
+  "version": "1.2.1",
+  "upstream_commit": "184f6536024668e8908ab8c86033d56708e62b40",
+  "candidate": "Windows mapped-file working-set reclamation enabled for the Vulkan alternative",
+  "patch_sha256": "aad25892513dd8a8109197a258c094c03ced3fee182e72a95edb082c4f7bbbf4",
+  "runtime_identity": {
+    "runtime_files": {
+      "reference": {
+        "concrt140.dll": "2405355f0a58067b258f8df33c327e3a3d716eaac5a3a5aebb757842d85bd376",
+        "ggml-base.dll": "910e7b39eb64b64b387e0508f0481987f27410503668065785b4a1fe0fd1cac8",
+        "ggml-cpu-alderlake.dll": "a5dd8f508fd8c1cc4f912f3d61c3c8544a23e4c0428a9c5b6d12ef9330022009",
+        "ggml-cpu-cannonlake.dll": "1bb121751722fb7aad079595e2ceea6edf82ce3ff1d41d5a6dda85441109173e",
+        "ggml-cpu-cascadelake.dll": "b90309553cd479a876ad60b6598e00e78e418380e89703409c1d91b51263c0b8",
+        "ggml-cpu-cooperlake.dll": "10939aa1a2b7a9c5548e40679bdb9829e618ba562639e56436abb0c9b177260a",
+        "ggml-cpu-haswell.dll": "4b05b494b6afb27550d4fe1a52adcfc90712992e958b7909351deb0bbf35a6c8",
+        "ggml-cpu-icelake.dll": "76902a357f74400af95f9a99b007d78a90fdd037b6c92e6fd163adebd902afd4",
+        "ggml-cpu-ivybridge.dll": "78072c987b886c43f321a93be701c78ae5635632a24b8bcc22bfe0120e5578b3",
+        "ggml-cpu-piledriver.dll": "6275ae738c6faa87dd856bb78c4c01800ee2f3220161803cdae6f05188e8cf59",
+        "ggml-cpu-sandybridge.dll": "f38da45535732dba8d6262ecc1be8be648b43427c796b56ecee2b638ae132c4d",
+        "ggml-cpu-sapphirerapids.dll": "330aa4c74518acc1050c8bd38829500007c42eceef04cddf92d65f3dee2b99cd",
+        "ggml-cpu-skylakex.dll": "e640410f1a95f97692944007d4ad06462385d39c91583adbf42413ca1c173fa2",
+        "ggml-cpu-sse42.dll": "5b773b832b282b0478586a0668c7e1b3267c0640292aaf69073d9ed170c39038",
+        "ggml-cpu-x64.dll": "1288f93b5fed4d6ea45e4db074acf387e6a5916494d5bfe14449faf7c746ba5d",
+        "ggml-cpu-zen4.dll": "15cfe061f7bf8cf4b75f52643dc400c64d41213f8496a4a757675236a13e89ee",
+        "ggml-vulkan.dll": "48f4f36281dc784fb504d0b491a928954e58235694d821a2879ef8e33a511a47",
+        "ggml.dll": "f180845535ee13fc098849f3407e7f6efefb695bd09d006617c44f82fab2db8c",
+        "libomp.dll": "a12116ba72d1d6820407cf30be23da04ce79d6bb8a71a5ee71759c5a1faa6f1c",
+        "llama-common.dll": "f18cd0d92f234f09498e45f62d7d6e8fff6b2a53e69be8157c9e7f929219a676",
+        "llama-server-impl.dll": "c07338a64136b7748a3ea681d2764e3c1475283d2c05f1cb66e2ee9bed3d2d2f",
+        "llama-server.exe": "d9e6c5678a62da1d757f3773e822d439b6935ffac0386cc33aefa30b79da4848",
+        "llama.dll": "9906d6e64aa5e9ca29ff0d0c6fc0f265ffce7e1cde8f47e1eba6060936cbd77e",
+        "msvcp140.dll": "0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9",
+        "msvcp140_1.dll": "bfad5aef4c63a669e3c140655cdfdf395b6c979b400a447bd5dcb65ed8826c3d",
+        "msvcp140_2.dll": "3ea06f0ee098b4823cb79599df3780e7f23cce52c19aac31d2a0d47efe33a5e9",
+        "msvcp140_atomic_wait.dll": "640b2aefced484d0368eea5bdd06addd0658a3a70a49256e560d6923b404a479",
+        "msvcp140_codecvt_ids.dll": "f2069a52880ec885ee7f0511186100eb7fada0411a2b4948fafea7735b878a18",
+        "mtmd.dll": "4605f11a529ac86eb6bdead7e2d6873129101fce5690c6f019131b6ce68054b0",
+        "vcruntime140.dll": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066",
+        "vcruntime140_1.dll": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"
+      },
+      "candidate": {
+        "concrt140.dll": "2405355f0a58067b258f8df33c327e3a3d716eaac5a3a5aebb757842d85bd376",
+        "ggml-base.dll": "910e7b39eb64b64b387e0508f0481987f27410503668065785b4a1fe0fd1cac8",
+        "ggml-cpu-alderlake.dll": "a5dd8f508fd8c1cc4f912f3d61c3c8544a23e4c0428a9c5b6d12ef9330022009",
+        "ggml-cpu-cannonlake.dll": "1bb121751722fb7aad079595e2ceea6edf82ce3ff1d41d5a6dda85441109173e",
+        "ggml-cpu-cascadelake.dll": "b90309553cd479a876ad60b6598e00e78e418380e89703409c1d91b51263c0b8",
+        "ggml-cpu-cooperlake.dll": "10939aa1a2b7a9c5548e40679bdb9829e618ba562639e56436abb0c9b177260a",
+        "ggml-cpu-haswell.dll": "4b05b494b6afb27550d4fe1a52adcfc90712992e958b7909351deb0bbf35a6c8",
+        "ggml-cpu-icelake.dll": "76902a357f74400af95f9a99b007d78a90fdd037b6c92e6fd163adebd902afd4",
+        "ggml-cpu-ivybridge.dll": "78072c987b886c43f321a93be701c78ae5635632a24b8bcc22bfe0120e5578b3",
+        "ggml-cpu-piledriver.dll": "6275ae738c6faa87dd856bb78c4c01800ee2f3220161803cdae6f05188e8cf59",
+        "ggml-cpu-sandybridge.dll": "f38da45535732dba8d6262ecc1be8be648b43427c796b56ecee2b638ae132c4d",
+        "ggml-cpu-sapphirerapids.dll": "330aa4c74518acc1050c8bd38829500007c42eceef04cddf92d65f3dee2b99cd",
+        "ggml-cpu-skylakex.dll": "e640410f1a95f97692944007d4ad06462385d39c91583adbf42413ca1c173fa2",
+        "ggml-cpu-sse42.dll": "5b773b832b282b0478586a0668c7e1b3267c0640292aaf69073d9ed170c39038",
+        "ggml-cpu-x64.dll": "1288f93b5fed4d6ea45e4db074acf387e6a5916494d5bfe14449faf7c746ba5d",
+        "ggml-cpu-zen4.dll": "15cfe061f7bf8cf4b75f52643dc400c64d41213f8496a4a757675236a13e89ee",
+        "ggml-vulkan.dll": "48f4f36281dc784fb504d0b491a928954e58235694d821a2879ef8e33a511a47",
+        "ggml.dll": "f180845535ee13fc098849f3407e7f6efefb695bd09d006617c44f82fab2db8c",
+        "libomp.dll": "a12116ba72d1d6820407cf30be23da04ce79d6bb8a71a5ee71759c5a1faa6f1c",
+        "llama-common.dll": "f18cd0d92f234f09498e45f62d7d6e8fff6b2a53e69be8157c9e7f929219a676",
+        "llama-server-impl.dll": "c07338a64136b7748a3ea681d2764e3c1475283d2c05f1cb66e2ee9bed3d2d2f",
+        "llama-server.exe": "d9e6c5678a62da1d757f3773e822d439b6935ffac0386cc33aefa30b79da4848",
+        "llama.dll": "ff18324893377c0297db34cee36b2429a0da27cefeafcab314c72dcb0733200f",
+        "msvcp140.dll": "0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9",
+        "msvcp140_1.dll": "bfad5aef4c63a669e3c140655cdfdf395b6c979b400a447bd5dcb65ed8826c3d",
+        "msvcp140_2.dll": "3ea06f0ee098b4823cb79599df3780e7f23cce52c19aac31d2a0d47efe33a5e9",
+        "msvcp140_atomic_wait.dll": "640b2aefced484d0368eea5bdd06addd0658a3a70a49256e560d6923b404a479",
+        "msvcp140_codecvt_ids.dll": "f2069a52880ec885ee7f0511186100eb7fada0411a2b4948fafea7735b878a18",
+        "mtmd.dll": "4605f11a529ac86eb6bdead7e2d6873129101fce5690c6f019131b6ce68054b0",
+        "vcruntime140.dll": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066",
+        "vcruntime140_1.dll": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"
+      }
+    },
+    "stock_core_sha256": "5987a7ff433f4eb97137c6386c8e11f282054988f6f9af84aa35398d81a98fac",
+    "only_changed_runtime_binary": "llama.dll"
+  },
+  "admission_protocol": {
+    "candidate": "Existing Windows mapped-file working-set patch applied to the bundled stock b11829 Vulkan fallback core",
+    "upstream_commit": "184f6536024668e8908ab8c86033d56708e62b40",
+    "reference": "Unpatched core rebuilt with identical MSVC Release configuration; all other runtime binaries byte-identical",
+    "product_control": "Actual shipped 1.2 stock Vulkan core",
+    "primary_model": "Qwen3.5-9B-Q4_K_M.gguf",
+    "model_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+    "context": 32768,
+    "cache_k": "f16",
+    "cache_v": "f16",
+    "threads": 8,
+    "batch": 512,
+    "ubatch": 512,
+    "formal_order": [
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline",
+      "baseline",
+      "candidate",
+      "candidate",
+      "baseline"
+    ],
+    "warmup_per_process": true,
+    "workloads": [
+      "short",
+      "long",
+      "cached"
+    ],
+    "admission": {
+      "independent_process_pairs": 6,
+      "minimum_median_working_set_reduction_percent": 20,
+      "maximum_median_regression_percent": 5,
+      "exact_generated_tokens_and_request_work": true,
+      "equal_native_mapped_virtual_bytes": true,
+      "native_page_measurement_outside_timed_requests": true,
+      "api_screen_no_loss_relative_to_control": true,
+      "native_mapped_page_tests_pass": true,
+      "partial_offload_cpu_and_lock_controls": true
+    },
+    "scope": "Windows resident RAM on the Vulkan fallback. No claim of lower private commit, lower VRAM, faster generation, or measured AMD/Apple coverage. No context, quantization, precision or output-budget reduction.",
+    "environment": "Plugged-in laptop, user applications left open. Record thermal/utilization observations. Do not compile concurrently with formal timings."
+  },
+  "initial_sparse_block": {
+    "workloads": {
+      "cached": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 0.42001269251392986,
+            "wall_ratio": 0.4257111456658345,
+            "ttft_ratio": 0.6824818040123161
+          },
+          {
+            "decode_ratio": 0.9656563804703969,
+            "wall_ratio": 0.9669544692446288,
+            "ttft_ratio": 1.010214801445351
+          },
+          {
+            "decode_ratio": 1.0161844098933892,
+            "wall_ratio": 1.0137940697827021,
+            "ttft_ratio": 0.9252006580434363
+          },
+          {
+            "decode_ratio": 1.0198491399590728,
+            "wall_ratio": 1.0209763264006917,
+            "ttft_ratio": 0.8841807653932137
+          },
+          {
+            "decode_ratio": 2.328549545889282,
+            "wall_ratio": 2.3012515471392834,
+            "ttft_ratio": 1.4782839823505918
+          },
+          {
+            "decode_ratio": 0.9961844241588772,
+            "wall_ratio": 0.9937011754630095,
+            "ttft_ratio": 0.8716449857457598
+          }
+        ],
+        "median_decode_gain_percent": 0.6184417026133149,
+        "paired_bootstrap_95_percent": [
+          -35.14447871107376,
+          52.11047555999957
+        ],
+        "median_wall_gain_percent": 0.3747622622855884,
+        "median_ttft_gain_percent": -9.530928828167507
+      },
+      "long": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 0.4707712352008045,
+            "wall_ratio": 0.8329423618198324,
+            "ttft_ratio": 0.9717122410777361
+          },
+          {
+            "decode_ratio": 0.9954315747952841,
+            "wall_ratio": 1.0221414219468274,
+            "ttft_ratio": 1.03190400046214
+          },
+          {
+            "decode_ratio": 1.0147628629398058,
+            "wall_ratio": 1.0184208592425779,
+            "ttft_ratio": 1.0198559023084914
+          },
+          {
+            "decode_ratio": 1.0994859576384068,
+            "wall_ratio": 1.0317028488946998,
+            "ttft_ratio": 1.0099446764303683
+          },
+          {
+            "decode_ratio": 2.358355530198475,
+            "wall_ratio": 1.7411483959394782,
+            "ttft_ratio": 1.5878855331526467
+          },
+          {
+            "decode_ratio": 0.9785955679306707,
+            "wall_ratio": 1.0002151764850629,
+            "ttft_ratio": 1.0077887117468594
+          }
+        ],
+        "median_decode_gain_percent": 0.5097218867544884,
+        "paired_bootstrap_95_percent": [
+          -30.400351745588583,
+          54.20367675779647
+        ],
+        "median_wall_gain_percent": 2.0281140594702762,
+        "median_ttft_gain_percent": 1.4900289369429887
+      },
+      "short": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 1.0094679542130067,
+            "wall_ratio": 1.0084887658646202,
+            "ttft_ratio": 0.9861999128694013
+          },
+          {
+            "decode_ratio": 1.0448482276703481,
+            "wall_ratio": 1.014180015625882,
+            "ttft_ratio": 0.6156275840784237
+          },
+          {
+            "decode_ratio": 0.9955711348808649,
+            "wall_ratio": 0.9982105714358186,
+            "ttft_ratio": 1.0521346383267207
+          },
+          {
+            "decode_ratio": 1.0001671817529776,
+            "wall_ratio": 1.0018070152098666,
+            "ttft_ratio": 1.0397901838567007
+          },
+          {
+            "decode_ratio": 1.0447157544639711,
+            "wall_ratio": 1.0467095394376462,
+            "ttft_ratio": 1.0879026983597384
+          },
+          {
+            "decode_ratio": 0.9706675551577971,
+            "wall_ratio": 0.971924997023932,
+            "ttft_ratio": 0.990666561187872
+          }
+        ],
+        "median_decode_gain_percent": 0.4817567982992266,
+        "paired_bootstrap_95_percent": [
+          -0.9756973393105883,
+          3.2015095744860167
+        ],
+        "median_wall_gain_percent": 0.5147890537243516,
+        "median_ttft_gain_percent": 1.522837252228637
+      }
+    },
+    "performance_gate_passed": false,
+    "sufficient_process_pairs": true,
+    "matched_tokens_and_requests": true,
+    "no_observed_median_regression_over_5_percent": false,
+    "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+    "memory": {
+      "median_process_working_set_reduction_percent": 94.22502388310238,
+      "process_pair_reduction_percent": [
+        94.20606896802127,
+        94.22692980174119,
+        94.22699469563632,
+        94.22311796446357,
+        94.2376942608388,
+        94.22208289129841
+      ],
+      "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+      "memory_gate_passed": false
+    }
+  },
+  "followup_protocol": {
+    "reason": "Initial six-pair gate failed cached client first-text ratio by 9.53%, despite 94.23% lower working set and matched work. Native prompt timings and client overhead differ; Godot activity changed during the block. No causal mapping bug established.",
+    "hypotheses": [
+      "Unused pages are actually needed later and refaulting increases cached latency",
+      "Single cached observations per process are dominated by GPU scheduling, thermals or stream-delivery noise",
+      "A repeatable core regression exists despite unchanged arithmetic"
+    ],
+    "new_block": "Exactly six additional alternating process pairs, same binaries, model, 32768 context, f16 K/V, device, batch sizes and output budget. One short and one long request plus five cached repetitions per process, each 128 output tokens.",
+    "analysis": "Retain every initial sample. Combine all twelve independent process pairs; average repeated requests within a process pair using the existing analyzer. Apply unchanged >=20% memory and <=5% observed median timing regression thresholds. Publish initial failed gate and combined result together. No additional measurement block is authorized by this protocol if the combined gate fails.",
+    "additional_diagnostic": "Add a native mapped-file residency snapshot after all workloads in each process, outside timed requests, to test whether full-GPU model pages refault. This does not change the timed request path. Do not infer a root cause from timing alone.",
+    "admission": "Only if combined memory/timing gate, startup check, matched tokens, all prior correctness/ABI/compatibility controls, package validation and CI pass. No speed gain claimed."
+  },
+  "followup_block": {
+    "workloads": {
+      "cached": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 0.9834543867304553,
+            "wall_ratio": 0.9822258271182913,
+            "ttft_ratio": 0.920659482241588
+          },
+          {
+            "decode_ratio": 0.9912793361275873,
+            "wall_ratio": 0.9883425237353871,
+            "ttft_ratio": 0.9131946116544605
+          },
+          {
+            "decode_ratio": 1.002239675861469,
+            "wall_ratio": 1.0053075983649808,
+            "ttft_ratio": 1.1100510904236334
+          },
+          {
+            "decode_ratio": 0.9997587426667581,
+            "wall_ratio": 1.004655697489483,
+            "ttft_ratio": 1.1925108525614845
+          },
+          {
+            "decode_ratio": 1.0141745966759814,
+            "wall_ratio": 1.0179342361852506,
+            "ttft_ratio": 1.2122060654943332
+          },
+          {
+            "decode_ratio": 0.99826311370716,
+            "wall_ratio": 0.9991540431379607,
+            "ttft_ratio": 1.057574094828482
+          }
+        ],
+        "median_decode_gain_percent": -0.09890718130409759,
+        "paired_bootstrap_95_percent": [
+          -0.9424489898821498,
+          0.5786742375841536
+        ],
+        "median_wall_gain_percent": 0.19048703137218848,
+        "median_ttft_gain_percent": 8.381259262605756
+      },
+      "long": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 1.000624051490575,
+            "wall_ratio": 0.9960028599454047,
+            "ttft_ratio": 0.9945012399433735
+          },
+          {
+            "decode_ratio": 1.027894101858153,
+            "wall_ratio": 1.0084019072280326,
+            "ttft_ratio": 1.0012304523704696
+          },
+          {
+            "decode_ratio": 0.9824863696120761,
+            "wall_ratio": 1.0785245290119916,
+            "ttft_ratio": 1.1126147688497527
+          },
+          {
+            "decode_ratio": 0.9949850059473616,
+            "wall_ratio": 1.0077604552893644,
+            "ttft_ratio": 1.0122042516925889
+          },
+          {
+            "decode_ratio": 1.1189277592981786,
+            "wall_ratio": 1.0663487876061566,
+            "ttft_ratio": 1.0512207539518896
+          },
+          {
+            "decode_ratio": 0.9927530919311953,
+            "wall_ratio": 0.9963741079117007,
+            "ttft_ratio": 0.9973352184197192
+          }
+        ],
+        "median_decode_gain_percent": -0.21954712810317023,
+        "paired_bootstrap_95_percent": [
+          -0.863620475781024,
+          6.047894556643985
+        ],
+        "median_wall_gain_percent": 0.80811812586985,
+        "median_ttft_gain_percent": 0.6717352031529344
+      },
+      "short": {
+        "independent_process_pairs": 6,
+        "pairs": [
+          {
+            "decode_ratio": 0.9839602717050061,
+            "wall_ratio": 0.9843467836279949,
+            "ttft_ratio": 0.967508225588688
+          },
+          {
+            "decode_ratio": 0.9824627016321821,
+            "wall_ratio": 0.9776897157329509,
+            "ttft_ratio": 0.8784539851661475
+          },
+          {
+            "decode_ratio": 0.9478816347074659,
+            "wall_ratio": 0.9380625477621515,
+            "ttft_ratio": 0.7726549406978408
+          },
+          {
+            "decode_ratio": 1.001632686890787,
+            "wall_ratio": 1.0066541976278036,
+            "ttft_ratio": 1.1255838000862655
+          },
+          {
+            "decode_ratio": 1.171668678486683,
+            "wall_ratio": 1.192076227733006,
+            "ttft_ratio": 1.5913578138031064
+          },
+          {
+            "decode_ratio": 0.9899624342599549,
+            "wall_ratio": 0.9908941796495001,
+            "ttft_ratio": 1.0151191914568267
+          }
+        ],
+        "median_decode_gain_percent": -1.3038647017519445,
+        "paired_bootstrap_95_percent": [
+          -3.064184789864599,
+          7.663732240149468
+        ],
+        "median_wall_gain_percent": -1.2379518361252506,
+        "median_ttft_gain_percent": -0.8686291477242647
+      }
+    },
+    "performance_gate_passed": false,
+    "sufficient_process_pairs": true,
+    "matched_tokens_and_requests": true,
+    "no_observed_median_regression_over_5_percent": true,
+    "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+    "memory": {
+      "median_process_working_set_reduction_percent": 94.12552135692084,
+      "process_pair_reduction_percent": [
+        94.13335168654132,
+        94.12706552189408,
+        94.12710993999369,
+        94.12010263786576,
+        94.1239771919476,
+        94.1140166770662
+      ],
+      "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+      "memory_gate_passed": true
+    }
+  },
+  "post_workload_native_memory": [
+    {
+      "phase": 0,
+      "variant": "baseline",
+      "rss_bytes": 5781000192,
+      "private_bytes": 7578443776,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 1,
+      "variant": "candidate",
+      "rss_bytes": 683061248,
+      "private_bytes": 7577288704,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 2,
+      "variant": "candidate",
+      "rss_bytes": 684109824,
+      "private_bytes": 7579570176,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 3,
+      "variant": "baseline",
+      "rss_bytes": 5781442560,
+      "private_bytes": 7576489984,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 4,
+      "variant": "baseline",
+      "rss_bytes": 5780799488,
+      "private_bytes": 7577341952,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 5,
+      "variant": "candidate",
+      "rss_bytes": 684675072,
+      "private_bytes": 7579201536,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 6,
+      "variant": "candidate",
+      "rss_bytes": 683368448,
+      "private_bytes": 7577427968,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 7,
+      "variant": "baseline",
+      "rss_bytes": 5780070400,
+      "private_bytes": 7577673728,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 8,
+      "variant": "baseline",
+      "rss_bytes": 5782605824,
+      "private_bytes": 7579013120,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 9,
+      "variant": "candidate",
+      "rss_bytes": 684122112,
+      "private_bytes": 7578746880,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 10,
+      "variant": "candidate",
+      "rss_bytes": 684511232,
+      "private_bytes": 7577047040,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 516096,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    },
+    {
+      "phase": 11,
+      "variant": "baseline",
+      "rss_bytes": 5780045824,
+      "private_bytes": 7576772608,
+      "file_virtual_bytes": 5680525312,
+      "file_resident_bytes": 5097938944,
+      "file_locked_bytes": 0,
+      "file_regions": 1,
+      "page_bytes": 4096,
+      "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits"
+    }
+  ],
+  "post_workload_memory_medians": {
+    "baseline": {
+      "rss_bytes": 5780899840.0,
+      "private_bytes": 7577507840.0,
+      "file_virtual_bytes": 5680525312.0,
+      "file_resident_bytes": 5097938944.0
+    },
+    "candidate": {
+      "rss_bytes": 684115968.0,
+      "private_bytes": 7578087424.0,
+      "file_virtual_bytes": 5680525312.0,
+      "file_resident_bytes": 516096.0
+    }
+  },
+  "post_workload_median_pair_reduction_percent": 88.16822705012106,
+  "formal": {
+    "workloads": {
+      "cached": {
+        "independent_process_pairs": 12,
+        "pairs": [
+          {
+            "decode_ratio": 0.42001269251392986,
+            "wall_ratio": 0.4257111456658345,
+            "ttft_ratio": 0.6824818040123161
+          },
+          {
+            "decode_ratio": 0.9656563804703969,
+            "wall_ratio": 0.9669544692446288,
+            "ttft_ratio": 1.010214801445351
+          },
+          {
+            "decode_ratio": 1.0161844098933892,
+            "wall_ratio": 1.0137940697827021,
+            "ttft_ratio": 0.9252006580434363
+          },
+          {
+            "decode_ratio": 1.0198491399590728,
+            "wall_ratio": 1.0209763264006917,
+            "ttft_ratio": 0.8841807653932137
+          },
+          {
+            "decode_ratio": 2.328549545889282,
+            "wall_ratio": 2.3012515471392834,
+            "ttft_ratio": 1.4782839823505918
+          },
+          {
+            "decode_ratio": 0.9961844241588772,
+            "wall_ratio": 0.9937011754630095,
+            "ttft_ratio": 0.8716449857457598
+          },
+          {
+            "decode_ratio": 0.9834543867304553,
+            "wall_ratio": 0.9822258271182913,
+            "ttft_ratio": 0.920659482241588
+          },
+          {
+            "decode_ratio": 0.9912793361275873,
+            "wall_ratio": 0.9883425237353871,
+            "ttft_ratio": 0.9131946116544605
+          },
+          {
+            "decode_ratio": 1.002239675861469,
+            "wall_ratio": 1.0053075983649808,
+            "ttft_ratio": 1.1100510904236334
+          },
+          {
+            "decode_ratio": 0.9997587426667581,
+            "wall_ratio": 1.004655697489483,
+            "ttft_ratio": 1.1925108525614845
+          },
+          {
+            "decode_ratio": 1.0141745966759814,
+            "wall_ratio": 1.0179342361852506,
+            "ttft_ratio": 1.2122060654943332
+          },
+          {
+            "decode_ratio": 0.99826311370716,
+            "wall_ratio": 0.9991540431379607,
+            "ttft_ratio": 1.057574094828482
+          }
+        ],
+        "median_decode_gain_percent": -0.09890718130409759,
+        "paired_bootstrap_95_percent": [
+          -19.450727835597615,
+          23.278184000892367
+        ],
+        "median_wall_gain_percent": 0.19048703137218848,
+        "median_ttft_gain_percent": -3.2292270255606326
+      },
+      "long": {
+        "independent_process_pairs": 12,
+        "pairs": [
+          {
+            "decode_ratio": 0.4707712352008045,
+            "wall_ratio": 0.8329423618198324,
+            "ttft_ratio": 0.9717122410777361
+          },
+          {
+            "decode_ratio": 0.9954315747952841,
+            "wall_ratio": 1.0221414219468274,
+            "ttft_ratio": 1.03190400046214
+          },
+          {
+            "decode_ratio": 1.0147628629398058,
+            "wall_ratio": 1.0184208592425779,
+            "ttft_ratio": 1.0198559023084914
+          },
+          {
+            "decode_ratio": 1.0994859576384068,
+            "wall_ratio": 1.0317028488946998,
+            "ttft_ratio": 1.0099446764303683
+          },
+          {
+            "decode_ratio": 2.358355530198475,
+            "wall_ratio": 1.7411483959394782,
+            "ttft_ratio": 1.5878855331526467
+          },
+          {
+            "decode_ratio": 0.9785955679306707,
+            "wall_ratio": 1.0002151764850629,
+            "ttft_ratio": 1.0077887117468594
+          },
+          {
+            "decode_ratio": 1.000624051490575,
+            "wall_ratio": 0.9960028599454047,
+            "ttft_ratio": 0.9945012399433735
+          },
+          {
+            "decode_ratio": 1.027894101858153,
+            "wall_ratio": 1.0084019072280326,
+            "ttft_ratio": 1.0012304523704696
+          },
+          {
+            "decode_ratio": 0.9824863696120761,
+            "wall_ratio": 1.0785245290119916,
+            "ttft_ratio": 1.1126147688497527
+          },
+          {
+            "decode_ratio": 0.9949850059473616,
+            "wall_ratio": 1.0077604552893644,
+            "ttft_ratio": 1.0122042516925889
+          },
+          {
+            "decode_ratio": 1.1189277592981786,
+            "wall_ratio": 1.0663487876061566,
+            "ttft_ratio": 1.0512207539518896
+          },
+          {
+            "decode_ratio": 0.9927530919311953,
+            "wall_ratio": 0.9963741079117007,
+            "ttft_ratio": 0.9973352184197192
+          }
+        ],
+        "median_decode_gain_percent": -0.1972186857070346,
+        "paired_bootstrap_95_percent": [
+          -15.741749977155228,
+          25.377478222942962
+        ],
+        "median_wall_gain_percent": 1.341138323530533,
+        "median_ttft_gain_percent": 1.1074464061478606
+      },
+      "short": {
+        "independent_process_pairs": 12,
+        "pairs": [
+          {
+            "decode_ratio": 1.0094679542130067,
+            "wall_ratio": 1.0084887658646202,
+            "ttft_ratio": 0.9861999128694013
+          },
+          {
+            "decode_ratio": 1.0448482276703481,
+            "wall_ratio": 1.014180015625882,
+            "ttft_ratio": 0.6156275840784237
+          },
+          {
+            "decode_ratio": 0.9955711348808649,
+            "wall_ratio": 0.9982105714358186,
+            "ttft_ratio": 1.0521346383267207
+          },
+          {
+            "decode_ratio": 1.0001671817529776,
+            "wall_ratio": 1.0018070152098666,
+            "ttft_ratio": 1.0397901838567007
+          },
+          {
+            "decode_ratio": 1.0447157544639711,
+            "wall_ratio": 1.0467095394376462,
+            "ttft_ratio": 1.0879026983597384
+          },
+          {
+            "decode_ratio": 0.9706675551577971,
+            "wall_ratio": 0.971924997023932,
+            "ttft_ratio": 0.990666561187872
+          },
+          {
+            "decode_ratio": 0.9839602717050061,
+            "wall_ratio": 0.9843467836279949,
+            "ttft_ratio": 0.967508225588688
+          },
+          {
+            "decode_ratio": 0.9824627016321821,
+            "wall_ratio": 0.9776897157329509,
+            "ttft_ratio": 0.8784539851661475
+          },
+          {
+            "decode_ratio": 0.9478816347074659,
+            "wall_ratio": 0.9380625477621515,
+            "ttft_ratio": 0.7726549406978408
+          },
+          {
+            "decode_ratio": 1.001632686890787,
+            "wall_ratio": 1.0066541976278036,
+            "ttft_ratio": 1.1255838000862655
+          },
+          {
+            "decode_ratio": 1.171668678486683,
+            "wall_ratio": 1.192076227733006,
+            "ttft_ratio": 1.5913578138031064
+          },
+          {
+            "decode_ratio": 0.9899624342599549,
+            "wall_ratio": 0.9908941796495001,
+            "ttft_ratio": 1.0151191914568267
+          }
+        ],
+        "median_decode_gain_percent": -0.21308416830787547,
+        "paired_bootstrap_95_percent": [
+          -1.4725224501095924,
+          4.455990270922161
+        ],
+        "median_wall_gain_percent": 0.0008793322842537421,
+        "median_ttft_gain_percent": 0.2892876322349469
+      }
+    },
+    "performance_gate_passed": false,
+    "sufficient_process_pairs": true,
+    "matched_tokens_and_requests": true,
+    "no_observed_median_regression_over_5_percent": true,
+    "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+    "memory": {
+      "median_process_working_set_reduction_percent": 94.1697103272813,
+      "process_pair_reduction_percent": [
+        94.20606896802127,
+        94.22692980174119,
+        94.22699469563632,
+        94.22311796446357,
+        94.2376942608388,
+        94.22208289129841,
+        94.13335168654132,
+        94.12706552189408,
+        94.12710993999369,
+        94.12010263786576,
+        94.1239771919476,
+        94.1140166770662
+      ],
+      "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+      "memory_gate_passed": true
+    }
+  },
+  "ready_memory_medians": {
+    "baseline": {
+      "rss_bytes": 5415686144.0,
+      "private_bytes": 7181082624.0,
+      "file_virtual_bytes": 5680525312.0,
+      "file_resident_bytes": 5097455616.0
+    },
+    "candidate": {
+      "rss_bytes": 315729920.0,
+      "private_bytes": 7179028480.0,
+      "file_virtual_bytes": 5680525312.0,
+      "file_resident_bytes": 32768.0
+    }
+  },
+  "startup": [
+    {
+      "phase": 0,
+      "variant": "baseline",
+      "seconds": 7.8846375000000535
+    },
+    {
+      "phase": 1,
+      "variant": "candidate",
+      "seconds": 10.971147599999995
+    },
+    {
+      "phase": 2,
+      "variant": "candidate",
+      "seconds": 12.12795519999986
+    },
+    {
+      "phase": 3,
+      "variant": "baseline",
+      "seconds": 10.192461200000025
+    },
+    {
+      "phase": 4,
+      "variant": "baseline",
+      "seconds": 10.18566369999985
+    },
+    {
+      "phase": 5,
+      "variant": "candidate",
+      "seconds": 13.472600499999999
+    },
+    {
+      "phase": 6,
+      "variant": "candidate",
+      "seconds": 13.35524260000011
+    },
+    {
+      "phase": 7,
+      "variant": "baseline",
+      "seconds": 11.447691500000019
+    },
+    {
+      "phase": 8,
+      "variant": "baseline",
+      "seconds": 9.247002099999918
+    },
+    {
+      "phase": 9,
+      "variant": "candidate",
+      "seconds": 9.995427800000016
+    },
+    {
+      "phase": 10,
+      "variant": "candidate",
+      "seconds": 9.412710099999913
+    },
+    {
+      "phase": 11,
+      "variant": "baseline",
+      "seconds": 12.75228049999987
+    },
+    {
+      "phase": 12,
+      "variant": "baseline",
+      "seconds": 5.762745800000175
+    },
+    {
+      "phase": 13,
+      "variant": "candidate",
+      "seconds": 5.879686100000072
+    },
+    {
+      "phase": 14,
+      "variant": "candidate",
+      "seconds": 6.095588500000304
+    },
+    {
+      "phase": 15,
+      "variant": "baseline",
+      "seconds": 5.681335700000091
+    },
+    {
+      "phase": 16,
+      "variant": "baseline",
+      "seconds": 6.308578299999681
+    },
+    {
+      "phase": 17,
+      "variant": "candidate",
+      "seconds": 6.407117700000072
+    },
+    {
+      "phase": 18,
+      "variant": "candidate",
+      "seconds": 6.506912600000305
+    },
+    {
+      "phase": 19,
+      "variant": "baseline",
+      "seconds": 6.946641600000021
+    },
+    {
+      "phase": 20,
+      "variant": "baseline",
+      "seconds": 7.655452499999683
+    },
+    {
+      "phase": 21,
+      "variant": "candidate",
+      "seconds": 6.151298600000246
+    },
+    {
+      "phase": 22,
+      "variant": "candidate",
+      "seconds": 6.969436500000029
+    },
+    {
+      "phase": 23,
+      "variant": "baseline",
+      "seconds": 4.91371909999998
+    }
+  ],
+  "median_startup_gain_percent": -7.141812415066107,
+  "startup_guard_passed": false,
+  "user_accepted_startup_tradeoff": true,
+  "release_decision": {
+    "date": "2026-10-24",
+    "user_choice": "Accept the startup cost for the RAM saving",
+    "startup_guard_overridden": true
+  },
+  "release_gate_passed": false,
+  "release_eligible": true,
+  "direct_trim_diagnostic": {
+    "file_bytes": 5680522464,
+    "trials": [
+      {
+        "trim_ms": 602.172,
+        "rss_before": 5685665792,
+        "rss_after": 5152768,
+        "page_samples_exact": true
+      },
+      {
+        "trim_ms": 1452.96,
+        "rss_before": 5685739520,
+        "rss_after": 5218304,
+        "page_samples_exact": true
+      },
+      {
+        "trim_ms": 1015.13,
+        "rss_before": 5685739520,
+        "rss_after": 5218304,
+        "page_samples_exact": true
+      }
+    ],
+    "scope": "Actual patched mmap class on the full installed read-only GGUF mapping, without GPU upload or active tensor spans. Diagnostic only, not server startup admission."
+  },
+  "application_transport_checks": {
+    "candidate": {
+      "runtime": "new candidate Vulkan with current unchanged application, NVIDIA adapter only for this child",
+      "agent_exit": 0,
+      "actual_stdout_323_in_spooled_log": true,
+      "command_logs_utf8": true,
+      "elapsed_s": 38.79699999999957,
+      "context": 32768,
+      "max_reply_tokens": 4096,
+      "reasoning": false,
+      "cache_k": "f16",
+      "cache_v": "f16",
+      "fixture": "Explicit run_command request in a Unicode working folder, native execution and subsequent model-history replay",
+      "source_files_unchanged": true,
+      "verification_line": "verification             failing"
+    },
+    "reference": {
+      "runtime": "unpatched reference Vulkan with current unchanged application, NVIDIA adapter only for this child",
+      "agent_exit": 0,
+      "actual_stdout_323_in_spooled_log": true,
+      "command_logs_utf8": true,
+      "elapsed_s": 34.82899999999972,
+      "context": 32768,
+      "max_reply_tokens": 4096,
+      "reasoning": false,
+      "cache_k": "f16",
+      "cache_v": "f16",
+      "fixture": "Explicit run_command request in a Unicode working folder, native execution and subsequent model-history replay",
+      "source_files_unchanged": true,
+      "verification_line": "verification             failing"
+    },
+    "scope": "Both execute the real Python command, spool stdout 323, replay Unicode history and return a model answer. Both task-verification summaries are failing; these are transport checks, not fully verified agent-task successes."
+  },
+  "startup_medians_seconds": {
+    "baseline": 7.770044999999868,
+    "candidate": 8.191073299999971
+  },
+  "shipped_control": {
+    "workloads": {
+      "cached": {
+        "independent_process_pairs": 2,
+        "pairs": [
+          {
+            "decode_ratio": 0.9549163754161455,
+            "wall_ratio": 0.9568419539825753,
+            "ttft_ratio": 1.0221337505826675
+          },
+          {
+            "decode_ratio": 1.0014380983171773,
+            "wall_ratio": 1.0095760467641641,
+            "ttft_ratio": 1.3350529813772976
+          }
+        ],
+        "median_decode_gain_percent": -2.182276313333853,
+        "paired_bootstrap_95_percent": [
+          -4.5083624583854505,
+          0.14380983171773387
+        ],
+        "median_wall_gain_percent": -1.679099962663022,
+        "median_ttft_gain_percent": 17.859336597998254
+      },
+      "long": {
+        "independent_process_pairs": 2,
+        "pairs": [
+          {
+            "decode_ratio": 0.9878124778787909,
+            "wall_ratio": 0.9991646651680143,
+            "ttft_ratio": 1.0035814261053366
+          },
+          {
+            "decode_ratio": 0.990107099529075,
+            "wall_ratio": 0.9979863372929872,
+            "ttft_ratio": 1.0006763016493332
+          }
+        ],
+        "median_decode_gain_percent": -1.1040211296067026,
+        "paired_bootstrap_95_percent": [
+          -1.2187522121209104,
+          -0.9892900470924948
+        ],
+        "median_wall_gain_percent": -0.14244987694992384,
+        "median_ttft_gain_percent": 0.21288638773349078
+      },
+      "short": {
+        "independent_process_pairs": 2,
+        "pairs": [
+          {
+            "decode_ratio": 1.0188429441150615,
+            "wall_ratio": 1.0201755024195354,
+            "ttft_ratio": 1.0288815242920666
+          },
+          {
+            "decode_ratio": 0.969135906596638,
+            "wall_ratio": 0.972083496960447,
+            "ttft_ratio": 1.0132723781385882
+          }
+        ],
+        "median_decode_gain_percent": -0.6010574644150335,
+        "paired_bootstrap_95_percent": [
+          -3.0864093403362047,
+          1.8842944115061488
+        ],
+        "median_wall_gain_percent": -0.38705003100087954,
+        "median_ttft_gain_percent": 2.1076951215327266
+      }
+    },
+    "performance_gate_passed": false,
+    "sufficient_process_pairs": false,
+    "matched_tokens_and_requests": true,
+    "no_observed_median_regression_over_5_percent": true,
+    "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+    "memory": {
+      "median_process_working_set_reduction_percent": 94.1235891496366,
+      "process_pair_reduction_percent": [
+        94.12624810892586,
+        94.12093019034732
+      ],
+      "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+      "memory_gate_passed": false
+    }
+  },
+  "near_context": {
+    "workloads": {
+      "cached": {
+        "independent_process_pairs": 1,
+        "pairs": [
+          {
+            "decode_ratio": 1.007981260269741,
+            "wall_ratio": 1.0004370085051804,
+            "ttft_ratio": 0.7561495013665538
+          }
+        ],
+        "median_decode_gain_percent": 0.7981260269741108,
+        "paired_bootstrap_95_percent": [
+          0.7981260269741108,
+          0.7981260269741108
+        ],
+        "median_wall_gain_percent": 0.04370085051803585,
+        "median_ttft_gain_percent": -24.38504986334462
+      },
+      "long": {
+        "independent_process_pairs": 1,
+        "pairs": [
+          {
+            "decode_ratio": 0.9973935773573526,
+            "wall_ratio": 1.002278364501915,
+            "ttft_ratio": 1.0032988203014106
+          }
+        ],
+        "median_decode_gain_percent": -0.26064226426474324,
+        "paired_bootstrap_95_percent": [
+          -0.26064226426474324,
+          -0.26064226426474324
+        ],
+        "median_wall_gain_percent": 0.22783645019150978,
+        "median_ttft_gain_percent": 0.3298820301410599
+      }
+    },
+    "performance_gate_passed": false,
+    "sufficient_process_pairs": false,
+    "matched_tokens_and_requests": true,
+    "no_observed_median_regression_over_5_percent": false,
+    "limits": "Process-pair bootstrap on this machine and observed load only. Backend/API correctness and hardware coverage remain separate gates.",
+    "memory": {
+      "median_process_working_set_reduction_percent": 94.12331960325469,
+      "process_pair_reduction_percent": [
+        94.12331960325469
+      ],
+      "gate": "At least 20% working-set reduction, six process pairs, exact work, and no observed median timing regression over 5%; no speed gain required.",
+      "memory_gate_passed": false
+    }
+  },
+  "largest_prompt_tokens": 31325,
+  "api": {
+    "shipped-vulkan": {
+      "passed": 15,
+      "total": 15,
+      "checks": [
+        {
+          "name": "unicode-token-roundtrip",
+          "passed": true,
+          "detail": {
+            "tokens": 22
+          }
+        },
+        {
+          "name": "multiply",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 323
+            },
+            "expected": 323
+          }
+        },
+        {
+          "name": "subtract",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 327
+            },
+            "expected": 327
+          }
+        },
+        {
+          "name": "negative",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": -5
+            },
+            "expected": -5
+          }
+        },
+        {
+          "name": "precedence",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 23
+            },
+            "expected": 23
+          }
+        },
+        {
+          "name": "integer-division",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 7
+            },
+            "expected": 7
+          }
+        },
+        {
+          "name": "modulo",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 1
+            },
+            "expected": 1
+          }
+        },
+        {
+          "name": "array-sum",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 20
+            },
+            "expected": 20
+          }
+        },
+        {
+          "name": "length",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 9
+            },
+            "expected": 9
+          }
+        },
+        {
+          "name": "code-add",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a + b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-subtract",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a - b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-weighted",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return 3 * a + 5 * b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "native-tool-arguments",
+          "passed": true,
+          "detail": {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "sum_ints",
+                  "arguments": "{\"a\":17,\"b\":19}"
+                },
+                "id": "Sb6GzlcgUL35P4Y346Csx6GuWbJaTHUA"
+              }
+            ]
+          }
+        },
+        {
+          "name": "complete-sse-token-accounting",
+          "passed": true,
+          "detail": {
+            "tokens": 32,
+            "ttft_s": 0.24593959999992876
+          }
+        },
+        {
+          "name": "healthy-after-requests",
+          "passed": true,
+          "detail": {}
+        }
+      ],
+      "scope": "Synthetic API/answer regression screen; no universal model-quality claim."
+    },
+    "reference": {
+      "passed": 15,
+      "total": 15,
+      "checks": [
+        {
+          "name": "unicode-token-roundtrip",
+          "passed": true,
+          "detail": {
+            "tokens": 22
+          }
+        },
+        {
+          "name": "multiply",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 323
+            },
+            "expected": 323
+          }
+        },
+        {
+          "name": "subtract",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 327
+            },
+            "expected": 327
+          }
+        },
+        {
+          "name": "negative",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": -5
+            },
+            "expected": -5
+          }
+        },
+        {
+          "name": "precedence",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 23
+            },
+            "expected": 23
+          }
+        },
+        {
+          "name": "integer-division",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 7
+            },
+            "expected": 7
+          }
+        },
+        {
+          "name": "modulo",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 1
+            },
+            "expected": 1
+          }
+        },
+        {
+          "name": "array-sum",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 20
+            },
+            "expected": 20
+          }
+        },
+        {
+          "name": "length",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 9
+            },
+            "expected": 9
+          }
+        },
+        {
+          "name": "code-add",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a + b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-subtract",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a - b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-weighted",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return 3 * a + 5 * b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "native-tool-arguments",
+          "passed": true,
+          "detail": {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "sum_ints",
+                  "arguments": "{\"a\":17,\"b\":19}"
+                },
+                "id": "Ps28RIUoqC8meWXzKwOrkCyhS9PLJNE6"
+              }
+            ]
+          }
+        },
+        {
+          "name": "complete-sse-token-accounting",
+          "passed": true,
+          "detail": {
+            "tokens": 32,
+            "ttft_s": 0.401792099999966
+          }
+        },
+        {
+          "name": "healthy-after-requests",
+          "passed": true,
+          "detail": {}
+        }
+      ],
+      "scope": "Synthetic API/answer regression screen; no universal model-quality claim."
+    },
+    "candidate": {
+      "passed": 15,
+      "total": 15,
+      "checks": [
+        {
+          "name": "unicode-token-roundtrip",
+          "passed": true,
+          "detail": {
+            "tokens": 22
+          }
+        },
+        {
+          "name": "multiply",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 323
+            },
+            "expected": 323
+          }
+        },
+        {
+          "name": "subtract",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 327
+            },
+            "expected": 327
+          }
+        },
+        {
+          "name": "negative",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": -5
+            },
+            "expected": -5
+          }
+        },
+        {
+          "name": "precedence",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 23
+            },
+            "expected": 23
+          }
+        },
+        {
+          "name": "integer-division",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 7
+            },
+            "expected": 7
+          }
+        },
+        {
+          "name": "modulo",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 1
+            },
+            "expected": 1
+          }
+        },
+        {
+          "name": "array-sum",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 20
+            },
+            "expected": 20
+          }
+        },
+        {
+          "name": "length",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 9
+            },
+            "expected": 9
+          }
+        },
+        {
+          "name": "code-add",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a + b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-subtract",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a - b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-weighted",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return 3 * a + 5 * b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "native-tool-arguments",
+          "passed": true,
+          "detail": {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "sum_ints",
+                  "arguments": "{\"a\":17,\"b\":19}"
+                },
+                "id": "kxOqSpkdyf4Qh1vzRrtOlzbEC4Vb2wkb"
+              }
+            ]
+          }
+        },
+        {
+          "name": "complete-sse-token-accounting",
+          "passed": true,
+          "detail": {
+            "tokens": 32,
+            "ttft_s": 0.3845323999998982
+          }
+        },
+        {
+          "name": "healthy-after-requests",
+          "passed": true,
+          "detail": {}
+        }
+      ],
+      "scope": "Synthetic API/answer regression screen; no universal model-quality claim."
+    }
+  },
+  "native_mapped_pages": {
+    "page_bytes": 4096,
+    "file_bytes": 16777253,
+    "metadata_fuzz_cases": 20000,
+    "grouped_metadata_cases": 5000,
+    "trials": [
+      {
+        "case": 0,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 1,
+        "protected_pages": 4097,
+        "protected_valid": 4097,
+        "unused_pages": 0,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 2,
+        "protected_pages": 536,
+        "protected_valid": 536,
+        "unused_pages": 3561,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 3,
+        "protected_pages": 5,
+        "protected_valid": 5,
+        "unused_pages": 4092,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 4,
+        "protected_pages": 2,
+        "protected_valid": 2,
+        "unused_pages": 4095,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 5,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 6,
+        "protected_pages": 4,
+        "protected_valid": 4,
+        "unused_pages": 4093,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 7,
+        "protected_pages": 1,
+        "protected_valid": 1,
+        "unused_pages": 4096,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      },
+      {
+        "case": 8,
+        "protected_pages": 4097,
+        "protected_valid": 4097,
+        "unused_pages": 0,
+        "unused_valid": 0,
+        "all_bytes_exact": true
+      }
+    ],
+    "actual_locked_pages_preserved": 5,
+    "normal_warnings": 0,
+    "status": "passed"
+  },
+  "abi": {
+    "passed": true,
+    "named_exports_identical": true,
+    "exports_per_core": 283
+  },
+  "compatibility": {
+    "passed": 5,
+    "total": 5,
+    "checks": [
+      {
+        "name": "cpu",
+        "device": "none",
+        "gpu_layers": 0,
+        "load_mode": "mmap",
+        "model_sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+        "context": 32768,
+        "cache_k": "f16",
+        "cache_v": "f16",
+        "passed": true,
+        "variants": [
+          {
+            "variant": "reference",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 521560064,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1335947264
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 521560064,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1410105344
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          },
+          {
+            "variant": "candidate",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 353091584,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1167052800
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 353091584,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1240997888
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          }
+        ]
+      },
+      {
+        "name": "partial-9b",
+        "device": "Vulkan1",
+        "gpu_layers": 20,
+        "load_mode": "mmap",
+        "model_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+        "context": 32768,
+        "cache_k": "f16",
+        "cache_v": "f16",
+        "passed": true,
+        "variants": [
+          {
+            "variant": "reference",
+            "before": {
+              "file_virtual_bytes": 5680525312,
+              "file_resident_bytes": 5097455616,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 5871276032
+            },
+            "after": {
+              "file_virtual_bytes": 5680525312,
+              "file_resident_bytes": 5097545728,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 6053101568
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              31192,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              29283,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              21078
+            ],
+            "content": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          },
+          {
+            "variant": "candidate",
+            "before": {
+              "file_virtual_bytes": 5680525312,
+              "file_resident_bytes": 1742290944,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 2484187136
+            },
+            "after": {
+              "file_virtual_bytes": 5680525312,
+              "file_resident_bytes": 1742381056,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 2658455552
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              31192,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              29283,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              21078
+            ],
+            "content": " a + b\n\ndef subtract(a, b):\n    return a - b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          }
+        ]
+      },
+      {
+        "name": "locked",
+        "device": "Vulkan1",
+        "gpu_layers": 999,
+        "load_mode": "mmap+mlock",
+        "model_sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+        "context": 32768,
+        "cache_k": "f16",
+        "cache_v": "f16",
+        "passed": true,
+        "variants": [
+          {
+            "variant": "reference",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 532520960,
+              "file_locked_bytes": 219557888,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 813076480
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 532520960,
+              "file_locked_bytes": 219557888,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 892043264
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          },
+          {
+            "variant": "candidate",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 532520960,
+              "file_locked_bytes": 219557888,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 813551616
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 532520960,
+              "file_locked_bytes": 219557888,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 892420096
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          }
+        ]
+      },
+      {
+        "name": "no-mmap",
+        "device": "Vulkan1",
+        "gpu_layers": 999,
+        "load_mode": "none",
+        "model_sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+        "context": 32768,
+        "cache_k": "f16",
+        "cache_v": "f16",
+        "passed": true,
+        "variants": [
+          {
+            "variant": "reference",
+            "before": {
+              "file_virtual_bytes": 0,
+              "file_resident_bytes": 0,
+              "file_locked_bytes": 0,
+              "file_regions": 0,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 498753536
+            },
+            "after": {
+              "file_virtual_bytes": 0,
+              "file_resident_bytes": 0,
+              "file_locked_bytes": 0,
+              "file_regions": 0,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 577556480
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          },
+          {
+            "variant": "candidate",
+            "before": {
+              "file_virtual_bytes": 0,
+              "file_resident_bytes": 0,
+              "file_locked_bytes": 0,
+              "file_regions": 0,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 498503680
+            },
+            "after": {
+              "file_virtual_bytes": 0,
+              "file_resident_bytes": 0,
+              "file_locked_bytes": 0,
+              "file_regions": 0,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 577372160
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          }
+        ]
+      },
+      {
+        "name": "intel-integrated",
+        "device": "Vulkan0",
+        "gpu_layers": 999,
+        "load_mode": "mmap",
+        "model_sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+        "context": 32768,
+        "cache_k": "f16",
+        "cache_v": "f16",
+        "passed": true,
+        "variants": [
+          {
+            "variant": "reference",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 521560064,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1827020800
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 521560064,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1925603328
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          },
+          {
+            "variant": "candidate",
+            "before": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 208596992,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1495695360
+            },
+            "after": {
+              "file_virtual_bytes": 532520960,
+              "file_resident_bytes": 208596992,
+              "file_locked_bytes": 0,
+              "file_regions": 1,
+              "page_bytes": 4096,
+              "method": "VirtualQueryEx RegionSize + QueryWorkingSetEx Valid/Locked bits",
+              "rss_bytes": 1572896768
+            },
+            "tokens": [
+              264,
+              478,
+              292,
+              271,
+              727,
+              1146,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              471,
+              292,
+              271,
+              727,
+              15144,
+              2784,
+              11,
+              292,
+              1590,
+              198,
+              262,
+              460,
+              264,
+              348,
+              292,
+              271,
+              727,
+              3319
+            ],
+            "content": " a + b\n\ndef sub(a, b):\n    return a - b\n\ndef mul(a, b):\n    return a * b\n\ndef div",
+            "request_sha256": "d2c9b741d8a82d737779b828646ce8f2fc8cdcf87cb1b81ff4a8c60718611368",
+            "prompt_n": 9,
+            "healthy": true
+          }
+        ]
+      }
+    ]
+  },
+  "telemetry": {
+    "max_gpu_temperature_c": 88.0,
+    "software_thermal_slowdown_observed": true,
+    "median_host_cpu_percent": 29.5,
+    "background_activity": "Godot and Blender were open; a native GPU-engine sample observed Godot at about 31% while the owned server was active. Applications and power settings were left unchanged. Timings describe the observed loaded laptop, not idle hardware."
+  },
+  "speed_gain_claimed": false,
+  "scope": "Windows resident process working set after model loading on measured Vulkan adapters. Private commit and VRAM are not reduced by this patch. No AMD/Apple or universal throughput claim. Integrated Intel, CPU, no-mmap and lock checks are compatibility controls, not performance admissions."
+}

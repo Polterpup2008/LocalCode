@@ -9,6 +9,7 @@ install(FILES "${CMAKE_SOURCE_DIR}/LICENSE" "${CMAKE_SOURCE_DIR}/docs/THIRD_PART
 install(FILES "${CMAKE_SOURCE_DIR}/docs/RAM_RUNTIME.md" DESTINATION share/localcode)
 install(FILES "${CMAKE_SOURCE_DIR}/docs/GETTING_STARTED.md"
               "${CMAKE_SOURCE_DIR}/docs/RELEASE_NOTES_1.2.md"
+              "${CMAKE_SOURCE_DIR}/docs/RELEASE_NOTES_1.2.1.md"
               "${CMAKE_SOURCE_DIR}/docs/KNOWN_LIMITATIONS_1.2.md"
               "${CMAKE_SOURCE_DIR}/docs/RELEASE_NOTES_1.1.md"
               "${CMAKE_SOURCE_DIR}/docs/KNOWN_LIMITATIONS_1.1.md"

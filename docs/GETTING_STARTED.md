@@ -1,4 +1,4 @@
-# LocalCode 1.1 for Windows — Getting started
+# LocalCode for Windows — Getting started
 
 The Windows x64 package is unsigned. See the distribution's release status
 and validation notes for the checks performed on that package.

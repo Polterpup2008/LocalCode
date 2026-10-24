@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(LocalCode
-    VERSION 1.2.0
+    VERSION 1.2.1
     DESCRIPTION "Native C++ local coding agent for GGUF models (llama.cpp / ik_llama.cpp)"
     HOMEPAGE_URL "https://github.com/Polterpup2008/LocalCode"
     LANGUAGES C CXX)

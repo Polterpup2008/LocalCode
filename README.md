@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.2.0"><img src="https://img.shields.io/badge/release-1.2-d97757?style=flat-square" alt="Release 1.2"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.2.1"><img src="https://img.shields.io/badge/release-1.2.1-d97757?style=flat-square" alt="Release 1.2.1"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.0/LocalCode-1.2.0-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.1/LocalCode-1.2.1-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.0/LocalCode-1.2.0-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.1/LocalCode-1.2.1-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -29,6 +29,8 @@ task, follow the tools it uses, and inspect the evidence behind its answer.
 The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
+
+**New in 1.2.1:** lower resident RAM for the bundled Vulkan alternative, with the same model, context and precision. [See the measured scope](docs/RELEASE_NOTES_1.2.1.md).
 
 **New in 1.2:** incomplete tool calls no longer poison retries or saved chats.
 Rejected batches run no tools, recovery is bounded, and Models exposes a separate
@@ -108,7 +110,9 @@ memory fell from **5.27 GiB to 0.52 GiB**, retaining the same 32K context, f16 c
 and output tokens. No decode speed gain is claimed. See the
 [benchmark results and limits](docs/benchmarks/2026-10-23-runtime.md).
 
-Version 1.1 also includes a matching **Vulkan alternative**. It probes actual
+The bundle also includes a matching **Vulkan alternative**. Version 1.2.1 extends
+the Windows memory optimization to it; see the
+[Vulkan results](docs/benchmarks/2026-10-24-vulkan-memory.md). It probes actual
 devices before selecting a compatible backend and reports the model's actual
 GPU layer count after loading. A detected GPU alone is never shown as proof of
 GPU inference. New low-memory profiles have conservative context recommendations;

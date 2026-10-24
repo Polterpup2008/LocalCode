@@ -1,5 +1,12 @@
 # LocalCode runtime optimization and compatibility
 
+LocalCode 1.2.1 qualifies the existing Windows working-set patch for the bundled
+Vulkan alternative. [Memory results, replication, correctness controls and
+limitations](../../docs/benchmarks/2026-10-24-vulkan-memory.md) describe the admitted
+scope and accepted startup cost. Pass `--device` to the benchmark or qualification
+CLI when selecting a specific Vulkan adapter. `--measure-residency` also records
+a post-workload snapshot outside timed requests. No generation speed gain is claimed.
+
 LocalCode 1.2 fixes incomplete native-tool batches and replay of malformed calls
 saved by older versions. The additional Vulkan pipeline-cache experiment failed
 its preset performance gate and is **not enabled or shipped as a binary**.
@@ -24,7 +31,8 @@ LocalCode 1.1 reduces unnecessary agent prompt work across inference backends.
 Its Windows bundle also includes a Vulkan alternative, probes actual available
 devices, fits GPU placement while retaining context and precision, and reports
 the runtime's real layer counts. The primary runtime retains the qualified
-Windows working-set patch; the Vulkan alternative uses the matching stock core.
+Windows working-set patch. The Vulkan alternative originally used the matching
+stock core; 1.2.1 extends the qualified patch to that alternative.
 See the [1.1 measurements and hardware coverage](../../docs/benchmarks/2026-10-23-low-end.md).
 
 `benchmark_agent_prompt.py` compares the actual greeting requests made by two

@@ -209,6 +209,7 @@ def main():
     parser.add_argument('--order', default='baseline,candidate,candidate,baseline')
     parser.add_argument('--context', type=int, default=32768)
     parser.add_argument('--gpu-layers', type=int, default=999)
+    parser.add_argument('--device', help='Explicit llama.cpp device, for example Vulkan0 or Vulkan1')
     parser.add_argument('--threads', type=int, default=8)
     parser.add_argument('--repetitions', type=int, default=3)
     parser.add_argument('--cached-repetitions', type=int,
@@ -219,7 +220,7 @@ def main():
                         default=['short', 'long', 'cached'])
     parser.add_argument('--load-mode', choices=('mmap', 'mmap+mlock', 'none'), default='mmap')
     parser.add_argument('--measure-residency', action='store_true',
-                        help='Record native Windows mapped-file pages outside timed requests')
+                        help='Record native Windows mapped-file pages before and after workloads, outside timed requests')
     args = parser.parse_args()
     if args.cached_repetitions is None:
         args.cached_repetitions = args.repetitions
@@ -237,6 +238,8 @@ def main():
                 'startup_timeout_s': 150, 'request_timeout_s': 240,
                 'load_mode': args.load_mode,
                 'model_sha256': digest(args.model), 'model_bytes': args.model.stat().st_size}
+    if args.device:
+        contract['device'] = args.device
     manifest = {'contract': contract, 'model': str(args.model), 'order': order,
                 'repetitions': args.repetitions, 'cached_repetitions': args.cached_repetitions,
                 'long_items': args.long_items,
@@ -247,6 +250,7 @@ def main():
     write_json(args.output / 'manifest.json', manifest)
     rows = []
     memory_rows = []
+    memory_after_rows = []
     # Source-like, deterministic public synthetic data. Each numbered value matters.
     source = '\n'.join(f'def item_{i:04d}(x): return x + {i}' for i in range(args.long_items))
     prompts = {'short': 'Complete this Python function.\ndef add(a, b):\n    return',
@@ -279,6 +283,12 @@ def main():
                              'repetition': repetition, 'wall_s': row['wall_s'], 'ttft_s': row['ttft_s'],
                              'timings': row['response'].get('timings'), 'tokens': row['response'].get('tokens'),
                              'content': row['response'].get('content'), 'request_sha256': row['request_sha256']})
+            if args.measure_residency:
+                memory = psutil.Process(server.process.pid).memory_info()
+                memory_after_rows.append({'phase': phase, 'variant': name, 'rss_bytes': memory.rss,
+                                          'private_bytes': memory.private,
+                                          **mapped_file_residency(server.process.pid, args.model)})
+                write_json(args.output / 'memory_after.json', memory_after_rows)
         write_json(args.output / 'results.json', rows)
     summary = {}
     for name in dict.fromkeys(order):
