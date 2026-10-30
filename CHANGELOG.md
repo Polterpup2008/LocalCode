@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.2 — 30 October 2026
+
+- Add PrismML llama.cpp and Bonsai 2 PTQ1_0/PQ2_0 support alongside upstream, ik_llama.cpp, and the included LocalCode runtime.
+- Download checksum-verified PrismML runtimes and official Bonsai GGUFs from model setup. Preserve each model's runtime selection and other runtime preferences.
+- Include the Bonsai setup guide and a matched 27B versus MiMo 9B benchmark.
+
 ## [1.0.0-rc.3](https://github.com/Polterpup2008/LocalCode/releases/tag/v1.0.0-rc.3) — 22 October 2026
 
 - **Optional Discord integration:** the Windows installer's **Choose Components**

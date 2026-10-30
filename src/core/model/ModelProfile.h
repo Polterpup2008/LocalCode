@@ -27,7 +27,7 @@
 
 namespace localcode {
 
-enum class BackendPreference { Auto, LlamaCpp, IkLlama };
+enum class BackendPreference { Auto, LlamaCpp, IkLlama, PrismLlama, LocalCode };
 enum class WeightRepacking { RuntimeDefault, Enabled, Disabled, Invalid };
 enum class CpuPlacement { System, PhysicalCores, PhysicalPool, Invalid };
 std::string_view to_string(CpuPlacement placement) noexcept;

@@ -274,13 +274,14 @@ Status Application::load_settings() {
     loaded.use_bundled_llama = repo.get_bool(
         "backend.bundled_llama", loaded.use_bundled_llama && loaded.llama_server_path.empty());
     loaded.ik_llama_server_path = repo.get("backend.ik_llama_server").value_or("");
+    loaded.prism_llama_server_path = repo.get("backend.prism_llama_server").value_or("");
 #if defined(_WIN32)
     // Earlier versions persisted native narrow paths with the system code page.
     // Preserve those paths when upgrading an existing Windows installation.
     try {
-        for (auto* value :
-             {&loaded.data_directory, &loaded.cache_directory, &loaded.runtime_directory,
-              &loaded.llama_server_path, &loaded.ik_llama_server_path}) {
+        for (auto* value : {&loaded.data_directory, &loaded.cache_directory,
+                            &loaded.runtime_directory, &loaded.llama_server_path,
+                            &loaded.ik_llama_server_path, &loaded.prism_llama_server_path}) {
             if (!strings::is_valid_utf8(*value))
                 *value = path_to_utf8(std::filesystem::path(*value));
         }
@@ -320,10 +321,11 @@ Status Application::load_settings() {
 Status Application::apply_settings(const AppSettings& settings) {
     // Decode paths before persistence, so malformed UTF-8 cannot leave saved
     // settings ahead of the native backend configuration.
-    std::filesystem::path runtime_directory, llama_binary, ik_binary;
+    std::filesystem::path runtime_directory, llama_binary, ik_binary, prism_binary;
     try {
-        for (const auto* value : {&settings.runtime_directory, &settings.llama_server_path,
-                                  &settings.ik_llama_server_path}) {
+        for (const auto* value :
+             {&settings.runtime_directory, &settings.llama_server_path,
+              &settings.ik_llama_server_path, &settings.prism_llama_server_path}) {
             if (!strings::is_valid_utf8(*value))
                 return make_error(ErrorCode::InvalidArgument,
                                   "Settings paths must be valid UTF-8.");
@@ -331,6 +333,7 @@ Status Application::apply_settings(const AppSettings& settings) {
         runtime_directory = path_from_utf8(settings.runtime_directory);
         llama_binary = path_from_utf8(settings.llama_server_path);
         ik_binary = path_from_utf8(settings.ik_llama_server_path);
+        prism_binary = path_from_utf8(settings.prism_llama_server_path);
     } catch (const std::filesystem::filesystem_error& e) {
         return make_error(ErrorCode::InvalidArgument, "Cannot decode settings paths.", e.what());
     }
@@ -345,6 +348,7 @@ Status Application::apply_settings(const AppSettings& settings) {
             {"backend.llama_server", settings.llama_server_path},
             {"backend.bundled_llama", boolean(settings.use_bundled_llama)},
             {"backend.ik_llama_server", settings.ik_llama_server_path},
+            {"backend.prism_llama_server", settings.prism_llama_server_path},
             {"backend.default", std::string(to_string(settings.default_backend))},
             {"backend.external_enabled", boolean(settings.use_external_server)},
             {"backend.external_url", settings.external_server_url},
@@ -381,15 +385,14 @@ Status Application::apply_settings(const AppSettings& settings) {
         backends_->set_use_bundled_llama(settings.use_bundled_llama);
         backends_->set_configured_binary(BackendPreference::LlamaCpp, llama_binary);
         backends_->set_configured_binary(BackendPreference::IkLlama, ik_binary);
+        backends_->set_configured_binary(BackendPreference::PrismLlama, prism_binary);
         backends_->set_default_preference(settings.default_backend);
 
         ExternalEndpoint external;
         external.enabled = settings.use_external_server;
         external.base_url = settings.external_server_url;
         external.api_key = settings.external_server_api_key;
-        external.kind = settings.default_backend == BackendPreference::IkLlama
-                            ? BackendPreference::IkLlama
-                            : BackendPreference::LlamaCpp;
+        external.kind = settings.default_backend;
         backends_->set_external_endpoint(external);
     }
 

@@ -172,22 +172,40 @@ Result<QList<RuntimePackage>> ResourceInstaller::runtimes(const QString& tag,
     return runtimesForRelease(tag, cancel, true);
 }
 
-Result<QList<RuntimePackage>> ResourceInstaller::runtimesForRelease(
-    const QString& tag, CancellationToken cancel, bool followBuildReference) const {
+Result<QList<RuntimePackage>> ResourceInstaller::runtimes(const QString& tag,
+                                                          const QString& provider,
+                                                          CancellationToken cancel) const {
+    if (provider != "upstream" && provider != "prism")
+        return make_error(
+            ErrorCode::NotSupported,
+            "Use the included LocalCode runtime or select an existing ik_llama.cpp build.");
+    return runtimesForRelease(tag, cancel, provider == "upstream", provider);
+}
+
+Result<QList<RuntimePackage>> ResourceInstaller::runtimesForRelease(const QString& requestedTag,
+                                                                    CancellationToken cancel,
+                                                                    bool followBuildReference,
+                                                                    const QString& provider) const {
+    const auto repo =
+        provider == "prism" ? QString("PrismML-Eng/llama.cpp") : QString("ggml-org/llama.cpp");
+    const auto tag = requestedTag;
     if (cancel.cancelled()) return make_error(ErrorCode::Cancelled, "Download lookup cancelled.");
     if (!matches(tag, "^[A-Za-z0-9_.-]{1,64}$"))
         return make_error(ErrorCode::InvalidArgument,
                           "Enter a llama.cpp release tag, such as b10655 or v0.6.0.");
-    const auto body = metadata(
-        "https://api.github.com/repos/ggml-org/llama.cpp/releases/tags/" + component(tag), cancel);
+    const auto body = metadata("https://api.github.com/repos/" + repo + "/releases/" +
+                                   (tag == "latest" ? QString("latest") : "tags/" + component(tag)),
+                               cancel);
     if (!body) return body.error();
     const auto document = QJsonDocument::fromJson(*body);
     const auto object = document.object();
-    if (!document.isObject() || object.value("tag_name").toString() != tag)
+    const auto resolvedTag = object.value("tag_name").toString();
+    if (!document.isObject() || !matches(resolvedTag, "^[A-Za-z0-9_.-]{1,64}$") ||
+        (tag != "latest" && resolvedTag != tag))
         return make_error(ErrorCode::ParseError,
                           "The release metadata does not match the requested build.");
     QList<ResourceAsset> assets;
-    const auto prefix = "https://github.com/ggml-org/llama.cpp/releases/download/" + tag + '/';
+    const auto prefix = "https://github.com/" + repo + "/releases/download/" + resolvedTag + '/';
     for (const auto& value : object.value("assets").toArray()) {
         const auto row = value.toObject();
         const auto name = row.value("name").toString();
@@ -199,16 +217,17 @@ Result<QList<RuntimePackage>> ResourceInstaller::runtimesForRelease(
             url != prefix + name)
             continue;
         assets.append({name, url, hash.mid(7).toLower(),
-                       "https://github.com/ggml-org/llama.cpp/releases/tag/" + tag, tag,
+                       "https://github.com/" + repo + "/releases/tag/" + resolvedTag, resolvedTag,
                        "MIT; bundled dependency licenses", static_cast<quint64>(bytes)});
     }
     QList<RuntimePackage> packages;
     for (const auto& asset : assets) {
-        const auto match = QRegularExpression("^llama-" + QRegularExpression::escape(tag) +
+        const auto match = QRegularExpression("^llama-" + QRegularExpression::escape(resolvedTag) +
                                               "-bin-win-(cpu|vulkan|cuda-[0-9.]+)-x64\\.zip$")
                                .match(asset.name);
         if (!match.hasMatch()) continue;
-        RuntimePackage package{tag, match.captured(1), {asset}};
+        RuntimePackage package{resolvedTag, match.captured(1), {asset}};
+        package.provider = provider;
         if (package.flavour.startsWith("cuda-")) {
             const auto dependency = "cudart-llama-bin-win-" + package.flavour + "-x64.zip";
             const auto found = std::find_if(assets.begin(), assets.end(), [&](const auto& item) {
@@ -533,7 +552,8 @@ Result<QString> ResourceInstaller::installRuntime(const RuntimePackage& package,
     if (auto status = receipt(contents, package.assets); !status) return status.error();
     if (cancel.cancelled()) return make_error(ErrorCode::Cancelled, "Installation cancelled.");
     const auto destination =
-        QDir(root).filePath("llama-" + QUuid::createUuid().toString(QUuid::Id128));
+        QDir(root).filePath((package.provider == "prism" ? "prism-" : "llama-") +
+                            QUuid::createUuid().toString(QUuid::Id128));
     if (!QDir().rename(contents, destination))
         return make_error(ErrorCode::IoError, "Cannot publish the verified runtime.");
     return QDir(destination).filePath("llama-server.exe");

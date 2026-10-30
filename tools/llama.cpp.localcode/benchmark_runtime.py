@@ -167,10 +167,13 @@ class Server:
             if alive:
                 raise RuntimeError('Owned server processes did not stop')
 
-    def complete(self, name: str, prompt: str, *, cached=False, predict=128, stream=False):
+    def complete(self, name: str, prompt: str, *, cached=False, predict=128, stream=False,
+                 ignore_eos=False):
         payload = {'prompt': prompt, 'n_predict': predict, 'temperature': 0.0, 'seed': 42,
                    'top_k': 40, 'top_p': 0.95, 'min_p': 0.05, 'repeat_penalty': 1.05,
                    'cache_prompt': cached, 'return_tokens': True, 'stream': stream}
+        if ignore_eos:
+            payload['ignore_eos'] = True
         write_json(self.output / (name + '.request.json'), payload)
         start, first = time.perf_counter(), None
         if stream:

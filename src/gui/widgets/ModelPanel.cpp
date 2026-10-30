@@ -62,7 +62,9 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
     form->setRowWrapPolicy(QFormLayout::WrapLongRows);
 
     backend_ = new QComboBox(settings);
-    backend_->addItems({tr("Auto"), tr("llama.cpp"), tr("ik_llama.cpp")});
+    backend_->addItems({tr("Auto"), tr("llama.cpp (upstream)"), tr("ik_llama.cpp"),
+                        tr("PrismML (Bonsai 2)"), tr("LocalCode optimized (included)")});
+    backend_->setObjectName("ModelRuntimeBackend");
     backend_->setToolTip(
         tr("AUTO picks from the runtimes that are actually installed and "
            "explains its choice. Neither runtime is faster in general."));
@@ -147,6 +149,8 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
             profile->server_binary.empty()
                 ? QString::fromStdString(suggestedKind == BackendPreference::IkLlama
                                              ? application_.settings().ik_llama_server_path
+                                         : suggestedKind == BackendPreference::PrismLlama
+                                             ? application_.settings().prism_llama_server_path
                                              : application_.settings().llama_server_path)
                 : QString::fromStdString(path_to_utf8(profile->server_binary)),
             explicitLocalRuntime);
@@ -213,12 +217,22 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
         const auto runtimeSettings = application_.settings();
         const auto bundledRuntime =
             QString::fromStdString(path_to_utf8(AppPaths::bundled_llama_server()));
-        ResourceSetupDialog dialog({runtimeSettings.use_bundled_llama
-                                        ? bundledRuntime
-                                        : QString::fromStdString(runtimeSettings.llama_server_path),
-                                    model,
-                                    {}},
-                                   runtimeRoot, QDir(dataRoot).filePath("models"), this, {}, false);
+        auto kind = current ? current->backend : BackendPreference::Auto;
+        if (kind == BackendPreference::Auto) {
+            kind = runtimeSettings.default_backend;
+            if (kind == BackendPreference::LlamaCpp && runtimeSettings.use_bundled_llama)
+                kind = BackendPreference::LocalCode;
+        }
+        const auto server = current && !current->server_binary.empty()
+                                ? QString::fromStdString(path_to_utf8(current->server_binary))
+                            : kind == BackendPreference::LocalCode ? bundledRuntime
+                            : kind == BackendPreference::PrismLlama
+                                ? QString::fromStdString(runtimeSettings.prism_llama_server_path)
+                            : kind == BackendPreference::IkLlama
+                                ? QString::fromStdString(runtimeSettings.ik_llama_server_path)
+                                : QString::fromStdString(runtimeSettings.llama_server_path);
+        ResourceSetupDialog dialog({server, model, {}, false, kind}, runtimeRoot,
+                                   QDir(dataRoot).filePath("models"), this, {}, false);
         if (dialog.exec() != QDialog::Accepted) return;
         const auto selected = dialog.selection();
 #ifdef Q_OS_WIN
@@ -231,7 +245,10 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
             emit statusMessage(QString::fromStdString(imported.error().to_string()));
             return;
         }
-        imported->backend = BackendPreference::LlamaCpp;
+        imported->backend = selected.backend;
+        imported->server_binary = selected.backend == BackendPreference::LocalCode
+                                      ? std::filesystem::path{}
+                                      : path_from_utf8(selected.runtime.toStdString());
         if (selected.cpuStartingProfile) {
             imported->context_size = 4096;
             imported->gpu_layers = 0;
@@ -248,9 +265,16 @@ ModelPanel::ModelPanel(Application& application, QWidget* parent)
             return;
         }
         auto settings = application_.settings();
-        settings.use_bundled_llama = QFileInfo(selected.runtime) == QFileInfo(bundledRuntime);
-        if (!settings.use_bundled_llama)
+        if (selected.backend == BackendPreference::PrismLlama)
+            settings.prism_llama_server_path = selected.runtime.toStdString();
+        else if (selected.backend == BackendPreference::IkLlama)
+            settings.ik_llama_server_path = selected.runtime.toStdString();
+        else if (selected.backend == BackendPreference::LocalCode)
+            settings.use_bundled_llama = true;
+        else {
+            settings.use_bundled_llama = false;
             settings.llama_server_path = selected.runtime.toStdString();
+        }
         if (auto applied = application_.apply_settings(settings); !applied) {
             emit statusMessage(tr("Model imported; runtime settings could not be saved: %1")
                                    .arg(QString::fromStdString(applied.error().to_string())));
@@ -323,9 +347,7 @@ void ModelPanel::showSelected() {
     }
     load_->setEnabled(true);
 
-    backend_->setCurrentIndex(profile->backend == BackendPreference::LlamaCpp  ? 1
-                              : profile->backend == BackendPreference::IkLlama ? 2
-                                                                               : 0);
+    backend_->setCurrentIndex(static_cast<int>(profile->backend));
     context_->setValue(static_cast<int>(profile->context_size));
     replyTokens_->setValue(std::max(0, profile->sampling.max_tokens));
     gpuLayers_->setValue(profile->gpu_layers);
@@ -422,9 +444,9 @@ void ModelPanel::applyEdits() {
     auto profile = selectedProfile();
     if (!profile) return;
 
-    profile->backend = backend_->currentIndex() == 1   ? BackendPreference::LlamaCpp
-                       : backend_->currentIndex() == 2 ? BackendPreference::IkLlama
-                                                       : BackendPreference::Auto;
+    const auto chosenBackend = static_cast<BackendPreference>(backend_->currentIndex());
+    if (chosenBackend != profile->backend) profile->server_binary.clear();
+    profile->backend = chosenBackend;
     profile->context_size = static_cast<std::uint32_t>(context_->value());
     if (replyTokens_->value() != std::max(0, profile->sampling.max_tokens))
         profile->sampling.max_tokens = replyTokens_->value();

@@ -21,6 +21,7 @@
 #include <QTextDocument>
 #include <QTimer>
 #include <QtEndian>
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <map>
 #include <thread>
@@ -285,6 +286,125 @@ TEST_CASE("setup discovers immutable public metadata and complete CUDA dependenc
     CHECK(models->files.front().bytes == 2707514688ull);
     CHECK(models->files.front().url.contains("/resolve/" + QString(40, 'a') + "/model.gguf"));
     CHECK_FALSE(installer.models("https://elsewhere/repo"));
+}
+
+TEST_CASE("Prism latest resolves to its own verified release with matching CUDA libraries",
+          "[gui][setup][bonsai]") {
+    auto http = std::make_shared<SetupHttp>();
+    const QString tag = "prism-b10831-9d9efea";
+    const QString prefix =
+        "https://github.com/PrismML-Eng/llama.cpp/releases/download/" + tag + '/';
+    auto archive = remote(tag, "llama-" + tag + "-bin-win-cuda-12.4-x64.zip");
+    auto library = remote(tag, "cudart-llama-bin-win-cuda-12.4-x64.zip");
+    archive["browser_download_url"] = prefix + archive["name"].toString();
+    library["browser_download_url"] = prefix + library["name"].toString();
+    SECTION("provider release and dependency are paired") {
+        http->body =
+            QJsonDocument(QJsonObject{{"tag_name", tag}, {"assets", QJsonArray{archive, library}}})
+                .toJson();
+        const auto packages = ResourceInstaller(http).runtimes("latest", "prism");
+        REQUIRE(packages);
+        REQUIRE(packages->size() == 1);
+        CHECK(packages->front().provider == "prism");
+        CHECK(packages->front().tag == tag);
+        CHECK(packages->front().assets.size() == 2);
+        CHECK(http->lastUrl ==
+              "https://api.github.com/repos/PrismML-Eng/llama.cpp/releases/latest");
+    }
+    SECTION("an upstream dependency cannot satisfy a Prism package") {
+        library["browser_download_url"] =
+            "https://github.com/ggml-org/llama.cpp/releases/download/" + tag + '/' +
+            library["name"].toString();
+        http->body =
+            QJsonDocument(QJsonObject{{"tag_name", tag}, {"assets", QJsonArray{archive, library}}})
+                .toJson();
+        CHECK_FALSE(ResourceInstaller(http).runtimes("latest", "prism"));
+    }
+    SECTION("an explicit release mismatch is rejected") {
+        http->body =
+            QJsonDocument(QJsonObject{{"tag_name", tag}, {"assets", QJsonArray{archive, library}}})
+                .toJson();
+        CHECK_FALSE(ResourceInstaller(http).runtimes("another-tag", "prism"));
+    }
+}
+
+TEST_CASE("setup exposes all four runtimes and offers the compact Bonsai model",
+          "[gui][setup][bonsai][visual]") {
+    auto http = std::make_shared<SetupHttp>();
+    ResourceSetupDialog dialog({}, "unused-runtime-root", "unused-model-root", nullptr,
+                               std::make_shared<ResourceInstaller>(http));
+    auto* provider = dialog.findChild<QComboBox*>("SetupRuntimeProvider");
+    REQUIRE(provider);
+    REQUIRE(provider->count() == 4);
+    dialog.findChild<QLineEdit*>("SetupRuntime")->setText("previous-runtime.exe");
+    provider->setCurrentIndex(3);
+    CHECK(dialog.findChild<QLineEdit*>("SetupRuntime")->text().isEmpty());
+    CHECK(dialog.findChild<QLineEdit*>("SetupReleaseTag")->text() == "latest");
+    CHECK(dialog.findChild<QLineEdit*>("SetupRepository")->text() ==
+          "prism-ml/Ternary-Bonsai-2-27B-gguf");
+    CHECK(dialog.selection().backend == BackendPreference::PrismLlama);
+    QJsonArray files;
+    for (const auto* name : {"Ternary-Bonsai-2-27B-F16.gguf", "Ternary-Bonsai-2-27B-PTQ1_0.gguf"}) {
+        files.append(QJsonObject{
+            {"rfilename", name},
+            {"lfs", QJsonObject{{"sha256", QString(64, 'c')}, {"size", 5946648928ll}}}});
+    }
+    http->body = QJsonDocument(QJsonObject{{"id", "prism-ml/Ternary-Bonsai-2-27B-gguf"},
+                                           {"sha", QString(40, 'a')},
+                                           {"cardData", QJsonObject{{"license", "apache-2.0"}}},
+                                           {"siblings", files}})
+                     .toJson();
+    dialog.findChild<QPushButton*>("SetupFindModels")->click();
+    QElapsedTimer wait;
+    wait.start();
+    while (!dialog.findChild<QPushButton*>("SetupDownloadModel")->isEnabled() &&
+           wait.elapsed() < 5000) {
+        QApplication::processEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    CHECK(dialog.findChild<QComboBox*>("SetupModelFile")
+              ->currentText()
+              .startsWith("Ternary-Bonsai-2-27B-PTQ1_0.gguf"));
+    dialog.resize(660, 720);
+    dialog.show();
+    QApplication::processEvents();
+    const auto screenshot = qEnvironmentVariable("LOCALCODE_BONSAI_SCREENSHOT");
+    if (!screenshot.isEmpty()) REQUIRE(dialog.grab().save(screenshot));
+    provider->setCurrentIndex(2);
+    CHECK_FALSE(dialog.findChild<QPushButton*>("SetupFindRuntimes")->isEnabled());
+    CHECK(dialog.selection().backend == BackendPreference::IkLlama);
+    provider->setCurrentIndex(0);
+    CHECK(dialog.selection().backend == BackendPreference::LocalCode);
+    CHECK(dialog.findChild<QLineEdit*>("SetupRuntime")->text() ==
+          QString::fromStdString(path_to_utf8(AppPaths::bundled_llama_server())));
+}
+
+TEST_CASE("Prism runtime downloads and probes through the actual installer transport",
+          "[.][gui][setup][bonsai][network]") {
+    const auto root = qEnvironmentVariable("LOCALCODE_BONSAI_NATIVE_ROOT");
+    if (root.isEmpty()) SKIP("Set an isolated destination for the explicit Prism download.");
+    ResourceInstaller installer;
+    const auto packages = installer.runtimes("latest", "prism");
+    INFO((packages ? "" : packages.error().to_string()));
+    REQUIRE(packages);
+    const auto cpu = std::find_if(packages->begin(), packages->end(),
+                                  [](const auto& package) { return package.flavour == "cpu"; });
+    REQUIRE(cpu != packages->end());
+    quint64 received = 0;
+    const auto installed =
+        installer.installRuntime(*cpu, root, [&](quint64 now, quint64) { received = now; });
+    INFO((installed ? "" : installed.error().to_string()));
+    REQUIRE(installed);
+    CHECK(received == cpu->bytes());
+    CHECK(QFileInfo(*installed).dir().dirName().startsWith("prism-"));
+    CHECK(ModelServer::probe_binary(path_from_utf8(installed->toStdString())));
+    QFile report(QDir(root).filePath("acceptance.json"));
+    REQUIRE(report.open(QIODevice::WriteOnly));
+    REQUIRE(report.write(QJsonDocument(QJsonObject{{"runtime", *installed},
+                                                   {"tag", cpu->tag},
+                                                   {"bytes", static_cast<qint64>(received)},
+                                                   {"sha256", cpu->assets.front().sha256}})
+                             .toJson()) > 0);
 }
 
 TEST_CASE("verified GGUF publication supports Unicode and preserves provenance", "[gui][setup]") {
@@ -620,6 +740,7 @@ TEST_CASE("coding setup imports chosen files without loading a model",
     QTimer::singleShot(0, &panel, [&] {
         auto* dialog = qobject_cast<ResourceSetupDialog*>(QApplication::activeModalWidget());
         if (!dialog) return;
+        dialog->findChild<QComboBox*>("SetupRuntimeProvider")->setCurrentIndex(1);
         dialog->findChild<QLineEdit*>("SetupRuntime")->setText(runtime);
         dialog->findChild<QLineEdit*>("SetupModel")->setText(model);
         auto* cpu = dialog->findChild<QCheckBox*>("SetupCpuProfile");
@@ -641,6 +762,28 @@ TEST_CASE("coding setup imports chosen files without loading a model",
     CHECK(path_to_utf8(application.backends().configured_binary(BackendPreference::LlamaCpp)) ==
           runtime.toStdString());
     CHECK(path_to_utf8(profiles->front().model_path) == model.toStdString());
+    CHECK(path_to_utf8(profiles->front().server_binary) == runtime.toStdString());
+    auto prism = profiles->front();
+    prism.backend = BackendPreference::PrismLlama;
+    REQUIRE(application.save_model_profile(prism));
+    auto bundledSettings = application.settings();
+    bundledSettings.use_bundled_llama = true;
+    REQUIRE(application.apply_settings(bundledSettings));
+    panel.refresh();
+    bool reopened = false;
+    QTimer::singleShot(0, &panel, [&] {
+        auto* dialog = qobject_cast<ResourceSetupDialog*>(QApplication::activeModalWidget());
+        if (!dialog) return;
+        CHECK(dialog->findChild<QComboBox*>("SetupRuntimeProvider")->currentIndex() == 3);
+        CHECK(dialog->findChild<QLineEdit*>("SetupRuntime")->text() == runtime);
+        reopened = true;
+        QTimer::singleShot(15000, dialog, &QDialog::reject);
+        dialog->findChild<QPushButton*>("SetupUseFiles")->click();
+    });
+    setup->click();
+    CHECK(reopened);
+    CHECK(application.settings().use_bundled_llama);
+    CHECK(application.settings().prism_llama_server_path == runtime.toStdString());
     auto badSettings = application.settings();
     badSettings.llama_server_path = "bad-\xE9";
     CHECK_FALSE(application.apply_settings(badSettings));

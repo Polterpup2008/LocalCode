@@ -152,8 +152,21 @@ QWidget* SettingsDialog::buildBackendPage() {
     connect(browseIk, &QPushButton::clicked, this, &SettingsDialog::browseIkLlamaServer);
     form->addRow(tr("ik_llama server"), pathRow(ikLlamaServer_, browseIk, runtimes));
 
+    prismLlamaServer_ = new QLineEdit(runtimes);
+    prismLlamaServer_->setObjectName("PrismLlamaServerPath");
+    prismLlamaServer_->setPlaceholderText(tr("Found under prism-* in the runtime directory"));
+    auto* browsePrism = new QPushButton(tr("Browse..."), runtimes);
+    connect(browsePrism, &QPushButton::clicked, this, [this] {
+        const auto file =
+            QFileDialog::getOpenFileName(this, tr("Select the PrismML llama.cpp server"), QString(),
+                                         tr("Executables (*.exe);;All files (*)"));
+        if (!file.isEmpty()) prismLlamaServer_->setText(file);
+    });
+    form->addRow(tr("PrismML / Bonsai server"), pathRow(prismLlamaServer_, browsePrism, runtimes));
     defaultBackend_ = new QComboBox(runtimes);
-    defaultBackend_->addItems({tr("llama.cpp"), tr("ik_llama.cpp")});
+    defaultBackend_->setObjectName("DefaultRuntimeBackend");
+    defaultBackend_->addItems({tr("llama.cpp"), tr("ik_llama.cpp"), tr("PrismML (Bonsai 2)"),
+                               tr("LocalCode optimized (included)")});
     form->addRow(tr("AUTO prefers"), defaultBackend_);
     form->addRow(QString(),
                  hint(tr("Used only when both runtimes are installed and a model profile is set "
@@ -414,8 +427,12 @@ void SettingsDialog::load() {
     llamaSource_->setCurrentIndex(settings.use_bundled_llama ? 0 : 1);
     updateRuntimeChoice();
     ikLlamaServer_->setText(QString::fromStdString(settings.ik_llama_server_path));
-    defaultBackend_->setCurrentIndex(settings.default_backend == BackendPreference::IkLlama ? 1
-                                                                                            : 0);
+    prismLlamaServer_->setText(QString::fromStdString(settings.prism_llama_server_path));
+    defaultBackend_->setCurrentIndex(settings.default_backend == BackendPreference::IkLlama      ? 1
+                                     : settings.default_backend == BackendPreference::PrismLlama ? 2
+                                     : settings.default_backend == BackendPreference::LocalCode
+                                         ? 3
+                                         : 0);
     useExternal_->setChecked(settings.use_external_server);
     externalUrl_->setText(QString::fromStdString(settings.external_server_url));
     externalKey_->setText(QString::fromStdString(settings.external_server_api_key));
@@ -460,6 +477,7 @@ void SettingsDialog::detectRuntimes() {
     request.use_bundled_llama = llamaSource_->currentIndex() == 0;
     request.llama_binary = path_from_utf8(llamaServer_->text().toStdString());
     request.ik_llama_binary = path_from_utf8(ikLlamaServer_->text().toStdString());
+    request.prism_llama_binary = path_from_utf8(prismLlamaServer_->text().toStdString());
     request.runtime_root = path_from_utf8(runtimeDirectory_->text().toStdString());
     auto* watcher = new QFutureWatcher<std::vector<RuntimeInstall>>(this);
     runtimeScan_ = watcher;
@@ -525,8 +543,12 @@ void SettingsDialog::apply() {
     settings.llama_server_path = llamaServer_->text().toStdString();
     settings.use_bundled_llama = llamaSource_->currentIndex() == 0;
     settings.ik_llama_server_path = ikLlamaServer_->text().toStdString();
+    settings.prism_llama_server_path = prismLlamaServer_->text().toStdString();
     settings.default_backend = defaultBackend_->currentIndex() == 1 ? BackendPreference::IkLlama
-                                                                    : BackendPreference::LlamaCpp;
+                               : defaultBackend_->currentIndex() == 2
+                                   ? BackendPreference::PrismLlama
+                               : defaultBackend_->currentIndex() == 3 ? BackendPreference::LocalCode
+                                                                      : BackendPreference::LlamaCpp;
     settings.use_external_server = useExternal_->isChecked();
     settings.external_server_url = externalUrl_->text().toStdString();
     settings.external_server_api_key = externalKey_->text().toStdString();

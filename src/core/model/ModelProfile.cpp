@@ -35,12 +35,18 @@ std::string_view to_string(BackendPreference preference) noexcept {
         case BackendPreference::Auto: return "auto";
         case BackendPreference::LlamaCpp: return "llama.cpp";
         case BackendPreference::IkLlama: return "ik_llama.cpp";
+        case BackendPreference::PrismLlama: return "prism_llama.cpp";
+        case BackendPreference::LocalCode: return "llama.cpp.localcode";
     }
     return "auto";
 }
 
 BackendPreference backend_preference_from_string(std::string_view text) {
     const auto lowered = strings::to_lower(text);
+    if (lowered == "prism_llama.cpp" || lowered == "prism" || lowered == "bonsai")
+        return BackendPreference::PrismLlama;
+    if (lowered == "llama.cpp.localcode" || lowered == "localcode")
+        return BackendPreference::LocalCode;
     if (lowered == "llama.cpp" || lowered == "llamacpp" || lowered == "llama") {
         return BackendPreference::LlamaCpp;
     }
@@ -200,14 +206,20 @@ ModelProfile ModelProfile::from_gguf(const GgufMetadata& metadata,
     profile.model_path = metadata.path;
     profile.id = make_id(metadata.path);
 
-    profile.display_name =
-        metadata.name.empty() ? path_to_utf8(metadata.path.stem()) : metadata.name;
+    // Some exporters write their generic "Hf" label instead of a model name.
+    profile.display_name = metadata.name.empty() || metadata.name == "Hf"
+                               ? path_to_utf8(metadata.path.stem())
+                               : metadata.name;
     if (!metadata.quantization.empty()) {
         profile.display_name += " (" + metadata.quantization + ")";
     }
 
     profile.architecture = metadata.architecture;
     profile.quantization = metadata.quantization;
+    if (metadata.file_type == 141 || metadata.file_type == 142 || metadata.file_type == 143) {
+        profile.backend = BackendPreference::PrismLlama;
+        profile.notes = "This Prism quantization requires the PrismML llama.cpp runtime.";
+    }
     profile.file_size = metadata.file_size;
     profile.trained_context = metadata.context_length;
     profile.created_unix_ms = now_unix_ms();

@@ -438,7 +438,35 @@ TEST_CASE("backend preference parses the names users type", "[model][backend]") 
     CHECK(backend_preference_from_string("llamacpp") == BackendPreference::LlamaCpp);
     CHECK(backend_preference_from_string("ik_llama.cpp") == BackendPreference::IkLlama);
     CHECK(backend_preference_from_string("ik") == BackendPreference::IkLlama);
+    CHECK(backend_preference_from_string("prism") == BackendPreference::PrismLlama);
+    CHECK(backend_preference_from_string("bonsai") == BackendPreference::PrismLlama);
+    CHECK(backend_preference_from_string("localcode") == BackendPreference::LocalCode);
     CHECK(backend_preference_from_string("nonsense") == BackendPreference::Auto);
+}
+
+TEST_CASE("Prism GGUF types select their required runtime and preserve explicit profiles",
+          "[model][backend][bonsai]") {
+    for (const auto type : {141u, 142u, 143u}) {
+        GgufMetadata metadata;
+        metadata.path = "models/renamed.gguf";
+        metadata.name = "Hf";
+        metadata.file_type = type;
+        metadata.quantization = gguf_file_type_name(type);
+        auto profile = ModelProfile::from_gguf(metadata);
+        CHECK(profile.backend == BackendPreference::PrismLlama);
+        CHECK(profile.display_name.starts_with("renamed"));
+        CHECK(profile.quantization == (type == 143 ? "PTQ1_0" : "PQ2_0"));
+        profile.server_binary = "runtimes/owner-build/llama-server.exe";
+        auto restored = model_profile_from_json(to_json(profile));
+        CHECK(restored.backend == BackendPreference::PrismLlama);
+        CHECK(restored.server_binary == profile.server_binary);
+        profile.backend = BackendPreference::LocalCode;
+        CHECK(model_profile_from_json(to_json(profile)).backend == BackendPreference::LocalCode);
+    }
+    GgufMetadata standard;
+    standard.path = "models/normal.gguf";
+    standard.file_type = 15;
+    CHECK(ModelProfile::from_gguf(standard).backend == BackendPreference::Auto);
 }
 
 TEST_CASE("profile serialisation is lossless", "[model]") {

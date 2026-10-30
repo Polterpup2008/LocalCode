@@ -3,6 +3,7 @@
 #include <atomic>
 #include <memory>
 #include "../setup/ResourceInstaller.h"
+#include "model/ModelProfile.h"
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -18,6 +19,7 @@ namespace localcode::gui {
 struct SetupSelection {
     QString runtime, model, projector;
     bool cpuStartingProfile = false;
+    BackendPreference backend = BackendPreference::Auto;
 };
 
 class ResourceSetupDialog : public QDialog {
@@ -58,7 +60,7 @@ private:
     CancellationSource cancel_;
     std::shared_ptr<Progress> progress_;
     QLineEdit *runtime_, *model_, *projector_, *tag_, *repository_;
-    QComboBox *runtimeBuild_, *modelFile_;
+    QComboBox *runtimeBuild_, *modelFile_, *runtimeProvider_;
     QTabWidget* pages_;
     QTextBrowser *runtimeDetail_, *modelDetail_;
     QLabel* status_;

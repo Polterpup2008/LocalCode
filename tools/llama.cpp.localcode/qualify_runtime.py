@@ -42,10 +42,11 @@ def main():
     parser.add_argument('--model', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--gpu-layers', type=int, default=999)
+    parser.add_argument('--context', type=int, default=32768)
     parser.add_argument('--device', help='Explicit runtime device identifier, such as Vulkan1 or CUDA0')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
-    contract = {'context': 32768, 'gpu_layers': args.gpu_layers, 'threads': 8, 'batch': 512,
+    contract = {'context': args.context, 'gpu_layers': args.gpu_layers, 'threads': 8, 'batch': 512,
                 'ubatch': 512, 'cache_k': 'f16', 'cache_v': 'f16',
                 'startup_timeout_s': 150, 'request_timeout_s': 120,
                 'model_sha256': digest(args.model)}

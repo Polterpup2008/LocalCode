@@ -65,6 +65,7 @@ private:
     QWidget* customLlamaRow_ = nullptr;
     QLineEdit* llamaServer_ = nullptr;
     QLineEdit* ikLlamaServer_ = nullptr;
+    QLineEdit* prismLlamaServer_ = nullptr;
     QComboBox* defaultBackend_ = nullptr;
     QCheckBox* useExternal_ = nullptr;
     QLineEdit* externalUrl_ = nullptr;

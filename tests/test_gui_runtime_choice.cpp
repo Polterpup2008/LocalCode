@@ -115,3 +115,29 @@ TEST_CASE("upgrading a saved explicit runtime preserves its custom selection",
     CHECK(application.settings().llama_server_path == custom);
     CHECK_FALSE(application.settings().use_external_server);
 }
+
+TEST_CASE("Prism runtime path and preferred backend survive reopening settings",
+          "[gui][settings][runtime-choice][bonsai][persistence]") {
+    RuntimeChoicePaths paths;
+    const auto server =
+        path_to_utf8(app_paths().runtime_dir() / "prism-custom" / "llama-server.exe");
+    {
+        Application application;
+        REQUIRE(application.initialise());
+        SettingsDialog dialog(application);
+        auto* prism = dialog.findChild<QLineEdit*>("PrismLlamaServerPath");
+        auto* backend = dialog.findChild<QComboBox*>("DefaultRuntimeBackend");
+        REQUIRE(prism);
+        REQUIRE(backend);
+        prism->setText(QString::fromStdString(server));
+        backend->setCurrentIndex(2);
+        saveRuntimeSettings(dialog);
+        CHECK(application.settings().default_backend == BackendPreference::PrismLlama);
+    }
+    Application reopened;
+    REQUIRE(reopened.initialise());
+    CHECK(reopened.settings().prism_llama_server_path == server);
+    CHECK(reopened.settings().default_backend == BackendPreference::PrismLlama);
+    CHECK(path_to_utf8(reopened.backends().configured_binary(BackendPreference::PrismLlama)) ==
+          server);
+}

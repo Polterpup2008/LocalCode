@@ -8,16 +8,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.2.1"><img src="https://img.shields.io/badge/release-1.2.1-d97757?style=flat-square" alt="Release 1.2.1"></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/tag/v1.2.2"><img src="https://img.shields.io/badge/release-1.2.2-d97757?style=flat-square" alt="Release 1.2.2"></a>
   <img src="https://img.shields.io/badge/desktop-Windows_x64-555b64?style=flat-square" alt="Windows x64">
   <img src="https://img.shields.io/badge/built_with-C%2B%2B23_%2B_Qt_6-555b64?style=flat-square" alt="C++23 and Qt 6">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-555b64?style=flat-square" alt="Proprietary license; source visible"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.1/LocalCode-1.2.1-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.2/LocalCode-1.2.2-Windows-x64-Setup.exe"><strong>Download installer</strong></a>
   &nbsp; · &nbsp;
-  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.1/LocalCode-1.2.1-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
+  <a href="https://github.com/Polterpup2008/LocalCode/releases/download/v1.2.2/LocalCode-1.2.2-Windows-x64.zip"><strong>Download portable ZIP</strong></a>
   &nbsp; · &nbsp;
   <a href="docs/GETTING_STARTED.md">Getting started</a>
 </p>
@@ -30,7 +30,7 @@ The Windows package includes **llama.cpp.localcode** and Qt. Bring a compatible
 GGUF model; a manual server setup is optional. No Visual Studio installation is
 needed to run the app.
 
-**New in 1.2.1:** lower resident RAM for the bundled Vulkan alternative, with the same model, context and precision. [See the measured scope](docs/RELEASE_NOTES_1.2.1.md).
+**New in 1.2.2:** four runtime choices and verified Bonsai 2 downloads through PrismML llama.cpp. [See the release notes](docs/RELEASE_NOTES_1.2.2.md).
 
 **New in 1.2:** incomplete tool calls no longer poison retries or saved chats.
 Rejected batches run no tools, recovery is bounded, and Models exposes a separate
@@ -122,6 +122,14 @@ manual presets and placement controls remain available.
 your `llama-server.exe`, keeping its supporting DLLs together. A model must be
 supported by the runtime and its chat template. RAM, VRAM and GPU-driver
 requirements depend on your model, context size and selected backend.
+
+**Four runtime choices:** model profiles offer the included LocalCode optimized
+runtime, upstream llama.cpp, ik_llama.cpp, and **PrismML llama.cpp for Bonsai 2**.
+In **Models → Set up a local model**, select a runtime version. Upstream and
+PrismML Windows x64 builds can be downloaded with SHA256 verification;
+ik_llama.cpp uses an existing build. Selecting PrismML offers the official
+**Bonsai 2 27B PTQ1_0** GGUF, about **5.95 GB** for the weights. Runtime buffers
+and context require additional RAM/VRAM. See the [Bonsai setup guide](docs/BONSAI.md).
 
 **Existing server:** leave **Use a server I started myself** unchecked for normal
 use. Enable it only to connect to a server you already run; LocalCode will not

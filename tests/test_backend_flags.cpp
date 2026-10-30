@@ -1067,6 +1067,36 @@ TEST_CASE("runtimes are found in version-stamped folders", "[backend][discovery]
     CHECK(mainline == 1);
 }
 
+TEST_CASE("Prism runtimes stay distinct from upstream discovery and the bundled default",
+          "[backend][discovery][bonsai]") {
+    TempDirectory temp;
+    const auto directory = temp.path() / "prism-b10831-cuda-12.4";
+    std::filesystem::create_directories(directory);
+    const auto binary = directory / ("llama-server" + std::string{kExeSuffixForTest});
+    std::filesystem::copy_file(LOCALCODE_TEST_SERVER_FIXTURE, binary);
+    RuntimeDiscovery request;
+    request.runtime_root = temp.path();
+    const auto installs = BackendManager::discover_runtimes(request);
+    int matches = 0;
+    for (const auto& install : installs) {
+        if (install.server_binary == std::filesystem::weakly_canonical(binary)) {
+            ++matches;
+            CHECK(install.kind == BackendPreference::PrismLlama);
+        }
+    }
+    CHECK(matches == 1);
+    BackendManager manager;
+    manager.set_use_bundled_llama(true);
+    manager.set_configured_binary(BackendPreference::PrismLlama, binary);
+    ModelProfile profile;
+    profile.backend = BackendPreference::PrismLlama;
+    profile.gpu_layers = 0;
+    const auto selected = manager.select(profile);
+    REQUIRE(selected);
+    CHECK(selected->chosen == BackendPreference::PrismLlama);
+    CHECK(selected->install.server_binary == std::filesystem::weakly_canonical(binary));
+}
+
 TEST_CASE("a folder that merely starts with the letters ik is not an ik build",
           "[backend][discovery]") {
     // "Nikola" contains ik; "ikigai" starts with it but is a word, not the

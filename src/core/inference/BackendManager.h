@@ -49,6 +49,7 @@ struct RuntimeDiscovery {
     std::filesystem::path ik_llama_binary;
     std::filesystem::path runtime_root;
     bool use_bundled_llama = false;
+    std::filesystem::path prism_llama_binary;
 };
 
 // Where an already-running server can be attached to instead of spawning one.
@@ -138,6 +139,7 @@ private:
 
     std::filesystem::path llama_binary_;
     std::filesystem::path ik_llama_binary_;
+    std::filesystem::path prism_llama_binary_;
     bool use_bundled_llama_ = false;
     BackendPreference default_preference_ = BackendPreference::LlamaCpp;
     ExternalEndpoint external_;

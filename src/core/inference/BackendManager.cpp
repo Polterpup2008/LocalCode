@@ -36,6 +36,7 @@ std::vector<std::string> binary_names(BackendPreference kind) {
 // Subdirectories of the managed runtime directory, by convention one per
 // runtime so a user can keep several llama.cpp builds side by side.
 std::vector<std::string> runtime_subdirectories(BackendPreference kind) {
+    if (kind == BackendPreference::PrismLlama) return {"prism_llama.cpp", "prism", "bonsai"};
     if (kind == BackendPreference::IkLlama) {
         return {"ik_llama.cpp", "ik_llama", "ik-llama.cpp"};
     }
@@ -58,6 +59,19 @@ bool path_suggests_ik(const std::filesystem::path& relative) {
         if (component.size() == 2) return true;
         const char next = component[2];
         if (!std::isalpha(static_cast<unsigned char>(next))) return true;
+    }
+    return false;
+}
+
+bool path_suggests_prism(const std::filesystem::path& relative) {
+    for (const auto& part : relative) {
+        const auto name = strings::to_lower(path_to_utf8(part));
+        for (const std::string prefix : {"prism", "bonsai"}) {
+            if (name.starts_with(prefix) &&
+                (name.size() == prefix.size() ||
+                 !std::isalpha(static_cast<unsigned char>(name[prefix.size()]))))
+                return true;
+        }
     }
     return false;
 }
@@ -124,6 +138,14 @@ std::string extract_version(const ServerBinaryFeatures& features) {
     return features.version;
 }
 
+BackendPtr make_runtime_backend(BackendPreference kind, const BackendEndpoint& endpoint,
+                                const std::shared_ptr<HttpClient>& http) {
+    if (kind == BackendPreference::IkLlama) return std::make_shared<IkLlamaBackend>(endpoint, http);
+    if (kind == BackendPreference::PrismLlama)
+        return std::make_shared<PrismLlamaBackend>(endpoint, http);
+    return std::make_shared<LlamaCppBackend>(endpoint, http);
+}
+
 }   // namespace
 
 std::string RuntimeInstall::display() const {
@@ -147,7 +169,9 @@ void BackendManager::set_http_client(std::shared_ptr<HttpClient> http) {
 
 void BackendManager::set_configured_binary(BackendPreference kind, std::filesystem::path binary) {
     std::lock_guard lock(mutex_);
-    if (kind == BackendPreference::IkLlama)
+    if (kind == BackendPreference::PrismLlama)
+        prism_llama_binary_ = std::move(binary);
+    else if (kind == BackendPreference::IkLlama)
         ik_llama_binary_ = std::move(binary);
     else
         llama_binary_ = std::move(binary);
@@ -156,7 +180,9 @@ void BackendManager::set_configured_binary(BackendPreference kind, std::filesyst
 
 std::filesystem::path BackendManager::configured_binary(BackendPreference kind) const {
     std::lock_guard lock(mutex_);
-    return kind == BackendPreference::IkLlama ? ik_llama_binary_ : llama_binary_;
+    return kind == BackendPreference::PrismLlama ? prism_llama_binary_
+           : kind == BackendPreference::IkLlama  ? ik_llama_binary_
+                                                 : llama_binary_;
 }
 
 void BackendManager::set_use_bundled_llama(bool enabled) {
@@ -211,8 +237,9 @@ std::vector<std::filesystem::path> BackendManager::candidate_binaries(
 
     // An explicit environment variable outranks everything but a configured path.
     const auto from_environment =
-        env_value(kind == BackendPreference::IkLlama ? "LOCALCODE_IK_LLAMA_SERVER"
-                                                     : "LOCALCODE_LLAMA_SERVER");
+        env_value(kind == BackendPreference::PrismLlama ? "LOCALCODE_PRISM_LLAMA_SERVER"
+                  : kind == BackendPreference::IkLlama  ? "LOCALCODE_IK_LLAMA_SERVER"
+                                                        : "LOCALCODE_LLAMA_SERVER");
     if (!from_environment.empty() && std::filesystem::is_regular_file(from_environment, ec)) {
         candidates.emplace_back(from_environment);
     }
@@ -233,13 +260,18 @@ std::vector<std::filesystem::path> BackendManager::candidate_binaries(
 
     // Anything else under the runtime root, whatever its folders are called.
     for (const auto& [binary, is_ik] : scan_for_servers(runtime_root, 3)) {
-        if (is_ik == (kind == BackendPreference::IkLlama)) candidates.push_back(binary);
+        const auto relative = binary.lexically_relative(runtime_root);
+        const auto actual = path_suggests_prism(relative) ? BackendPreference::PrismLlama
+                            : is_ik                       ? BackendPreference::IkLlama
+                                                          : BackendPreference::LlamaCpp;
+        if (actual == kind) candidates.push_back(binary);
     }
 
     // PATH. Only meaningful for the runtime whose binary name is distinctive:
     // a bare llama-server on PATH is assumed to be mainline llama.cpp.
     for (const auto& name : binary_names(kind)) {
-        const bool ambiguous = (kind == BackendPreference::IkLlama) && name.rfind("ik", 0) != 0;
+        const bool ambiguous = kind == BackendPreference::PrismLlama ||
+                               ((kind == BackendPreference::IkLlama) && name.rfind("ik", 0) != 0);
         if (ambiguous) continue;
         for (const auto& found : find_all_executables(name))
             candidates.push_back(found);
@@ -274,6 +306,7 @@ std::vector<RuntimeInstall> BackendManager::discover_runtimes(bool refresh, Canc
     {
         std::lock_guard lock(mutex_);
         if (llama_binary_ == request.llama_binary && ik_llama_binary_ == request.ik_llama_binary &&
+            prism_llama_binary_ == request.prism_llama_binary &&
             app_paths().runtime_dir() == request.runtime_root &&
             use_bundled_llama_ == request.use_bundled_llama) {
             runtimes_ = found;
@@ -285,15 +318,18 @@ std::vector<RuntimeInstall> BackendManager::discover_runtimes(bool refresh, Canc
 
 RuntimeDiscovery BackendManager::runtime_discovery() const {
     std::lock_guard lock(mutex_);
-    return {llama_binary_, ik_llama_binary_, app_paths().runtime_dir(), use_bundled_llama_};
+    return {llama_binary_, ik_llama_binary_, app_paths().runtime_dir(), use_bundled_llama_,
+            prism_llama_binary_};
 }
 
 std::vector<RuntimeInstall> BackendManager::discover_runtimes(const RuntimeDiscovery& request,
                                                               CancellationToken cancel) {
     std::vector<RuntimeInstall> found;
-    for (auto kind : {BackendPreference::LlamaCpp, BackendPreference::IkLlama}) {
-        const auto& configured =
-            kind == BackendPreference::IkLlama ? request.ik_llama_binary : request.llama_binary;
+    for (auto kind :
+         {BackendPreference::LlamaCpp, BackendPreference::IkLlama, BackendPreference::PrismLlama}) {
+        const auto& configured = kind == BackendPreference::PrismLlama ? request.prism_llama_binary
+                                 : kind == BackendPreference::IkLlama  ? request.ik_llama_binary
+                                                                       : request.llama_binary;
         const auto candidates =
             candidate_binaries(kind, configured, request.runtime_root, request.use_bundled_llama);
         for (const auto& binary : candidates) {
@@ -303,8 +339,9 @@ std::vector<RuntimeInstall> BackendManager::discover_runtimes(const RuntimeDisco
             install.server_binary = binary;
 
             const auto from_environment =
-                env_value(kind == BackendPreference::IkLlama ? "LOCALCODE_IK_LLAMA_SERVER"
-                                                             : "LOCALCODE_LLAMA_SERVER");
+                env_value(kind == BackendPreference::PrismLlama ? "LOCALCODE_PRISM_LLAMA_SERVER"
+                          : kind == BackendPreference::IkLlama  ? "LOCALCODE_IK_LLAMA_SERVER"
+                                                                : "LOCALCODE_LLAMA_SERVER");
             if (request.use_bundled_llama && kind == BackendPreference::LlamaCpp) {
                 install.source = "llama.cpp.localcode bundled with LocalCode";
             } else if (!configured.empty() && binary == configured) {
@@ -359,8 +396,11 @@ Result<BackendSelection> BackendManager::select(const ModelProfile& profile, Can
         return selection;
     }
     const auto primary_detail = probe->detail;
-    if (use_bundled_llama() && profile.server_binary.empty() &&
-        selection->chosen == BackendPreference::LlamaCpp) {
+    if ((profile.backend == BackendPreference::LocalCode ||
+         (profile.backend == BackendPreference::Auto && use_bundled_llama())) &&
+        profile.server_binary.empty() &&
+        (selection->chosen == BackendPreference::LlamaCpp ||
+         selection->chosen == BackendPreference::LocalCode)) {
         const auto alternative = AppPaths::bundled_llama_server().parent_path() / "vulkan" /
             AppPaths::bundled_llama_server().filename();
         auto features = ModelServer::probe_binary(alternative, cancel);
@@ -385,6 +425,15 @@ Result<BackendSelection> BackendManager::select(const ModelProfile& profile, Can
 }
 
 Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& profile, CancellationToken cancel) {
+    if ((profile.backend == BackendPreference::LocalCode ||
+         (profile.backend == BackendPreference::Auto &&
+          default_preference() == BackendPreference::LocalCode)) &&
+        profile.server_binary.empty()) {
+        auto pinned = profile;
+        pinned.backend = BackendPreference::LocalCode;
+        pinned.server_binary = AppPaths::bundled_llama_server();
+        return select_runtime(pinned, cancel);
+    }
     // A profile that pins a binary wins outright: the user was explicit.
     if (!profile.server_binary.empty()) {
         std::error_code ec;
@@ -408,7 +457,9 @@ Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& prof
         return selection;
     }
 
-    if (use_bundled_llama() && profile.backend != BackendPreference::IkLlama) {
+    if (use_bundled_llama() && profile.backend == BackendPreference::Auto &&
+        default_preference() != BackendPreference::PrismLlama &&
+        default_preference() != BackendPreference::IkLlama) {
         std::error_code ec;
         if (!std::filesystem::is_regular_file(AppPaths::bundled_llama_server(), ec)) {
             return make_error(
@@ -416,11 +467,15 @@ Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& prof
                 "Reinstall LocalCode, or select Custom llama.cpp in Settings > Models.");
         }
     }
-    auto runtimes = discover_runtimes(false, cancel);
+    auto request = runtime_discovery();
+    if (profile.backend == BackendPreference::LlamaCpp) request.use_bundled_llama = false;
+    auto runtimes = profile.backend == BackendPreference::LlamaCpp
+                        ? discover_runtimes(request, cancel)
+                        : discover_runtimes(false, cancel);
     if (cancel.cancelled()) return make_error(ErrorCode::Cancelled, "Runtime selection cancelled");
     if (runtimes.empty()) {
         return make_error(
-            ErrorCode::NotFound, "no llama.cpp or ik_llama.cpp server was found",
+            ErrorCode::NotFound, "no compatible local model runtime was found",
             "Set the server binary path in Settings, put llama-server on PATH, or place a "
             "build under " +
                 path_to_utf8(app_paths().runtime_dir()) + "/llama.cpp/");
@@ -433,6 +488,13 @@ Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& prof
         return nullptr;
     };
 
+    if (profile.backend == BackendPreference::Auto &&
+        (default_preference() == BackendPreference::PrismLlama ||
+         default_preference() == BackendPreference::IkLlama)) {
+        if (const auto* install = first_of(default_preference()))
+            return BackendSelection{install->kind, *install,
+                                    "using the configured default runtime"};
+    }
     if (use_bundled_llama() && profile.backend == BackendPreference::Auto) {
         const auto* install = first_of(BackendPreference::LlamaCpp);
         if (!install) {
@@ -469,6 +531,9 @@ Result<BackendSelection> BackendManager::select_runtime(const ModelProfile& prof
     // --- AUTO -------------------------------------------------------------
     const auto* llama = first_of(BackendPreference::LlamaCpp);
     const auto* ik = first_of(BackendPreference::IkLlama);
+    const auto* prism = first_of(BackendPreference::PrismLlama);
+    if (!llama && !ik && prism)
+        return BackendSelection{prism->kind, *prism, "PrismML is the only runtime installed"};
 
     BackendSelection selection;
     if (llama && !ik) {
@@ -531,11 +596,7 @@ Result<BackendPtr> BackendManager::activate(const ModelProfile& profile, Cancell
         endpoint.base_url = external.base_url;
         endpoint.api_key = external.api_key;
 
-        BackendPtr backend = external.kind == BackendPreference::IkLlama
-                                 ? std::static_pointer_cast<IInferenceBackend>(
-                                       std::make_shared<IkLlamaBackend>(endpoint, http))
-                                 : std::static_pointer_cast<IInferenceBackend>(
-                                       std::make_shared<LlamaCppBackend>(endpoint, http));
+        BackendPtr backend = make_runtime_backend(external.kind, endpoint, http);
 
         auto health = backend->health(cancel);
         if (!health) {
@@ -606,14 +667,11 @@ Result<BackendPtr> BackendManager::activate(const ModelProfile& profile, Cancell
 
     BackendEndpoint endpoint;
     endpoint.base_url = server_.base_url();
-    endpoint.native_reasoning_budget = selection->chosen == BackendPreference::LlamaCpp &&
+    endpoint.native_reasoning_budget = selection->chosen != BackendPreference::IkLlama &&
                                        selection->install.features.reasoning_budget;
 
-    BackendPtr backend = selection->chosen == BackendPreference::IkLlama
-                             ? std::static_pointer_cast<IInferenceBackend>(
-                                   std::make_shared<IkLlamaBackend>(endpoint, http))
-                             : std::static_pointer_cast<IInferenceBackend>(
-                                   std::make_shared<LlamaCppBackend>(endpoint, http));
+
+    BackendPtr backend = make_runtime_backend(selection->chosen, endpoint, http);
 
     // Let a dropped connection say whether the process on the other end survived
     // it. This manager owns the server, so it is the only thing that can tell.

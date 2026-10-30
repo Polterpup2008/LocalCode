@@ -103,7 +103,8 @@ int usage() {
     std::cout << "localcode-doctor - diagnostics for LocalCode\n\n"
                  "  env                          development environment report\n"
                  "  gguf <file>                  GGUF header and inferred capabilities\n"
-                 "  backends                     discovered llama.cpp / ik_llama.cpp runtimes\n"
+                 "  backends                     discovered LocalCode / llama.cpp / ik_llama.cpp / "
+                 "PrismML runtimes\n"
                  "  path <workspace> <path> <read|write|create|delete>\n"
                  "  cmd <workspace> <command...> command policy decision\n"
                  "  run <workspace> <exe> [args...]\n"
@@ -118,7 +119,7 @@ int usage() {
                  "  agent <workspace> <model.gguf> <prompt>\n"
                  "                               run the agent loop against a real model\n"
                  "\nOptions for `agent`:\n"
-                 "  --backend <auto|llama.cpp|ik_llama.cpp>\n"
+                 "  --backend <auto|llama.cpp|ik_llama.cpp|prism|localcode>\n"
                  "  --server <path>              use this server binary\n"
                  "  --ctx <tokens>               context size (default: from the model)\n"
                  "  --mode <auto|chat|code>      greeting detection, conversation or full agent\n"
@@ -132,6 +133,7 @@ int usage() {
                  "\nEnvironment:\n"
                  "  LOCALCODE_LLAMA_SERVER       path to a llama.cpp server binary\n"
                  "  LOCALCODE_IK_LLAMA_SERVER    path to an ik_llama.cpp server binary\n"
+                 "  LOCALCODE_PRISM_LLAMA_SERVER path to a PrismML llama.cpp server binary\n"
                  "  LOCALCODE_HOME               relocate all application data\n";
     return 2;
 }
@@ -394,16 +396,18 @@ int command_config(const std::vector<std::string>& rest) {
         else if (key == "llama-server") {
             settings.llama_server_path = value;
             settings.use_bundled_llama = value.empty();
-        } else if (key == "ik-llama-server")
+        } else if (key == "ik-llama-server") {
             settings.ik_llama_server_path = value;
-        else if (key == "data-dir")
+        } else if (key == "prism-llama-server") {
+            settings.prism_llama_server_path = value;
+        } else if (key == "data-dir")
             settings.data_directory = value;
         else if (key == "cache-dir")
             settings.cache_directory = value;
         else {
             std::cerr << "error: unknown key '" << key
                       << "'. Known keys: runtime-dir, llama-server, ik-llama-server, "
-                         "data-dir, cache-dir\n";
+                         "prism-llama-server, data-dir, cache-dir\n";
             return 2;
         }
 
@@ -419,6 +423,7 @@ int command_config(const std::vector<std::string>& rest) {
     print_row("runtime-dir", settings.runtime_directory);
     print_row("llama-server", settings.llama_server_path);
     print_row("ik-llama-server", settings.ik_llama_server_path);
+    print_row("prism-llama-server", settings.prism_llama_server_path);
     print_row("data-dir", settings.data_directory);
     print_row("cache-dir", settings.cache_directory);
     std::cout << "\n  Set one with:  localcode-doctor config set <key> <value>\n";

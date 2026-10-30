@@ -23,6 +23,8 @@
 #include "../ScreenGuard.h"
 #include "inference/ServerManager.h"
 #include "model/GgufMetadata.h"
+#include "platform/PathEncoding.h"
+#include "platform/Paths.h"
 #include "util/Strings.h"
 
 namespace localcode::gui {
@@ -162,10 +164,18 @@ ResourceSetupDialog::ResourceSetupDialog(SetupSelection initial, QString runtime
     connect(memory_, &QCheckBox::toggled, this, [this](bool checked) {
         if (checked) reasoning_->setChecked(false);
     });
+    runtimeProvider_ = new QComboBox(this);
+    runtimeProvider_->setObjectName("SetupRuntimeProvider");
+    runtimeProvider_->addItem(tr("LocalCode optimized (included)"), "localcode");
+    runtimeProvider_->addItem(tr("llama.cpp (upstream)"), "upstream");
+    runtimeProvider_->addItem(tr("ik_llama.cpp (existing build)"), "ik");
+    runtimeProvider_->addItem(tr("PrismML llama.cpp (Bonsai 2)"), "prism");
+    runtimeProvider_->setCurrentIndex(1);
+    engine->addRow(tr("Runtime version"), runtimeProvider_);
     tag_ = new QLineEdit("b10655", this);
     tag_->setObjectName("SetupReleaseTag");
     tag_->setToolTip(tr("A binary build tag such as b10655, or an official version such as v0.6.0."));
-    engine->addRow(tr("llama.cpp release tag"), tag_);
+    engine->addRow(tr("Release tag (or latest)"), tag_);
     runtimeFetch_ = new QPushButton(tr("Find Windows builds"), this);
     runtimeFetch_->setObjectName("SetupFindRuntimes");
     engine->addRow(runtimeFetch_);
@@ -180,8 +190,8 @@ ResourceSetupDialog::ResourceSetupDialog(SetupSelection initial, QString runtime
     engine->addRow(runtimeDownload_);
     auto* runtimeHelp = detail();
     runtimeHelp->setText(
-        tr("b10655 is the build used for the recorded local benchmarks. Official version tags such "
-           "as v0.6.0 also work; the selected build is shown before downloading. CPU requires no GPU "
+        tr("Enter a release tag or latest; the exact selected build is shown before downloading. "
+           "CPU requires no GPU "
            "driver. CUDA requires a compatible NVIDIA driver and downloads its CUDA libraries too. "
            "Vulkan requires a working Vulkan driver. A successful download does not establish "
            "model speed or compatibility."));
@@ -246,13 +256,56 @@ ResourceSetupDialog::ResourceSetupDialog(SetupSelection initial, QString runtime
         showModel();
         updateControls();
     });
+    connect(runtimeProvider_, &QComboBox::currentIndexChanged, this, [this] {
+        const auto provider = runtimeProvider_->currentData().toString();
+        runtimes_.clear();
+        runtimeBuild_->clear();
+        showRuntime();
+        tag_->setText(provider == "prism" ? "latest" : "b10655");
+        if (provider != "localcode") runtime_->clear();
+        if (provider == "localcode") {
+            runtime_->setText(
+                QString::fromStdString(path_to_utf8(AppPaths::bundled_llama_server())));
+            status_->setText(tr("The optimized runtime is included with LocalCode."));
+        } else if (provider == "ik") {
+            status_->setText(
+                tr("Select an existing ik_llama.cpp server above. Its project does not publish "
+                   "Windows binary archives."));
+        } else if (provider == "prism") {
+            repository_->setText("prism-ml/Ternary-Bonsai-2-27B-gguf");
+            status_->setText(
+                tr("Find a PrismML build, then download Bonsai 2 PTQ1_0 (about 5.95 GB). CUDA 12.4 "
+                   "is recommended on Windows NVIDIA PCs."));
+        }
+        updateControls();
+    });
+    connect(tag_, &QLineEdit::textChanged, this, [this] {
+        runtimes_.clear();
+        runtimeBuild_->clear();
+        showRuntime();
+        updateControls();
+    });
+    connect(repository_, &QLineEdit::textChanged, this, [this] {
+        models_ = {};
+        modelFile_->clear();
+        showModel();
+        updateControls();
+    });
+    if (initial.backend != BackendPreference::Auto)
+        runtimeProvider_->setCurrentIndex(initial.backend == BackendPreference::LocalCode    ? 0
+                                          : initial.backend == BackendPreference::IkLlama    ? 2
+                                          : initial.backend == BackendPreference::PrismLlama ? 3
+                                                                                             : 1);
+    if (initial.backend != BackendPreference::LocalCode) runtime_->setText(initial.runtime);
     connect(runtimeFetch_, &QPushButton::clicked, this, [this] {
         const auto installer = installer_;
         const auto tag = tag_->text().trimmed();
+        const auto provider = runtimeProvider_->currentData().toString();
         job(
             tr("Reading llama.cpp release metadata…"),
-            [installer, tag](CancellationToken cancel, ResourceProgress) -> Result<Outcome> {
-                const auto result = installer->runtimes(tag, cancel);
+            [installer, tag, provider](CancellationToken cancel,
+                                       ResourceProgress) -> Result<Outcome> {
+                const auto result = installer->runtimes(tag, provider, cancel);
                 if (!result) return result.error();
                 Outcome out;
                 out.runtimes = *result;
@@ -289,6 +342,10 @@ ResourceSetupDialog::ResourceSetupDialog(SetupSelection initial, QString runtime
                 modelFile_->clear();
                 for (const auto& item : models_.files)
                     modelFile_->addItem(item.name + " · " + bytes(item.bytes));
+                for (qsizetype i = 0; i < models_.files.size(); ++i)
+                    if (models_.repository == "prism-ml/Ternary-Bonsai-2-27B-gguf" &&
+                        models_.files[i].name == "Ternary-Bonsai-2-27B-PTQ1_0.gguf")
+                        modelFile_->setCurrentIndex(static_cast<int>(i));
                 showModel();
                 status_->setText(
                     tr("Review the selected weights and their license before downloading."));
@@ -368,7 +425,11 @@ ResourceSetupDialog::~ResourceSetupDialog() {
 
 SetupSelection ResourceSetupDialog::selection() const {
     return {runtime_->text().trimmed(), model_->text().trimmed(), projector_->text().trimmed(),
-            cpu_->isChecked()};
+            cpu_->isChecked(),
+            runtimeProvider_->currentIndex() == 0   ? BackendPreference::LocalCode
+            : runtimeProvider_->currentIndex() == 2 ? BackendPreference::IkLlama
+            : runtimeProvider_->currentIndex() == 3 ? BackendPreference::PrismLlama
+                                                    : BackendPreference::LlamaCpp};
 }
 
 void ResourceSetupDialog::reject() {
@@ -389,6 +450,10 @@ void ResourceSetupDialog::showEvent(QShowEvent* event) {
 
 void ResourceSetupDialog::updateControls() {
     pages_->setEnabled(!busy_);
+    const auto downloadable =
+        runtimeProvider_->currentIndex() == 1 || runtimeProvider_->currentIndex() == 3;
+    runtimeFetch_->setEnabled(!busy_ && downloadable);
+    tag_->setEnabled(!busy_ && downloadable);
     cpu_->setEnabled(!busy_);
     use_->setEnabled(!busy_ && QFileInfo(runtime_->text().trimmed()).isFile() &&
                      QFileInfo(model_->text().trimmed()).isFile());

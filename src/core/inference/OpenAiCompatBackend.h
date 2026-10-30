@@ -128,4 +128,15 @@ public:
     [[nodiscard]] std::string display_name() const override { return "ik_llama.cpp"; }
 };
 
+class PrismLlamaBackend final : public OpenAiCompatBackend {
+public:
+    using OpenAiCompatBackend::OpenAiCompatBackend;
+
+    [[nodiscard]] std::string id() const override { return "prism_llama.cpp"; }
+
+    [[nodiscard]] std::string display_name() const override {
+        return "PrismML llama.cpp (Bonsai 2)";
+    }
+};
+
 }   // namespace localcode

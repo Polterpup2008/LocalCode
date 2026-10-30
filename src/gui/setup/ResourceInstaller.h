@@ -13,6 +13,7 @@ struct RuntimePackage {
     QString tag, flavour;
     QList<ResourceAsset> assets;
     quint64 bytes() const;
+    QString provider = "upstream";
 };
 
 struct HubModels {
@@ -29,6 +30,8 @@ public:
     explicit ResourceInstaller(std::shared_ptr<HttpClient> http = HttpClient::create(),
                                QString supportDirectory = {});
     Result<QList<RuntimePackage>> runtimes(const QString& tag, CancellationToken cancel = {}) const;
+    Result<QList<RuntimePackage>> runtimes(const QString& tag, const QString& provider,
+                                           CancellationToken cancel = {}) const;
     Result<HubModels> models(const QString& repository, CancellationToken cancel = {}) const;
     Result<QString> installRuntime(const RuntimePackage& package, const QString& root,
                                    ResourceProgress progress = {},
@@ -51,9 +54,9 @@ private:
     Result<QString> prepareRuntimeCopy(const QString& server, const QString& root,
                                        bool reasoning, ResourceProgress progress,
                                        CancellationToken cancel) const;
-    Result<QList<RuntimePackage>> runtimesForRelease(const QString& tag,
-                                                    CancellationToken cancel,
-                                                    bool followBuildReference) const;
+    Result<QList<RuntimePackage>> runtimesForRelease(const QString& tag, CancellationToken cancel,
+                                                     bool followBuildReference,
+                                                     const QString& provider = "upstream") const;
     Result<QByteArray> metadata(const QString& url, CancellationToken cancel) const;
     Status download(const ResourceAsset& asset, const QString& destination,
                     ResourceProgress progress, CancellationToken cancel) const;

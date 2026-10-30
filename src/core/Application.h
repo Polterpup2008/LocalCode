@@ -46,6 +46,7 @@ struct AppSettings {
 #endif
     std::string llama_server_path;
     std::string ik_llama_server_path;
+    std::string prism_llama_server_path;
     BackendPreference default_backend = BackendPreference::LlamaCpp;
     bool use_external_server = false;
     std::string external_server_url = "http://127.0.0.1:8080";

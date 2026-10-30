@@ -285,6 +285,10 @@ std::string gguf_file_type_name(std::uint32_t file_type) {
         case 32: return "BF16";
         case 36: return "TQ1_0";
         case 37: return "TQ2_0";
+        case 40: return "Q1_0";
+        case 141:
+        case 142: return "PQ2_0";
+        case 143: return "PTQ1_0";
         default: return "type " + std::to_string(file_type);
     }
 }

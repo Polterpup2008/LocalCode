@@ -1,0 +1,1046 @@
+{
+  "date": "2026-10-30",
+  "hardware": {
+    "cpu": "Intel Core i5-12450H, 8 cores / 12 threads",
+    "system_ram_bytes": 34046541824,
+    "gpu": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 4060 Laptop GPU, 610.78, 8188 MiB"
+  },
+  "manifest": {
+    "contract": {
+      "context": 4096,
+      "gpu_layers": 999,
+      "threads": 8,
+      "batch": 512,
+      "ubatch": 128,
+      "cache_k": "f16",
+      "cache_v": "f16",
+      "startup_timeout_s": 300,
+      "request_timeout_s": 300
+    },
+    "order": [
+      "bonsai",
+      "mimo",
+      "mimo",
+      "bonsai"
+    ],
+    "repetitions": 3,
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cases": {
+      "bonsai": {
+        "server": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\runtime\\llama-server.exe",
+        "server_sha256": "60aa3a551c58c986b142243840f79b0acdd250d9fb71fe14580e79509e51a240",
+        "model": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+        "model_sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+        "model_bytes": 5946648928,
+        "runtime_files": {
+          "cublas64_12.dll": "e40202fe4223c1cd2d2dce7beec59e1ed61c7801bd827309183be9b50e358f4c",
+          "cublasLt64_12.dll": "2a896460bef60ed57ef32b0875812f355a6984e671d638bb632f5e8c1d7a831f",
+          "cudart64_12.dll": "d28e42265da7462162a54da6b7a99ea4fa2caf8139d862bb500db875d0b32dfc",
+          "ggml-base.dll": "5469225e92d2304ec888f18b159f12cb14acdd23a26b743525d0d4038d7161eb",
+          "ggml-cpu-alderlake.dll": "c3e01812acee7c288f7e7e93239f4171102228e4a7273b22ad257a4fe74dda57",
+          "ggml-cpu-cannonlake.dll": "00c9a53dcddcd1fb1ab8ca13bb55e772dafc0732168fc36823736d3a5ec7362b",
+          "ggml-cpu-cascadelake.dll": "e56f033a1306b2440def64450bbf84a75a46ab24a4269f6d15ee25a6bff60289",
+          "ggml-cpu-haswell.dll": "ab495580fdfe6233ba7b32acbc3c7fd5015469264b41d59fd0254f3f0f8b83da",
+          "ggml-cpu-icelake.dll": "ba3326daab47c0807208429db7d580f9c36c01ca97258440c0c79859180db922",
+          "ggml-cpu-sandybridge.dll": "e585e20896b503a7e46ac96c1fef84d2d75ffe2392b51cfed5412b2c06a31adc",
+          "ggml-cpu-skylakex.dll": "2a820c3b806496b5fc46e396726ba40824ef9d4f10da3655b92d7fee29a49a27",
+          "ggml-cpu-sse42.dll": "5c9d8e3e5c1aac78f400c6267b79a23af552645739979234baaae2ef74f92ee9",
+          "ggml-cpu-ssse3.dll": "57e76bfd3fd1abc1faa83ed80f3f36205d0599074304fa06f72972d4380fea6d",
+          "ggml-cpu-x64.dll": "a8526336d407daf20cf364e9429b94b29a467228afbab237e5feea1d060b20bb",
+          "ggml-cuda.dll": "d3817fdd4c7f37a298006cdb21a8d3ed51c1692dc128304c24e1f7861d709e1c",
+          "ggml-rpc-server.exe": "cc7c7319e386140e1bb0c1d3eb23c8b90d76869b57741df39e4746e827a69212",
+          "ggml-rpc.dll": "99a040ce5479b4da88dcef97f9672c6e33aa50952cb38dd5301d72084aff9b46",
+          "ggml.dll": "dd952ecf5ae8b7ebf13c6bdd50df0deb72c02407aaef2d73fcf448abbc11de63",
+          "llama-batched-bench-impl.dll": "3a18af61444011211d57a973743751d4a7e52e2ac59229d5f4e471a26b7ebb0d",
+          "llama-batched-bench.exe": "4b2a3c989203941f66cdab201a5931c8653233ab54bc762ad0a0123c9cd6b00a",
+          "llama-batched.exe": "42b08ffa99ed8482cd9fc8ee9eca20aab30e9c738e74725a0c3a813e29cc594e",
+          "llama-bench-impl.dll": "ea6a084db8647af55b534328024fca4e6844a5427a818a0ca0397742cc688163",
+          "llama-bench.exe": "aeec3e98fd1c6d74a92a27ad404fdc53ae2ff083edb521e4e1247656822f9135",
+          "llama-cli-impl.dll": "bdfd4c39c26962e11aec8bf7de02c6761cc5cb7d9fee9292cc241a412c13ecbb",
+          "llama-cli.exe": "57269d7600985af6d146cf73f86c10bd20f7077f9584feb462c2effd821abee4",
+          "llama-common.dll": "ad6ddc2df3880aecaed266a96537f9483806ff80551f379b4a91b1d4569f68bd",
+          "llama-completion-impl.dll": "1e3a74e7194ae903b54a689246f45976bfc5522ca0d868a961429e92d8302dbf",
+          "llama-completion.exe": "5caa147e8aa31033dd66e14a0af40af2d3bf47da4a201db121ca734720dc0e40",
+          "llama-debug.exe": "c7a019ce4cd6cd59eb0f5367cd92c2f2b5987e4dfead027163ec5cb53a1ce42f",
+          "llama-diffusion-cli.exe": "7d1692dd6cb738ab48f5ac9ef3525fe53cc6f4da7845df1cd343949c705e841e",
+          "llama-embedding.exe": "da39fe47b948f7bbe97a1332fd6d8a4f2c7cb3bc85aa2988bd7b64c3f019c60a",
+          "llama-eval-callback.exe": "52ef3ef2d194ac3e56869ae277761ab6b6b271493c700b1be924de01667e52d6",
+          "llama-finetune.exe": "c092bc2f4c0c5e27aaaedd0212999c9c7597338c5a9a5d86aa0120d34cf6f30d",
+          "llama-fit-params-impl.dll": "579d04afdbb77a4ef41888b2263946b47392889d6fe89ffbf24cb0e4e3cd69ea",
+          "llama-fit-params.exe": "f3ad87cb7ffd21cc54039595683b0cf1e6524624f7d909a5cc77b8aae6c761a2",
+          "llama-gemma3-cli.exe": "a8201259df8480c76758b7cc2884fdee16a3a8177084a43fb9b270b5cda66df7",
+          "llama-gen-docs.exe": "ba76cade826b2c566682e08bb6dac474243bcdaab848765851686e44a647bb29",
+          "llama-gguf-hash.exe": "fbd0e75babb7b3381b8e55ce93b67c4719fc2fceda5648ee019de55829f23848",
+          "llama-gguf-split.exe": "2398b7faf04fed4aa522e3c861dc9088cdb722b05a91b6f47d9b3d20570fe91f",
+          "llama-gguf.exe": "d2e70c274c377666ae0dba1097f15e20a657361ba6e8b559089418cefd61894e",
+          "llama-idle.exe": "aaa7e4d2aef5b34c0ffbc4148406d3af32a6fa524cfa084624a3fb1c49879c47",
+          "llama-imatrix.exe": "d11340a9d54441866ca7ed5a36e161d6c61b2dfe78683e4c309e7be1426d2af4",
+          "llama-kv-mean-center.exe": "3f2a4f40e9fc5915cd4fb6bc24a5c786445741bae618b106695c36e8eee225e4",
+          "llama-llava-cli.exe": "a8201259df8480c76758b7cc2884fdee16a3a8177084a43fb9b270b5cda66df7",
+          "llama-lookahead.exe": "c517195fcf2e91720fa452e4c929364eac5119ab96176913c735c1cc04be84e8",
+          "llama-lookup-create.exe": "00bfa96d2640ae68b132646fe969981378fc6b410d46c4922d8ab6943e7df692",
+          "llama-lookup-merge.exe": "09cc1fc28d3688c4a934b64dae8102799a2634f8ef4bfa846973a6b4d66c82f1",
+          "llama-lookup-stats.exe": "966dd4da472143eb8c626f5a9a3ebd572385fe33409de90d2929d993517e8ed0",
+          "llama-lookup.exe": "b8d40ef31a08b38fc70d9c9a742dece1d1608b3fb1279beb591d41c4abbc143b",
+          "llama-minicpmv-cli.exe": "a8201259df8480c76758b7cc2884fdee16a3a8177084a43fb9b270b5cda66df7",
+          "llama-mtmd-cli.exe": "4c416835086dad7920d833caeae71933caac24859acfc5a5b8ca5d09e954f026",
+          "llama-mtmd-debug.exe": "a44108a3debf82f00af057943e1720c3437a8e98d5f4408236f8f831b7b1821e",
+          "llama-mtp-export.exe": "047700d6b63cc4278496851f6b3889970c970cde9abb448b5b7a47581265f7b8",
+          "llama-parallel.exe": "2b5a7c7f1f04c6f98f4992704a2eef7dad52c17d2bcaf0c5a1afa80ce2f857d4",
+          "llama-passkey.exe": "f64c3670ac40c15341d31ceb42a2662e1b81b0b6756094bd84558a3d4129db48",
+          "llama-perplexity-impl.dll": "b6cf417bc7fea14514168981343178bc5367a2d831aa4b14e8e682565d9bc3f0",
+          "llama-perplexity.exe": "febc2e2db5375799d484c847ad806dc280c7e29dab963cf0d047a96d2c9de080",
+          "llama-quantize-impl.dll": "cd0b717ec4ca092e95a7e8ff65bdcb66c29c1f35aea0c798308c35ae76ecf99a",
+          "llama-quantize.exe": "c5c7d24fd0f24e2c1e2e7e4c5b6dcbd9db047fe6b9b32b95f892d245ec81ab24",
+          "llama-qwen2vl-cli.exe": "a8201259df8480c76758b7cc2884fdee16a3a8177084a43fb9b270b5cda66df7",
+          "llama-results.exe": "e52aa57d08ed795ba2bb594d9302b977ab82f63c9c8c24ce49e6f253930a2185",
+          "llama-retrieval.exe": "3cbf4095685ed5128ee9dbc0a123568a49a70aea736b54e2536f6b56c216edfc",
+          "llama-rs-rollback-multi.exe": "34f6d2a578af60349576d07c1b81071dd3ed4ef9e034a57ed59843030cd15943",
+          "llama-rs-rollback.exe": "eaa968c3e5c7bd8f9a4b1c7c028057ab067b0e0f01b2e735497605f730c0af59",
+          "llama-server-impl.dll": "f494a1a7c8c0c458f37501537062e170f24a0fa030446279fa475245be30947e",
+          "llama-server.exe": "60aa3a551c58c986b142243840f79b0acdd250d9fb71fe14580e79509e51a240",
+          "llama-simple-chat.exe": "4508b22c840a4696c5c4c2e96b035a66953bab467c92457bf17c3c23ad95264d",
+          "llama-simple.exe": "cb8264f995606c5e2ab694b0e0c1eecfd0db68bbf55446ccd3f660a815d26894",
+          "llama-speculative-simple.exe": "eac6980bf03d0b571f117f832e1f5ffaa4016281a718803959dc00624932cfcc",
+          "llama-speculative.exe": "7ad29402fd2c42b30f6d7ec644a90ad343839f25bcd3546b3844a19632722245",
+          "llama-tokenize.exe": "44846cb7ed09a8c81147b48fdc40033adc33e7d1fe1e8f5534672f68975ba317",
+          "llama-tts.exe": "0335a95133613c873509911e225ff9afc28bafbea4bceaf8872174a4778b3539",
+          "llama.dll": "9008446282d5b2cd9b660bc556ad8c25d1fd927389bb21df6446397429290504",
+          "llama.exe": "5404237a8cee9b322bbfb958d2e241fd476b5fec6c135ac8aa0a1fcbfff1816b",
+          "mtmd.dll": "3eb9cf343189c3fa1d6000fa9df8d1a0c27e1415ea10e9c3e54efcd528e46418"
+        }
+      },
+      "mimo": {
+        "server": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\app\\bin\\llama.cpp.localcode\\llama-server.exe",
+        "server_sha256": "d9e6c5678a62da1d757f3773e822d439b6935ffac0386cc33aefa30b79da4848",
+        "model": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\models\\MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+        "model_sha256": "4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81",
+        "model_bytes": 5841049120,
+        "runtime_files": {
+          "concrt140.dll": "2405355f0a58067b258f8df33c327e3a3d716eaac5a3a5aebb757842d85bd376",
+          "cublas64_13.dll": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+          "cublasLt64_13.dll": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+          "cudart64_13.dll": "05bfafcb97bd53b0089568a96e1e5bd6921637bd0853ff7f5342bd31a6a16890",
+          "ggml-base.dll": "910e7b39eb64b64b387e0508f0481987f27410503668065785b4a1fe0fd1cac8",
+          "ggml-cpu-alderlake.dll": "a5dd8f508fd8c1cc4f912f3d61c3c8544a23e4c0428a9c5b6d12ef9330022009",
+          "ggml-cpu-cannonlake.dll": "1bb121751722fb7aad079595e2ceea6edf82ce3ff1d41d5a6dda85441109173e",
+          "ggml-cpu-cascadelake.dll": "b90309553cd479a876ad60b6598e00e78e418380e89703409c1d91b51263c0b8",
+          "ggml-cpu-cooperlake.dll": "10939aa1a2b7a9c5548e40679bdb9829e618ba562639e56436abb0c9b177260a",
+          "ggml-cpu-haswell.dll": "4b05b494b6afb27550d4fe1a52adcfc90712992e958b7909351deb0bbf35a6c8",
+          "ggml-cpu-icelake.dll": "76902a357f74400af95f9a99b007d78a90fdd037b6c92e6fd163adebd902afd4",
+          "ggml-cpu-ivybridge.dll": "78072c987b886c43f321a93be701c78ae5635632a24b8bcc22bfe0120e5578b3",
+          "ggml-cpu-piledriver.dll": "6275ae738c6faa87dd856bb78c4c01800ee2f3220161803cdae6f05188e8cf59",
+          "ggml-cpu-sandybridge.dll": "f38da45535732dba8d6262ecc1be8be648b43427c796b56ecee2b638ae132c4d",
+          "ggml-cpu-sapphirerapids.dll": "330aa4c74518acc1050c8bd38829500007c42eceef04cddf92d65f3dee2b99cd",
+          "ggml-cpu-skylakex.dll": "e640410f1a95f97692944007d4ad06462385d39c91583adbf42413ca1c173fa2",
+          "ggml-cpu-sse42.dll": "5b773b832b282b0478586a0668c7e1b3267c0640292aaf69073d9ed170c39038",
+          "ggml-cpu-x64.dll": "1288f93b5fed4d6ea45e4db074acf387e6a5916494d5bfe14449faf7c746ba5d",
+          "ggml-cpu-zen4.dll": "15cfe061f7bf8cf4b75f52643dc400c64d41213f8496a4a757675236a13e89ee",
+          "ggml-cuda.dll": "df37dcac54b5fc5b79e4a4977ca58df03764b330b5e829578db33f7037566ac5",
+          "ggml.dll": "f180845535ee13fc098849f3407e7f6efefb695bd09d006617c44f82fab2db8c",
+          "libomp.dll": "a12116ba72d1d6820407cf30be23da04ce79d6bb8a71a5ee71759c5a1faa6f1c",
+          "llama-common.dll": "f18cd0d92f234f09498e45f62d7d6e8fff6b2a53e69be8157c9e7f929219a676",
+          "llama-server-impl.dll": "c07338a64136b7748a3ea681d2764e3c1475283d2c05f1cb66e2ee9bed3d2d2f",
+          "llama-server.exe": "d9e6c5678a62da1d757f3773e822d439b6935ffac0386cc33aefa30b79da4848",
+          "llama.dll": "6581eb6d8187a684f3c983b40e447218f1b9516034da0d4e48cf72a8c426f388",
+          "msvcp140.dll": "0f885b509a685d2bbfa652fed26b5fb31d88fbdab0a978c641d1c7b8aa460aa9",
+          "msvcp140_1.dll": "bfad5aef4c63a669e3c140655cdfdf395b6c979b400a447bd5dcb65ed8826c3d",
+          "msvcp140_2.dll": "3ea06f0ee098b4823cb79599df3780e7f23cce52c19aac31d2a0d47efe33a5e9",
+          "msvcp140_atomic_wait.dll": "640b2aefced484d0368eea5bdd06addd0658a3a70a49256e560d6923b404a479",
+          "msvcp140_codecvt_ids.dll": "f2069a52880ec885ee7f0511186100eb7fada0411a2b4948fafea7735b878a18",
+          "mtmd.dll": "4605f11a529ac86eb6bdead7e2d6873129101fce5690c6f019131b6ce68054b0",
+          "vcruntime140.dll": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066",
+          "vcruntime140_1.dll": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"
+        }
+      }
+    },
+    "notes": "Same text, context, precision, GPU layer request and output token budget. Different tokenizers can give different input token counts. Warm-up excluded; EOS ignored only for throughput. No cached prompts.",
+    "gpu": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 4060 Laptop GPU, 610.78, 8188 MiB"
+  },
+  "summary": {
+    "bonsai": {
+      "short": {
+        "samples": 6,
+        "median_decode_tokens_s": 26.511278522125664,
+        "median_prompt_tokens_s": 78.65723699199697,
+        "median_ttft_s": 0.406770250000136,
+        "median_wall_s": 5.126268600000458
+      },
+      "long": {
+        "samples": 6,
+        "median_decode_tokens_s": 26.271517447890744,
+        "median_prompt_tokens_s": 447.18826169150316,
+        "median_ttft_s": 3.136644250000245,
+        "median_wall_s": 7.950207200000023
+      },
+      "peak_process_rss_bytes": 7823777792
+    },
+    "mimo": {
+      "short": {
+        "samples": 6,
+        "median_decode_tokens_s": 32.88296842675692,
+        "median_prompt_tokens_s": 142.44622075737072,
+        "median_ttft_s": 0.18851764999999432,
+        "median_wall_s": 4.058602699999938
+      },
+      "long": {
+        "samples": 6,
+        "median_decode_tokens_s": 33.38231152286608,
+        "median_prompt_tokens_s": 1337.5246301386799,
+        "median_ttft_s": 1.0696888500001478,
+        "median_wall_s": 4.854193699999996
+      },
+      "peak_process_rss_bytes": 5203689472
+    }
+  },
+  "phases": [
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "startup_s": 3.8025299000000814,
+      "peak_process_rss_bytes": 7812718592,
+      "gpu_peak_mib": 6028.0,
+      "gpu_temperature_min_c": 50.0,
+      "gpu_temperature_max_c": 69.0,
+      "thermal_slowdown_active_samples": 3,
+      "gpu_observation_samples": 39
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "startup_s": 4.435184599999957,
+      "peak_process_rss_bytes": 5136187392,
+      "gpu_peak_mib": 5388.0,
+      "gpu_temperature_min_c": 61.0,
+      "gpu_temperature_max_c": 71.0,
+      "thermal_slowdown_active_samples": 4,
+      "gpu_observation_samples": 30
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "startup_s": 6.933523699999569,
+      "peak_process_rss_bytes": 5203689472,
+      "gpu_peak_mib": 5388.0,
+      "gpu_temperature_min_c": 64.0,
+      "gpu_temperature_max_c": 76.0,
+      "thermal_slowdown_active_samples": 7,
+      "gpu_observation_samples": 33
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "startup_s": 3.719907799999419,
+      "peak_process_rss_bytes": 7823777792,
+      "gpu_peak_mib": 6044.0,
+      "gpu_temperature_min_c": 69.0,
+      "gpu_temperature_max_c": 81.0,
+      "thermal_slowdown_active_samples": 2,
+      "gpu_observation_samples": 43
+    }
+  ],
+  "results": [
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 0,
+      "wall_s": 4.773220300000503,
+      "ttft_s": 0.39311150000048656,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 277.045,
+        "prompt_per_token_ms": 18.46966666666667,
+        "prompt_per_second": 54.142828782327776,
+        "predicted_n": 128,
+        "predicted_ms": 4378.428,
+        "predicted_per_token_ms": 34.47581102362204,
+        "predicted_per_second": 29.005844106606297
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 0,
+      "wall_s": 7.720968699999503,
+      "ttft_s": 3.2337367000000086,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 3110.068,
+        "prompt_per_token_ms": 2.2684668125455874,
+        "prompt_per_second": 440.8263742143259,
+        "predicted_n": 128,
+        "predicted_ms": 4485.821,
+        "predicted_per_token_ms": 35.32142519685039,
+        "predicted_per_second": 28.311428387356518
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 1,
+      "wall_s": 4.889072400000259,
+      "ttft_s": 0.42042899999978545,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 198.366,
+        "prompt_per_token_ms": 13.224400000000001,
+        "prompt_per_second": 75.61779740479719,
+        "predicted_n": 128,
+        "predicted_ms": 4466.912,
+        "predicted_per_token_ms": 35.17253543307087,
+        "predicted_per_second": 28.43127422255016
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 1,
+      "wall_s": 7.755467099999805,
+      "ttft_s": 3.096955500000149,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 3001.7,
+        "prompt_per_token_ms": 2.189423778264041,
+        "prompt_per_second": 456.74117999800114,
+        "predicted_n": 128,
+        "predicted_ms": 4656.864,
+        "predicted_per_token_ms": 36.66822047244094,
+        "predicted_per_second": 27.271571598397554
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 2,
+      "wall_s": 5.004919700000755,
+      "ttft_s": 0.3273125000005166,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 170.671,
+        "prompt_per_token_ms": 11.378066666666665,
+        "prompt_per_second": 87.88839345875985,
+        "predicted_n": 128,
+        "predicted_ms": 4675.762,
+        "predicted_per_token_ms": 36.817023622047245,
+        "predicted_per_second": 27.16134824655318
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 0,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 2,
+      "wall_s": 7.7440294999996695,
+      "ttft_s": 3.0615289999996094,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 2998.412,
+        "prompt_per_token_ms": 2.1870255288110867,
+        "prompt_per_second": 457.2420334497061,
+        "predicted_n": 128,
+        "predicted_ms": 4680.737,
+        "predicted_per_token_ms": 36.8561968503937,
+        "predicted_per_second": 27.132479351008186
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 0,
+      "wall_s": 3.8756754999994882,
+      "ttft_s": 0.16018799999983457,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 116.272,
+        "prompt_per_token_ms": 7.751466666666667,
+        "prompt_per_second": 129.00784367689556,
+        "predicted_n": 128,
+        "predicted_ms": 3713.753,
+        "predicted_per_token_ms": 29.242149606299215,
+        "predicted_per_second": 34.197212361726805
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 0,
+      "wall_s": 4.82074780000039,
+      "ttft_s": 1.0791685000003781,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 1037.627,
+        "prompt_per_token_ms": 0.7568395331874543,
+        "prompt_per_second": 1321.2840452301261,
+        "predicted_n": 128,
+        "predicted_ms": 3739.239,
+        "predicted_per_token_ms": 29.442826771653543,
+        "predicted_per_second": 33.96413013450063
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 1,
+      "wall_s": 3.84463229999983,
+      "ttft_s": 0.15144150000014633,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 83.89,
+        "prompt_per_token_ms": 5.592666666666667,
+        "prompt_per_second": 178.8055787340565,
+        "predicted_n": 128,
+        "predicted_ms": 3691.387,
+        "predicted_per_token_ms": 29.06603937007874,
+        "predicted_per_second": 34.40441221687132
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 1,
+      "wall_s": 4.727360800000497,
+      "ttft_s": 1.008986200000436,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 986.674,
+        "prompt_per_token_ms": 0.7196746900072939,
+        "prompt_per_second": 1389.516699538044,
+        "predicted_n": 128,
+        "predicted_ms": 3716.528,
+        "predicted_per_token_ms": 29.264,
+        "predicted_per_second": 34.17167851284855
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 2,
+      "wall_s": 3.8661388999998962,
+      "ttft_s": 0.15836719999970228,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 86.018,
+        "prompt_per_token_ms": 5.734533333333333,
+        "prompt_per_second": 174.38210607082237,
+        "predicted_n": 128,
+        "predicted_ms": 3704.104,
+        "predicted_per_token_ms": 29.166173228346455,
+        "predicted_per_second": 34.28629433730803
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 1,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 2,
+      "wall_s": 4.850625999999465,
+      "ttft_s": 1.0299225999997361,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 990.788,
+        "prompt_per_token_ms": 0.7226754194018964,
+        "prompt_per_second": 1383.7470780833032,
+        "predicted_n": 128,
+        "predicted_ms": 3817.684,
+        "predicted_per_token_ms": 30.060503937007876,
+        "predicted_per_second": 33.26624204622488
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 0,
+      "wall_s": 5.132391199999802,
+      "ttft_s": 0.2341188999998849,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 153.783,
+        "prompt_per_token_ms": 10.252199999999998,
+        "prompt_per_second": 97.54004018649657,
+        "predicted_n": 128,
+        "predicted_ms": 4895.376,
+        "predicted_per_token_ms": 38.54626771653543,
+        "predicted_per_second": 25.94284892518981
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 0,
+      "wall_s": 6.333021599999483,
+      "ttft_s": 1.4295694000002186,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 1365.239,
+        "prompt_per_token_ms": 0.995797957695113,
+        "prompt_per_second": 1004.2197739736412,
+        "predicted_n": 128,
+        "predicted_ms": 4899.879,
+        "predicted_per_token_ms": 38.58172440944882,
+        "predicted_per_second": 25.919007387733455
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 1,
+      "wall_s": 5.131083299999773,
+      "ttft_s": 0.2898226999996041,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 111.392,
+        "prompt_per_token_ms": 7.4261333333333335,
+        "prompt_per_second": 134.659580580293,
+        "predicted_n": 128,
+        "predicted_ms": 4837.908,
+        "predicted_per_token_ms": 38.09376377952756,
+        "predicted_per_second": 26.25101593498677
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 1,
+      "wall_s": 6.032912900000156,
+      "ttft_s": 1.2473986000004516,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 1186.896,
+        "prompt_per_token_ms": 0.8657155361050328,
+        "prompt_per_second": 1155.113843167388,
+        "predicted_n": 128,
+        "predicted_ms": 4783.246,
+        "predicted_per_token_ms": 37.663354330708664,
+        "predicted_per_second": 26.55100741212139
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "short",
+      "repetition": 2,
+      "wall_s": 4.241529900000387,
+      "ttft_s": 0.21684730000015406,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 99.845,
+        "prompt_per_token_ms": 6.656333333333333,
+        "prompt_per_second": 150.2328609344484,
+        "predicted_n": 128,
+        "predicted_ms": 4022.969,
+        "predicted_per_token_ms": 31.67692125984252,
+        "predicted_per_second": 31.568724491787034
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 2,
+      "case": "mimo",
+      "workload": "long",
+      "repetition": 2,
+      "wall_s": 4.857761400000527,
+      "ttft_s": 1.0602091999999175,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 1012.731,
+        "prompt_per_token_ms": 0.7386805251641138,
+        "prompt_per_second": 1353.7652150472336,
+        "predicted_n": 128,
+        "predicted_ms": 3791.228,
+        "predicted_per_token_ms": 29.852188976377953,
+        "predicted_per_second": 33.49838099950728
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 0,
+      "wall_s": 5.404770900000585,
+      "ttft_s": 0.4366972000007081,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 301.135,
+        "prompt_per_token_ms": 20.075666666666667,
+        "prompt_per_second": 49.81154631643615,
+        "predicted_n": 128,
+        "predicted_ms": 4965.822,
+        "predicted_per_token_ms": 39.10096062992126,
+        "predicted_per_second": 25.57481923435838
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 0,
+      "wall_s": 8.237120800000412,
+      "ttft_s": 3.2209667999995872,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 3093.379,
+        "prompt_per_token_ms": 2.2562939460247993,
+        "prompt_per_second": 443.20466389666444,
+        "predicted_n": 128,
+        "predicted_ms": 5014.185,
+        "predicted_per_token_ms": 39.48177165354331,
+        "predicted_per_second": 25.32814405531507
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 1,
+      "wall_s": 5.358635200000208,
+      "ttft_s": 0.4458394000002954,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 183.606,
+        "prompt_per_token_ms": 12.2404,
+        "prompt_per_second": 81.69667657919676,
+        "predicted_n": 128,
+        "predicted_ms": 4910.83,
+        "predicted_per_token_ms": 38.66795275590551,
+        "predicted_per_second": 25.86120879769815
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 1,
+      "wall_s": 8.14494730000024,
+      "ttft_s": 3.1451843000004374,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 3067.213,
+        "prompt_per_token_ms": 2.2372086068563095,
+        "prompt_per_second": 446.98558593746174,
+        "predicted_n": 128,
+        "predicted_ms": 4997.923,
+        "predicted_per_token_ms": 39.353724409448816,
+        "predicted_per_second": 25.4105555447733
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "short",
+      "repetition": 2,
+      "wall_s": 5.24761750000016,
+      "ttft_s": 0.32239279999976134,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 15,
+        "prompt_ms": 155.216,
+        "prompt_per_token_ms": 10.347733333333334,
+        "prompt_per_second": 96.63952169879393,
+        "predicted_n": 128,
+        "predicted_ms": 4923.2,
+        "predicted_per_token_ms": 38.76535433070866,
+        "predicted_per_second": 25.796230094247644
+      },
+      "request_sha256": "a52c595ce3366e66b9e727331fdd84ae8830fde5e81249e94c139f961495dc60"
+    },
+    {
+      "phase": 3,
+      "case": "bonsai",
+      "workload": "long",
+      "repetition": 2,
+      "wall_s": 8.187071399999695,
+      "ttft_s": 3.1281042000000525,
+      "timings": {
+        "cache_n": 0,
+        "prompt_n": 1371,
+        "prompt_ms": 3064.434,
+        "prompt_per_token_ms": 2.2351816192560174,
+        "prompt_per_second": 447.3909374455446,
+        "predicted_n": 128,
+        "predicted_ms": 5056.857,
+        "predicted_per_token_ms": 39.8177716535433,
+        "predicted_per_second": 25.11441395317289
+      },
+      "request_sha256": "fe164cf7bb2877a7997492bd8f45785d52fb53f659f193e6e100da712e8e6c58"
+    }
+  ],
+  "api_checks": {
+    "bonsai": {
+      "passed": 14,
+      "total": 15,
+      "checks": [
+        {
+          "name": "unicode-token-roundtrip",
+          "passed": true,
+          "detail": {
+            "tokens": 22
+          }
+        },
+        {
+          "name": "multiply",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 323
+            },
+            "expected": 323
+          }
+        },
+        {
+          "name": "subtract",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 327
+            },
+            "expected": 327
+          }
+        },
+        {
+          "name": "negative",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": -5
+            },
+            "expected": -5
+          }
+        },
+        {
+          "name": "precedence",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 23
+            },
+            "expected": 23
+          }
+        },
+        {
+          "name": "integer-division",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 7
+            },
+            "expected": 7
+          }
+        },
+        {
+          "name": "modulo",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 1
+            },
+            "expected": 1
+          }
+        },
+        {
+          "name": "array-sum",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 20
+            },
+            "expected": 20
+          }
+        },
+        {
+          "name": "length",
+          "passed": false,
+          "detail": {
+            "actual": {
+              "answer": 11
+            },
+            "expected": 9
+          }
+        },
+        {
+          "name": "code-add",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a + b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-subtract",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a - b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-weighted",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return 3 * a + 5 * b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "native-tool-arguments",
+          "passed": true,
+          "detail": {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "sum_ints",
+                  "arguments": "{\"a\":17,\"b\":19}"
+                },
+                "id": "SK5XrrVfS0acdBNj1BcsTrKKAPgXxWB3"
+              }
+            ]
+          }
+        },
+        {
+          "name": "complete-sse-token-accounting",
+          "passed": true,
+          "detail": {
+            "tokens": 32,
+            "ttft_s": 0.33674840000003314
+          }
+        },
+        {
+          "name": "healthy-after-requests",
+          "passed": true,
+          "detail": {}
+        }
+      ],
+      "scope": "Synthetic API/answer regression screen; no universal model-quality claim."
+    },
+    "mimo": {
+      "passed": 13,
+      "total": 15,
+      "checks": [
+        {
+          "name": "unicode-token-roundtrip",
+          "passed": true,
+          "detail": {
+            "tokens": 22
+          }
+        },
+        {
+          "name": "multiply",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 323
+            },
+            "expected": 323
+          }
+        },
+        {
+          "name": "subtract",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 327
+            },
+            "expected": 327
+          }
+        },
+        {
+          "name": "negative",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": -5
+            },
+            "expected": -5
+          }
+        },
+        {
+          "name": "precedence",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 23
+            },
+            "expected": 23
+          }
+        },
+        {
+          "name": "integer-division",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 7
+            },
+            "expected": 7
+          }
+        },
+        {
+          "name": "modulo",
+          "passed": true,
+          "detail": {
+            "actual": {
+              "answer": 1
+            },
+            "expected": 1
+          }
+        },
+        {
+          "name": "array-sum",
+          "passed": false,
+          "detail": {
+            "actual": {
+              "answer": 19
+            },
+            "expected": 20
+          }
+        },
+        {
+          "name": "length",
+          "passed": false,
+          "detail": {
+            "actual": {
+              "answer": 10
+            },
+            "expected": 9
+          }
+        },
+        {
+          "name": "code-add",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a + b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-subtract",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return a - b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "code-weighted",
+          "passed": true,
+          "detail": {
+            "code": "def solve(a, b):\n    return 3 * a + 5 * b",
+            "input_checks": 3
+          }
+        },
+        {
+          "name": "native-tool-arguments",
+          "passed": true,
+          "detail": {
+            "role": "assistant",
+            "content": "",
+            "tool_calls": [
+              {
+                "type": "function",
+                "function": {
+                  "name": "sum_ints",
+                  "arguments": "{\"a\":17,\"b\":19}"
+                },
+                "id": "zC3ySL209h8gcNrCSUGIIYICY74d5QwU"
+              }
+            ]
+          }
+        },
+        {
+          "name": "complete-sse-token-accounting",
+          "passed": true,
+          "detail": {
+            "tokens": 32,
+            "ttft_s": 0.14843269999983022
+          }
+        },
+        {
+          "name": "healthy-after-requests",
+          "passed": true,
+          "detail": {}
+        }
+      ],
+      "scope": "Synthetic API/answer regression screen; no universal model-quality claim."
+    }
+  },
+  "model_sources": {
+    "bonsai": {
+      "source": "D:\\Ai\\MODELS\\LLM\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "target": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\models\\Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+      "bytes": 5946648928,
+      "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+      "copy_s": 243.46799999999985
+    },
+    "mimo": {
+      "source": "D:\\Ai\\MODELS\\LLM\\MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+      "target": "L:\\ai\\LocalCode\\build\\bonsai-20261030\\models\\MiMo-V2.6-Distill-Qwen-9B-Q4_K_M.gguf",
+      "bytes": 5841049120,
+      "sha256": "4bca6f18c73f72270c7a20c2ea2bea581de8246e318714277120369d34048c81",
+      "copy_s": 236.76499999999942
+    }
+  },
+  "package": {
+    "path": "L:\\ai\\LocalCode\\dist\\bonsai-preview-20261030\\LocalCode-Bonsai-preview-Windows-x64.zip",
+    "sha256": "24b2b4752df24c10281ff39d0f8d26ce45a08c4ec60e316852a5bf697e7f2e29",
+    "bytes": 635423005
+  }
+}
