@@ -13,13 +13,13 @@
     "passed": 1022,
     "skipped": 7,
     "total": 1029,
-    "assertions_passed": 11912
+    "assertions_passed": 11923
   },
   "gui_tests": {
-    "passed": 108,
+    "passed": 110,
     "skipped": 6,
-    "total": 114,
-    "assertions_passed": 4317
+    "total": 116,
+    "assertions_passed": 4350
   },
   "benchmark_protocol_tests": {
     "passed": 6,
@@ -34,5 +34,17 @@
     "expected_reply": "RELEASE_READY"
   },
   "native_smoke_note": "Functional check completed while a separate GPU workload was active; these smoke-test timings are not used as benchmark results.",
-  "model_benchmark": "2026-10-30-bonsai-vs-mimo.json"
+  "model_benchmark": "2026-10-30-bonsai-vs-mimo.json",
+  "upgrade_migration_tests": {
+    "passed": 2,
+    "assertions_passed": 33,
+    "preserves": "legacy bundled profiles, explicit custom mode, pinned servers and later upstream choices"
+  },
+  "package_checks": {
+    "passed": true,
+    "payload_files": 705,
+    "installer_payload_matches_portable": true,
+    "unchanged_runtime_and_discord_files": 633,
+    "fresh_home_cli_gui_and_discord": true
+  }
 }

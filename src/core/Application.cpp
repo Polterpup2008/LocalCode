@@ -114,6 +114,30 @@ Status Application::initialise() {
     if (auto status = load_settings(); !status) {
         log_warn(LogChannel::App, "settings could not be loaded; using defaults",
                  {{"reason", status.error().message}});
+    } else {
+        // Before 1.2.2, setup saved the included runtime as an unpinned llama.cpp
+        // profile. Preserve that choice once, before exposing upstream and bundled
+        // as independent selections. The marker also protects later explicit choices.
+        if (settings_repo_->get_int("backend.runtime_choices_version", 0) < 1) {
+            const auto migrated = database_->with_transaction([&]() -> Status {
+                if (settings_repo_->get_int("backend.runtime_choices_version", 0) >= 1)
+                    return ok_status();
+                if (settings_repo_->get_bool("backend.bundled_llama",
+                                             settings().use_bundled_llama)) {
+                    auto profiles = model_repo_->all();
+                    if (!profiles) return profiles.error();
+                    for (auto& profile : *profiles) {
+                        if (profile.backend != BackendPreference::LlamaCpp ||
+                            !profile.server_binary.empty())
+                            continue;
+                        profile.backend = BackendPreference::LocalCode;
+                        if (auto saved = model_repo_->save(profile); !saved) return saved;
+                    }
+                }
+                return settings_repo_->set("backend.runtime_choices_version", "1");
+            });
+            if (!migrated) return migrated;
+        }
     }
 
     wire_agent();

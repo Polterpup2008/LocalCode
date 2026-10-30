@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTemporaryDir>
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 
 #include "Application.h"
@@ -140,4 +141,80 @@ TEST_CASE("Prism runtime path and preferred backend survive reopening settings",
     CHECK(reopened.settings().default_backend == BackendPreference::PrismLlama);
     CHECK(path_to_utf8(reopened.backends().configured_binary(BackendPreference::PrismLlama)) ==
           server);
+}
+
+TEST_CASE("legacy bundled profiles migrate without changing pinned or alternate runtimes",
+          "[gui][settings][runtime-choice][migration]") {
+    RuntimeChoicePaths paths;
+    std::vector<ModelProfile> originals;
+    {
+        Application application;
+        REQUIRE(application.initialise());
+        auto settings = application.settings();
+        settings.use_bundled_llama = true;
+        REQUIRE(application.apply_settings(settings));
+        for (const auto kind : {BackendPreference::LlamaCpp, BackendPreference::Auto,
+                                BackendPreference::IkLlama, BackendPreference::PrismLlama}) {
+            ModelProfile profile;
+            profile.id = std::string(to_string(kind));
+            profile.model_path = app_paths().data_dir() / (profile.id + ".gguf");
+            profile.backend = kind;
+            profile.context_size = 12288;
+            profile.gpu_layers = 17;
+            REQUIRE(application.save_model_profile(profile));
+            originals.push_back(profile);
+        }
+        auto pinned = originals.front();
+        pinned.id = "pinned";
+        pinned.server_binary = app_paths().runtime_dir() / "owner-selected.exe";
+        REQUIRE(application.save_model_profile(pinned));
+        originals.push_back(pinned);
+        REQUIRE(application.settings_repository().remove("backend.runtime_choices_version"));
+    }
+    Application upgraded;
+    REQUIRE(upgraded.initialise());
+    const auto profiles = upgraded.model_profiles();
+    REQUIRE(profiles);
+    REQUIRE(profiles->size() == originals.size());
+    for (const auto& profile : *profiles) {
+        const auto found = std::find_if(originals.begin(), originals.end(),
+                                        [&](const auto& old) { return old.id == profile.id; });
+        REQUIRE(found != originals.end());
+        auto expected = *found;
+        if (expected.backend == BackendPreference::LlamaCpp && expected.server_binary.empty())
+            expected.backend = BackendPreference::LocalCode;
+        CHECK(to_json(profile) == to_json(expected));
+    }
+    CHECK(upgraded.settings_repository().get_int("backend.runtime_choices_version", 0) == 1);
+}
+
+TEST_CASE("runtime migration preserves custom mode and later upstream selections",
+          "[gui][settings][runtime-choice][migration]") {
+    RuntimeChoicePaths paths;
+    {
+        Application application;
+        REQUIRE(application.initialise());
+        auto settings = application.settings();
+        settings.use_bundled_llama = false;
+        REQUIRE(application.apply_settings(settings));
+        ModelProfile profile;
+        profile.id = "upstream";
+        profile.model_path = app_paths().data_dir() / "model.gguf";
+        profile.backend = BackendPreference::LlamaCpp;
+        REQUIRE(application.save_model_profile(profile));
+        REQUIRE(application.settings_repository().remove("backend.runtime_choices_version"));
+    }
+    {
+        Application upgraded;
+        REQUIRE(upgraded.initialise());
+        REQUIRE(upgraded.model_profiles());
+        CHECK(upgraded.model_profiles()->front().backend == BackendPreference::LlamaCpp);
+        auto settings = upgraded.settings();
+        settings.use_bundled_llama = true;
+        REQUIRE(upgraded.apply_settings(settings));
+    }
+    Application reopened;
+    REQUIRE(reopened.initialise());
+    REQUIRE(reopened.model_profiles());
+    CHECK(reopened.model_profiles()->front().backend == BackendPreference::LlamaCpp);
 }

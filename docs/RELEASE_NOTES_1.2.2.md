@@ -9,6 +9,8 @@ Select **Models → Set up a local model → PrismML llama.cpp (Bonsai 2)** to
 download an official Windows CPU, CUDA, or Vulkan runtime and the compact
 Bonsai 2 27B PTQ1_0 GGUF. Downloads display their source and size and verify
 SHA256 before installation. CUDA packages include their matching libraries.
+Older bundled-runtime profiles are migrated to the explicit LocalCode choice,
+so upgrading preserves their included runtime.
 The model profile retains its runtime; selecting PrismML preserves the other
 runtime preferences. Existing PTQ1_0/PQ2_0 files are recognized during import.
 
